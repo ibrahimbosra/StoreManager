@@ -330,47 +330,113 @@
         .close-modal {
             background: none; border: none; font-size: 2rem; line-height: 1; cursor: pointer; color: #94a3b8;
         }
-        .form-group { margin-bottom: 18px; position: relative; }
-        .form-group label {
-            display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem;
+        /* تحسين حقول الإدخال في المودالات */
+        .form-group {
+            margin-bottom: 18px;
+            position: relative;
         }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            color: #334155;
+        }
+        /* حاوية الحقل مع الأيقونة */
         .input-wrapper {
+            position: relative;
             display: flex;
             align-items: center;
-            gap: 8px;
+            width: 100%;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 30px;
+            transition: 0.2s;
         }
-        .input-wrapper input, .input-wrapper select, .input-wrapper textarea {
-            flex: 1;
-            padding: 14px 18px;
-            border: 1px solid #dde2e9;
-            border-radius: 24px;
-            font-size: 1rem;
+        .input-wrapper:focus-within {
+            border-color: #4a6fa5;
             background: white;
+            box-shadow: 0 0 0 3px rgba(74,111,165,0.1);
+        }
+        .input-wrapper i {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 1rem;
+            z-index: 1;
+        }
+        .input-wrapper input,
+        .input-wrapper select,
+        .input-wrapper textarea {
+            width: 100%;
+            padding: 14px 50px 14px 18px; /* حشوة لليمين لترك مكان للأيقونة */
+            border: none;
+            background: transparent;
+            font-size: 1rem;
+            border-radius: 30px;
+            outline: none;
         }
         .input-wrapper textarea {
-            min-height: 80px;
+            min-height: 90px;
             resize: vertical;
+            padding-top: 18px;
+            padding-bottom: 18px;
+        }
+        .input-wrapper select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: left 18px center;
+            background-size: 16px;
+        }
+        /* حقول السعر الخاصة (مع زر التبديل) */
+        .input-wrapper.special {
+            padding-left: 60px; /* مكان للزر على اليسار */
+            padding-right: 50px; /* مكان للأيقونة على اليمين */
         }
         .currency-switch {
-            background: #f1f5f9;
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #eef2f6;
             border: none;
-            border-radius: 50%;
+            border-radius: 30px;
             width: 44px;
-            height: 44px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
+            font-size: 1rem;
             color: #2d3a4f;
             cursor: pointer;
             transition: 0.2s;
+            z-index: 2;
         }
         .currency-switch:hover { background: #e2e8f0; }
-        .currency-info { font-size: 0.8rem; color: #4b6584; margin-top: 5px; }
-        .radio-group { display: flex; gap: 20px; }
-        .form-actions { display: flex; gap: 10px; margin-top: 25px; }
+        .currency-info {
+            font-size: 0.8rem;
+            color: #4b6584;
+            margin-top: 6px;
+            padding-right: 16px;
+        }
+        .radio-group { display: flex; gap: 20px; flex-wrap: wrap; }
+        .radio-group label { display: flex; align-items: center; gap: 5px; font-weight: normal; cursor: pointer; }
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
         .save-btn, .cancel-btn {
-            flex: 1; padding: 16px; border: none; border-radius: 40px; font-weight: bold; font-size: 1rem; cursor: pointer;
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 40px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
         }
         .save-btn { background: #27ae60; color: white; }
         .cancel-btn { background: #f1f5f9; color: #1e2b3c; }
@@ -577,6 +643,15 @@
             padding: 8px;
             border-bottom: 1px solid #edf2f7;
         }
+        .date-group-header {
+            background: #e6edf7;
+            font-weight: 700;
+            text-align: center;
+            color: #1e2b3c;
+            padding: 6px;
+            border-top: 2px solid #b0c4de;
+            border-bottom: 2px solid #b0c4de;
+        }
         .loading, .empty-state { text-align: center; color: #94a3b8; padding: 30px; }
 
         /* نافذة تفاصيل المنتج */
@@ -620,6 +695,34 @@
             color: #4a6fa5;
             margin-left: 5px;
         }
+        /* تحسين الفلاتر */
+        .history-filter {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        .history-filter-btn, .clear-history-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 30px;
+            background: #eef2f6;
+            font-weight: 600;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .history-filter-btn.active {
+            background: #4a6fa5;
+            color: white;
+        }
+        .clear-history-btn {
+            background: #ffeae8;
+            color: #c23321;
+        }
     </style>
 </head>
 <body>
@@ -632,7 +735,7 @@
             <i class="fas fa-search"></i>
             <input type="text" id="searchInput" placeholder="بحث...">
         </div>
-        <!-- زر حالة المتجر (جديد) -->
+        <!-- زر حالة المتجر -->
         <button class="header-btn" id="storeStatusBtn" title="حالة المتجر">
             <i class="fas fa-store"></i>
         </button>
@@ -646,33 +749,45 @@
         <div class="loading">جاري تحميل البيانات...</div>
     </div>
 
-    <!-- مودال إضافة/تعديل المنتج -->
+    <!-- مودال إضافة/تعديل المنتج (جميع الحول عريضة واحترافية) -->
     <div class="modal" id="itemModal">
         <div class="modal-content">
             <div class="modal-header"><h2 id="modalTitle">إضافة قطعة</h2><button class="close-modal" id="closeModal">&times;</button></div>
             <form id="itemForm">
-                <div class="form-group"><label>الاسم *</label><input type="text" id="itemName" required></div>
-                <div class="form-group"><label>الفئة</label><select id="itemCategory"><option value="">بدون فئة</option></select></div>
-                <div class="form-group"><label>رابط الصورة</label><input type="url" id="itemImageUrl" placeholder="https://example.com/image.jpg"></div>
-                <div class="form-group"><label>الوصف</label><textarea id="itemDescription" rows="3" placeholder="وصف المنتج..."></textarea></div>
-                <div class="form-group"><label>المواصفات (مفتاح: قيمة, كل一行)</label><textarea id="itemSpecs" rows="4" placeholder="مثال:&#10;الماركة: XYZ&#10;اللون: أحمر&#10;المقاس: كبير"></textarea></div>
+                <div class="form-group">
+                    <label>الاسم *</label>
+                    <div class="input-wrapper"><i class="fas fa-tag"></i><input type="text" id="itemName" placeholder="اسم المنتج" required></div>
+                </div>
+                <div class="form-group">
+                    <label>الفئة</label>
+                    <div class="input-wrapper"><i class="fas fa-folder"></i><select id="itemCategory"><option value="">بدون فئة</option></select></div>
+                </div>
+                <div class="form-group">
+                    <label>رابط الصورة</label>
+                    <div class="input-wrapper"><i class="fas fa-image"></i><input type="url" id="itemImageUrl" placeholder="https://example.com/image.jpg"></div>
+                </div>
+                <div class="form-group">
+                    <label>الوصف</label>
+                    <div class="input-wrapper"><i class="fas fa-align-left"></i><textarea id="itemDescription" rows="3" placeholder="وصف المنتج..."></textarea></div>
+                </div>
+                <div class="form-group">
+                    <label>المواصفات (مفتاح: قيمة, كل一行)</label>
+                    <div class="input-wrapper"><i class="fas fa-list-ul"></i><textarea id="itemSpecs" rows="4" placeholder="مثال:&#10;الماركة: XYZ&#10;اللون: أحمر&#10;المقاس: كبير"></textarea></div>
+                </div>
                 <div class="form-group">
                     <label id="purchasePriceLabel">سعر الشراء ($)</label>
-                    <div class="input-wrapper">
-                        <input type="number" id="purchasePrice" step="0.01" min="0" required>
-                        <button type="button" class="currency-switch" id="switchPurchaseCurrency" title="تبديل العملة"><i class="fas fa-exchange-alt"></i></button>
-                    </div>
+                    <div class="input-wrapper special"><i class="fas fa-dollar-sign"></i><input type="number" id="purchasePrice" step="0.01" min="0" required><button type="button" class="currency-switch" id="switchPurchaseCurrency" title="تبديل العملة"><i class="fas fa-exchange-alt"></i></button></div>
                     <div class="currency-info" id="purchasePriceSecondary"></div>
                 </div>
                 <div class="form-group">
                     <label id="salePriceLabel">سعر البيع ($)</label>
-                    <div class="input-wrapper">
-                        <input type="number" id="salePrice" step="0.01" min="0" required>
-                        <button type="button" class="currency-switch" id="switchSaleCurrency" title="تبديل العملة"><i class="fas fa-exchange-alt"></i></button>
-                    </div>
+                    <div class="input-wrapper special"><i class="fas fa-dollar-sign"></i><input type="number" id="salePrice" step="0.01" min="0" required><button type="button" class="currency-switch" id="switchSaleCurrency" title="تبديل العملة"><i class="fas fa-exchange-alt"></i></button></div>
                     <div class="currency-info" id="salePriceSecondary"></div>
                 </div>
-                <div class="form-group"><label>الكمية</label><input type="number" id="quantity" min="0" required></div>
+                <div class="form-group">
+                    <label>الكمية</label>
+                    <div class="input-wrapper"><i class="fas fa-cubes"></i><input type="number" id="quantity" min="0" required></div>
+                </div>
                 <div class="form-actions"><button type="button" class="cancel-btn" id="cancelBtn">إلغاء</button><button type="submit" class="save-btn">حفظ</button></div>
             </form>
         </div>
@@ -686,19 +801,19 @@
         </div>
     </div>
 
-    <!-- مودال البيع -->
+    <!-- مودال البيع (محسّن) -->
     <div class="modal" id="sellModal">
         <div class="modal-content">
             <div class="modal-header"><h2>بيع</h2><button class="close-modal" id="closeSellModal">&times;</button></div>
             <form id="sellForm">
                 <div class="form-group"><label>المنتج: <span id="sellProductName"></span></label></div>
-                <div class="form-group"><label>الكمية</label><input type="number" id="sellQuantity" min="1" required></div>
+                <div class="form-group">
+                    <label>الكمية</label>
+                    <div class="input-wrapper"><i class="fas fa-cubes"></i><input type="number" id="sellQuantity" min="1" required></div>
+                </div>
                 <div class="form-group">
                     <label id="sellPriceLabel">السعر ($)</label>
-                    <div class="input-wrapper">
-                        <input type="number" id="sellPrice" step="0.01" required>
-                        <button type="button" class="currency-switch" id="switchSellCurrency" title="تبديل العملة"><i class="fas fa-exchange-alt"></i></button>
-                    </div>
+                    <div class="input-wrapper special"><i class="fas fa-dollar-sign"></i><input type="number" id="sellPrice" step="0.01" required><button type="button" class="currency-switch" id="switchSellCurrency" title="تبديل العملة"><i class="fas fa-exchange-alt"></i></button></div>
                     <div class="currency-info" id="sellPriceSecondaryInfo"></div>
                 </div>
                 <div class="form-actions"><button type="button" class="cancel-btn" id="cancelSellBtn">إلغاء</button><button type="submit" class="save-btn">تأكيد</button></div>
@@ -706,7 +821,7 @@
         </div>
     </div>
 
-    <!-- مودال تعديل بيع -->
+    <!-- مودال تعديل بيع (محسّن) -->
     <div class="modal" id="editSaleModal">
         <div class="modal-content">
             <div class="modal-header"><h2>تعديل بيع</h2><button class="close-modal" id="closeEditSaleModal">&times;</button></div>
@@ -716,13 +831,13 @@
                 <input type="hidden" id="editOriginalQuantity">
                 <input type="hidden" id="editSaleCurrency">
                 <div class="form-group"><label>المنتج: <span id="editProductName"></span></label></div>
-                <div class="form-group"><label>الكمية</label><input type="number" id="editQuantity" min="1" required></div>
+                <div class="form-group">
+                    <label>الكمية</label>
+                    <div class="input-wrapper"><i class="fas fa-cubes"></i><input type="number" id="editQuantity" min="1" required></div>
+                </div>
                 <div class="form-group">
                     <label id="editPriceLabel">السعر</label>
-                    <div class="input-wrapper">
-                        <input type="number" id="editPrice" step="0.01" required>
-                        <button type="button" class="currency-switch" id="switchEditCurrency" title="تبديل العملة"><i class="fas fa-exchange-alt"></i></button>
-                    </div>
+                    <div class="input-wrapper special"><i class="fas fa-dollar-sign"></i><input type="number" id="editPrice" step="0.01" required><button type="button" class="currency-switch" id="switchEditCurrency" title="تبديل العملة"><i class="fas fa-exchange-alt"></i></button></div>
                     <div class="currency-info" id="editPriceSecondaryInfo"></div>
                 </div>
                 <div class="form-actions"><button type="button" class="cancel-btn" id="cancelEditSaleBtn">إلغاء</button><button type="submit" class="save-btn">حفظ</button></div>
@@ -768,7 +883,7 @@
                 </div>
             </div>
 
-            <!-- قسم سجل المبيعات -->
+            <!-- قسم سجل المبيعات (مقسّم حسب اليوم) -->
             <div class="report-section" id="salesLogSection">
                 <div class="table-wrapper">
                     <table class="sales-table">
@@ -780,7 +895,7 @@
 
             <!-- قسم سجل العمليات -->
             <div class="report-section" id="activityLogSection">
-                <div class="history-filter" style="margin-bottom: 10px;">
+                <div class="history-filter">
                     <button class="history-filter-btn active" data-action="all">الكل</button>
                     <button class="history-filter-btn" data-action="add">إضافة</button>
                     <button class="history-filter-btn" data-action="update">تعديل</button>
@@ -797,7 +912,7 @@
         </div>
     </div>
 
-    <!-- مودال الإعدادات (مقسم إلى أقسام) -->
+    <!-- مودال الإعدادات (جميع الحقول محسّنة) -->
     <div class="modal" id="settingsModal">
         <div class="modal-content">
             <div class="modal-header"><h2>الإعدادات</h2><button class="close-modal" id="closeSettingsModal">&times;</button></div>
@@ -805,9 +920,9 @@
                 <!-- قسم إدارة العملة -->
                 <div class="settings-section">
                     <div class="stats-title"><i class="fas fa-coins section-icon"></i> 💱 إدارة العملة</div>
-                    <div class="form-group"><label>اسم العملة الثانوية</label><input type="text" id="secondaryCurrencyName" value="ريال سعودي"></div>
-                    <div class="form-group"><label>الرمز</label><input type="text" id="secondaryCurrencySymbol" value="﷼"></div>
-                    <div class="form-group"><label>سعر الصرف (1$ =)</label><input type="number" id="exchangeRate" step="0.01" value="3.75"></div>
+                    <div class="form-group"><label>اسم العملة الثانوية</label><div class="input-wrapper"><i class="fas fa-coins"></i><input type="text" id="secondaryCurrencyName" value="ريال سعودي"></div></div>
+                    <div class="form-group"><label>الرمز</label><div class="input-wrapper"><i class="fas fa-hashtag"></i><input type="text" id="secondaryCurrencySymbol" value="﷼"></div></div>
+                    <div class="form-group"><label>سعر الصرف (1$ =)</label><div class="input-wrapper"><i class="fas fa-exchange-alt"></i><input type="number" id="exchangeRate" step="0.01" value="3.75"></div></div>
                     <div class="form-group"><label>عملة الإدخال الافتراضية للشراء</label>
                         <div class="radio-group">
                             <label><input type="radio" name="defaultInputCurrency" value="primary" checked> دولار</label>
@@ -827,23 +942,23 @@
                     <div class="stats-title"><i class="fas fa-tags section-icon"></i> 🏷️ إدارة الفئات</div>
                     <div id="categoriesList" class="categories-list"></div>
                     <div class="add-category-form">
-                        <input type="text" id="newCategoryName" placeholder="اسم الفئة الجديدة">
+                        <div class="input-wrapper" style="flex:1;"><i class="fas fa-plus-circle"></i><input type="text" id="newCategoryName" placeholder="اسم الفئة الجديدة"></div>
                         <button type="button" id="addCategoryBtn"><i class="fas fa-plus"></i></button>
                     </div>
                 </div>
 
-                <!-- قسم معلومات المتجر (بدون حالة المتجر) -->
+                <!-- قسم معلومات المتجر -->
                 <div class="settings-section">
                     <div class="stats-title"><i class="fas fa-store section-icon"></i> 🏪 معلومات المتجر</div>
-                    <div class="form-group"><label>اسم المتجر</label><input type="text" id="storeName" placeholder="اسم المتجر"></div>
+                    <div class="form-group"><label>اسم المتجر</label><div class="input-wrapper"><i class="fas fa-store-alt"></i><input type="text" id="storeName" placeholder="اسم المتجر"></div></div>
                     <div class="form-group"><label>رقم الهاتف (مع أيقونة)</label>
                         <div style="display: flex; gap: 5px;">
-                            <input type="text" id="storePhoneNumber" placeholder="رقم الهاتف" style="flex:2;">
-                            <input type="text" id="storePhoneIcon" placeholder="أيقونة (مثل fa-phone)" value="fa-phone" style="flex:1;">
+                            <div class="input-wrapper" style="flex:2;"><i class="fas fa-phone"></i><input type="text" id="storePhoneNumber" placeholder="رقم الهاتف"></div>
+                            <div class="input-wrapper" style="flex:1;"><i class="fas fa-icons"></i><input type="text" id="storePhoneIcon" placeholder="أيقونة (مثل fa-phone)" value="fa-phone"></div>
                         </div>
                     </div>
-                    <div class="form-group"><label>رابط خريطة جوجل (embed)</label><input type="url" id="storeMapUrl" placeholder="https://..."></div>
-                    <div class="form-group"><label>العنوان</label><input type="text" id="storeAddress" placeholder="العنوان"></div>
+                    <div class="form-group"><label>رابط خريطة جوجل (embed)</label><div class="input-wrapper"><i class="fas fa-map-marked-alt"></i><input type="url" id="storeMapUrl" placeholder="https://..."></div></div>
+                    <div class="form-group"><label>العنوان</label><div class="input-wrapper"><i class="fas fa-map-pin"></i><input type="text" id="storeAddress" placeholder="العنوان"></div></div>
                 </div>
 
                 <!-- قسم روابط التواصل الاجتماعي -->
@@ -916,7 +1031,7 @@
     const addItemBtn = document.getElementById('addItemBtn');
     const settingsBtn = document.getElementById('settingsBtn');
     const historyBtn = document.getElementById('historyBtn');
-    const storeStatusBtn = document.getElementById('storeStatusBtn'); // زر حالة المتجر الجديد
+    const storeStatusBtn = document.getElementById('storeStatusBtn');
 
     // عناصر المودالات
     const itemModal = document.getElementById('itemModal');
@@ -1006,7 +1121,7 @@
         return ((sale - purchase) / purchase * 100).toFixed(2);
     }
 
-    // تحديث جميع الإحصائيات
+    // تحديث جميع الإحصائيات مع تعديل حساب اليوم ليبدأ من 00:00
     function updateStats() {
         let totalCapital = 0, totalProfit = 0, totalQty = 0;
         items.forEach(i => {
@@ -1019,10 +1134,16 @@
         invCapital.textContent = `$${formatPrimary(totalCapital)}`;
         invProfit.textContent = `$${formatPrimary(totalProfit)}`;
 
-        const now = Date.now(), d = 86400000, w = 7*d, mo = 30*d, y = 365*d;
+        const now = Date.now();
+        // بداية اليوم الحالي (00:00)
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+        const startToday = startOfToday.getTime();
+
+        const d = 86400000, w = 7*d, mo = 30*d, y = 365*d;
         let day = 0, week = 0, month = 0, year = 0;
         sales.forEach(s => {
-            if (now - s.timestamp <= d) day += s.profit;
+            if (s.timestamp >= startToday) day += s.profit; // من بداية اليوم حتى الآن
             if (now - s.timestamp <= w) week += s.profit;
             if (now - s.timestamp <= mo) month += s.profit;
             if (now - s.timestamp <= y) year += s.profit;
@@ -1260,7 +1381,7 @@
             displayItems();
             updateStats();
             renderSocialLinksList();
-            updateStoreStatusButton(); // تحديث زر الحالة
+            updateStoreStatusButton();
         } catch (e) { console.warn(e); }
     }
 
@@ -1328,13 +1449,12 @@
             if (snap.val()) storeInfo = { ...storeInfo, ...snap.val() };
             saveAllToLocalStorage();
             storeNameInput.value = storeInfo.name || '';
-            // storeOpenCheckbox لم يعد موجوداً في الإعدادات
             storePhoneNumber.value = storeInfo.phone?.number || '';
             storePhoneIcon.value = storeInfo.phone?.icon || 'fa-phone';
             storeMapUrl.value = storeInfo.mapUrl || '';
             storeAddress.value = storeInfo.address || '';
             renderSocialLinksList();
-            updateStoreStatusButton(); // تحديث زر الحالة
+            updateStoreStatusButton();
         } catch (e) { console.warn(e); }
     }
 
@@ -1343,8 +1463,8 @@
         storeInfo.socialLinks.forEach((link, index) => {
             html += `
                 <div class="social-item" data-index="${index}">
-                    <input type="text" placeholder="الرابط" class="social-url" value="${link.url || ''}">
-                    <input type="text" placeholder="الأيقونة (مثل fa-facebook)" class="social-icon" value="${link.icon || ''}">
+                    <div class="input-wrapper"><i class="fas fa-link"></i><input type="text" placeholder="الرابط" class="social-url" value="${link.url || ''}"></div>
+                    <div class="input-wrapper"><i class="fas fa-icons"></i><input type="text" placeholder="الأيقونة (مثل fa-facebook)" class="social-icon" value="${link.icon || ''}"></div>
                     <button class="delete-social" data-index="${index}"><i class="fas fa-trash"></i></button>
                 </div>
             `;
@@ -1361,7 +1481,6 @@
 
     async function saveStoreInfo() {
         storeInfo.name = storeNameInput.value;
-        // storeInfo.isOpen لم نعد نعدله من هنا
         storeInfo.phone = {
             number: storePhoneNumber.value,
             icon: storePhoneIcon.value || 'fa-phone'
@@ -1770,22 +1889,46 @@
         historyTableBody.innerHTML = html;
     }
 
+    // عرض سجل المبيعات مقسماً حسب اليوم مع التاريخ واسم اليوم
     function displaySalesLog() {
         if (!sales.length) { salesLogBody.innerHTML = '<tr><td colspan="7" class="empty-state">لا توجد مبيعات</td></tr>'; return; }
+        
+        // تجميع المبيعات حسب اليوم (باستخدام التاريخ المحلي YYYY-MM-DD)
+        const grouped = {};
+        sales.forEach(sale => {
+            const d = new Date(sale.timestamp);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+            if (!grouped[dateStr]) grouped[dateStr] = [];
+            grouped[dateStr].push(sale);
+        });
+
+        // ترتيب التواريخ تنازلياً (الأحدث أولاً)
+        const sortedDates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
+
         let html = '';
-        sales.forEach(s => {
-            html += `<tr>
-                <td>${s.itemName}</td>
-                <td>${s.quantity}</td>
-                <td>$${formatPrimary(s.unitPrice)}</td>
-                <td>$${formatPrimary(s.totalAmount)}</td>
-                <td>$${formatPrimary(s.profit)}</td>
-                <td>${new Date(s.timestamp).toLocaleString()}</td>
-                <td>
-                    <button class="action-btn edit" onclick="editSale('${s.saleId}')"><i class="fas fa-edit"></i></button>
-                    <button class="action-btn delete" onclick="cancelSale('${s.saleId}')"><i class="fas fa-undo-alt"></i></button>
-                </td>
-            </tr>`;
+        sortedDates.forEach(dateStr => {
+            // الحصول على اسم اليوم بالعربية
+            const dateObj = new Date(dateStr + 'T12:00:00'); // نضع وقت متوسط لتجنب مشاكل المنطقة الزمنية
+            const dayName = dateObj.toLocaleDateString('ar-EG', { weekday: 'long' });
+            html += `<tr class="date-group-header"><td colspan="7">${dayName} ${dateStr}</td></tr>`;
+            
+            grouped[dateStr].forEach(s => {
+                html += `<tr>
+                    <td>${s.itemName}</td>
+                    <td>${s.quantity}</td>
+                    <td>$${formatPrimary(s.unitPrice)}</td>
+                    <td>$${formatPrimary(s.totalAmount)}</td>
+                    <td>$${formatPrimary(s.profit)}</td>
+                    <td>${new Date(s.timestamp).toLocaleString('ar-EG')}</td>
+                    <td>
+                        <button class="action-btn edit" onclick="editSale('${s.saleId}')"><i class="fas fa-edit"></i></button>
+                        <button class="action-btn delete" onclick="cancelSale('${s.saleId}')"><i class="fas fa-undo-alt"></i></button>
+                    </td>
+                </tr>`;
+            });
         });
         salesLogBody.innerHTML = html;
     }
@@ -1856,7 +1999,7 @@
         displaySalesLog();
         displayActivityLog(currentFilter);
     });
-    storeStatusBtn.addEventListener('click', toggleStoreStatus); // زر حالة المتجر
+    storeStatusBtn.addEventListener('click', toggleStoreStatus);
 
     closeModal.addEventListener('click', () => itemModal.style.display = 'none');
     closeSellModal.addEventListener('click', () => sellModal.style.display = 'none');
