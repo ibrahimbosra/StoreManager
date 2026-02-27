@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>مدير المحل للجوال (نسخة محسنة)</title>
+    <title>مدير المحل للجوال (نسخة نهائية)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Firebase SDK -->
@@ -98,13 +98,13 @@
         }
         .header-btn.primary { background: #27ae60; color: white; }
         .header-btn:active { transform: scale(0.94); background: #e2e8f0; }
-        /* زر العين الخاص بإظهار البيانات المخفية */
+        /* زر العين */
         .eye-btn.active {
             background: #4a6fa5;
             color: white;
         }
 
-        /* قائمة المنتجات (قابلة للتمرير) */
+        /* قائمة المنتجات */
         .items-container {
             flex: 1;
             overflow-y: auto;
@@ -132,7 +132,6 @@
             border-right: 6px solid #ef4444;
             background: #fef2f2;
         }
-        /* رأس البطاقة مع اسم المنتج ونسبة الربح */
         .card-header {
             display: flex;
             justify-content: space-between;
@@ -144,6 +143,17 @@
             font-size: 1.2rem;
             color: #1e2b3c;
         }
+        .stock-badge {
+            background: #eef2f6;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .stock-badge i { color: #4b7bec; }
         .profit-badge {
             background: #eef2f6;
             padding: 6px 14px;
@@ -156,20 +166,6 @@
         }
         .profit-positive { background: #dff0e4; color: #1e7b4c; }
         .profit-negative { background: #fde0dd; color: #b53b3b; }
-        /* فقاعة الكمية */
-        .stock-badge {
-            background: #eef2f6;
-            padding: 6px 14px;
-            border-radius: 40px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .stock-badge i { color: #4b7bec; }
-
-        /* صف الأسعار */
         .price-row {
             display: flex;
             background: #f8fafd;
@@ -199,13 +195,10 @@
             font-size: 0.7rem;
             color: #5f6c84;
         }
-        /* التأثير الضبابي للأسعار المخفية */
         .blur-price {
             filter: blur(5px);
             user-select: none;
         }
-
-        /* أزرار الإجراءات */
         .action-buttons {
             display: flex;
             gap: 8px;
@@ -233,27 +226,34 @@
         .action-btn.delete { background: #ffeae8; color: #c23321; }
         .action-btn.confirm-delete { background: #ef4444; color: white; }
         .action-btn.cancel-delete { background: #94a3b8; color: white; }
-        .action-btn:active { transform: scale(0.96); }
 
-        /* الشريط السفلي للإحصائيات (مخفي افتراضياً) */
+        /* الشريط السفلي للإحصائيات */
         .stats-footer {
             background: #1e2b3c;
             color: white;
-            padding: 16px 14px;
+            padding: 12px 14px;
             border-radius: 30px 30px 0 0;
             box-shadow: 0 -5px 20px rgba(0,0,0,0.15);
-            display: none; /* مخفي تماماً في البداية */
+            display: none;
+            font-size: 0.8rem; /* تصغير الخط */
         }
-        .stats-footer.visible {
-            display: block;
+        .stats-footer.visible { display: block; }
+        .stats-section {
+            margin-bottom: 8px;
+        }
+        .stats-title {
+            font-size: 0.7rem;
+            color: #b0c4de;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
         }
         .stats-grid {
             display: flex;
             flex-wrap: wrap;
-            gap: 16px 12px;
+            gap: 12px 16px;
         }
         .stat-item {
-            min-width: 80px;
+            min-width: 70px;
         }
         .stat-label {
             font-size: 0.6rem;
@@ -262,18 +262,10 @@
         }
         .stat-value {
             font-weight: 700;
-            font-size: 1.1rem;
-        }
-        .extra-stats {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px 12px;
-            margin-top: 12px;
-            border-top: 1px solid #334257;
-            padding-top: 12px;
+            font-size: 0.9rem; /* تصغير */
         }
 
-        /* المودالات (نسخة محمولة) */
+        /* المودالات */
         .modal {
             display: none;
             position: fixed;
@@ -320,7 +312,7 @@
         .save-btn { background: #27ae60; color: white; }
         .cancel-btn { background: #f1f5f9; color: #1e2b3c; }
 
-        /* سجل العمليات - مع تمرير أفقي */
+        /* سجل العمليات */
         .history-tabs { display: flex; gap: 8px; margin-bottom: 15px; }
         .history-tabs button {
             flex: 1; padding: 12px; border: none; border-radius: 30px; background: #eef2f6; font-weight: 600; cursor: pointer;
@@ -341,11 +333,10 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 0.8rem;
-            min-width: 600px; /* يجبر التمرير الأفقي */
+            min-width: 600px;
         }
         .history-table th, .sales-table th { background: #f1f5f9; padding: 8px; }
         .history-table td, .sales-table td { padding: 8px; border-bottom: 1px solid #edf2f7; }
-
         .loading, .empty-state { text-align: center; color: #94a3b8; padding: 30px; }
     </style>
 </head>
@@ -361,32 +352,40 @@
         </div>
         <button class="header-btn" id="settingsBtn"><i class="fas fa-sliders-h"></i></button>
         <button class="header-btn" id="historyBtn"><i class="fas fa-history"></i></button>
-        <button class="header-btn" id="toggleDataBtn"><i class="fas fa-eye-slash"></i></button> <!-- زر العين -->
+        <button class="header-btn" id="toggleDataBtn"><i class="fas fa-eye-slash"></i></button>
         <button class="header-btn primary" id="addItemBtn"><i class="fas fa-plus"></i></button>
     </div>
 
-    <!-- قائمة المنتجات (بطاقات) -->
+    <!-- قائمة المنتجات -->
     <div class="items-container" id="itemsList">
         <div class="loading">جاري تحميل البيانات...</div>
     </div>
 
-    <!-- الشريط السفلي (مخفي افتراضياً) -->
+    <!-- الشريط السفلي -->
     <div class="stats-footer" id="footerStats">
-        <div class="stats-grid" id="mainStats">
-            <div class="stat-item"><span class="stat-label">المنتجات</span><span class="stat-value" id="totalProducts">0</span></div>
-            <div class="stat-item"><span class="stat-label">رأس المال</span><span class="stat-value" id="totalCapitalPrimary">$0</span></div>
-            <div class="stat-item"><span class="stat-label">الربح المحتمل</span><span class="stat-value" id="totalProfitPrimary">$0</span></div>
-            <div class="stat-item"><span class="stat-label">ربح اليوم</span><span class="stat-value" id="profitDay">$0</span></div>
+        <!-- قسم الملخص السريع -->
+        <div class="stats-section">
+            <div class="stats-title">📊 ملخص</div>
+            <div class="stats-grid">
+                <div class="stat-item"><span class="stat-label">المنتجات</span><span class="stat-value" id="totalProducts">0</span></div>
+                <div class="stat-item"><span class="stat-label">رأس المال</span><span class="stat-value" id="totalCapitalPrimary">$0</span></div>
+                <div class="stat-item"><span class="stat-label">الربح المحتمل</span><span class="stat-value" id="totalProfitPrimary">$0</span></div>
+                <div class="stat-item"><span class="stat-label">الأصناف</span><span class="stat-value" id="totalCategories">0</span></div>
+            </div>
         </div>
-        <div class="extra-stats" id="extraStats">
-            <div class="stat-item"><span class="stat-label">الأصناف</span><span class="stat-value" id="totalCategories">0</span></div>
-            <div class="stat-item"><span class="stat-label">ربح الأسبوع</span><span class="stat-value" id="profitWeek">$0</span></div>
-            <div class="stat-item"><span class="stat-label">ربح الشهر</span><span class="stat-value" id="profitMonth">$0</span></div>
-            <div class="stat-item"><span class="stat-label">ربح السنة</span><span class="stat-value" id="profitYear">$0</span></div>
+        <!-- قسم الأرباح -->
+        <div class="stats-section">
+            <div class="stats-title">💰 الأرباح</div>
+            <div class="stats-grid">
+                <div class="stat-item"><span class="stat-label">اليوم</span><span class="stat-value" id="profitDay">$0</span></div>
+                <div class="stat-item"><span class="stat-label">الأسبوع</span><span class="stat-value" id="profitWeek">$0</span></div>
+                <div class="stat-item"><span class="stat-label">الشهر</span><span class="stat-value" id="profitMonth">$0</span></div>
+                <div class="stat-item"><span class="stat-label">السنة</span><span class="stat-value" id="profitYear">$0</span></div>
+            </div>
         </div>
     </div>
 
-    <!-- جميع المودالات (مضمّنة) -->
+    <!-- جميع المودالات -->
     <!-- مودال إضافة/تعديل -->
     <div class="modal" id="itemModal">
         <div class="modal-content">
@@ -417,7 +416,10 @@
         <div class="modal-content">
             <div class="modal-header"><h2>تعديل بيع</h2><button class="close-modal" id="closeEditSaleModal">&times;</button></div>
             <form id="editSaleForm">
-                <input type="hidden" id="editSaleId"><input type="hidden" id="editOriginalItemId"><input type="hidden" id="editOriginalQuantity"><input type="hidden" id="editSaleCurrency">
+                <input type="hidden" id="editSaleId">
+                <input type="hidden" id="editOriginalItemId">
+                <input type="hidden" id="editOriginalQuantity">
+                <input type="hidden" id="editSaleCurrency">
                 <div class="form-group"><label>المنتج: <span id="editProductName"></span></label></div>
                 <div class="form-group"><label>الكمية</label><input type="number" id="editQuantity" min="1" required></div>
                 <div class="form-group"><label id="editPriceLabel">السعر</label><input type="number" id="editPrice" step="0.01" required><div class="currency-info" id="editPriceSecondaryInfo"></div></div>
@@ -491,9 +493,9 @@
     let activityLog = [];
     let currentItemId = null;
     let isEditing = false;
-    let dataVisible = false; // false: الأسعار والربح مخفية + الشريط السفلي مخفي
+    let dataVisible = false;
     let currentFilter = 'all';
-    let deleteConfirmId = null; // لتتبع المنتج الذي ننتظر تأكيد حذفه
+    let deleteConfirmId = null;
 
     let currencySettings = {
         secondaryCurrencyName: "ريال سعودي",
@@ -651,30 +653,18 @@
         }
     }
 
-    // إظهار/إخفاء البيانات (الأسعار + الشريط السفلي)
+    // إظهار/إخفاء البيانات
     function toggleDataVisibility() {
         dataVisible = !dataVisible;
-        // تحديث شكل زر العين
-        if (dataVisible) {
-            toggleDataBtn.innerHTML = '<i class="fas fa-eye"></i>';
-            toggleDataBtn.classList.add('active');
-        } else {
-            toggleDataBtn.innerHTML = '<i class="fas fa-eye-slash"></i>';
-            toggleDataBtn.classList.remove('active');
-        }
-        // إظهار/إخفاء الشريط السفلي
+        toggleDataBtn.innerHTML = dataVisible ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+        toggleDataBtn.classList.toggle('active', dataVisible);
         if (dataVisible) {
             footerStats.classList.add('visible');
         } else {
             footerStats.classList.remove('visible');
         }
-        // إضافة/إزالة كلاس blur-price لجميع عناصر سعر الشراء والربح
         document.querySelectorAll('.purchase-price .primary-price, .purchase-price .secondary-price, .profit-badge').forEach(el => {
-            if (dataVisible) {
-                el.classList.remove('blur-price');
-            } else {
-                el.classList.add('blur-price');
-            }
+            el.classList.toggle('blur-price', !dataVisible);
         });
     }
 
@@ -696,13 +686,12 @@
             if (item.quantity === 0) cardClass = 'out-of-stock';
             else if (item.quantity <= 2) cardClass = 'low-stock';
 
-            // تحديد ما إذا كان هذا المنتج في وضع تأكيد الحذف
             const isConfirming = deleteConfirmId === item.id;
 
             html += `<div class="product-card ${cardClass}" data-id="${item.id}">
                 <div class="card-header">
                     <span class="product-name">${item.name}</span>
-                    <span class="profit-badge ${profitClass} ${dataVisible ? '' : 'blur-price'}">${profitSign}${profit}%</span>
+                    <span class="stock-badge"><i class="fas fa-cubes"></i> ${item.quantity}</span>
                 </div>
                 <div class="price-row">
                     <div class="price-col purchase-price">
@@ -715,6 +704,9 @@
                         <div class="primary-price">$${formatPrimary(item.salePrice)}</div>
                         <div class="secondary-price">${saleSec} ${currencySettings.secondaryCurrencySymbol}</div>
                     </div>
+                </div>
+                <div class="profit-section" style="display: flex; justify-content: space-between; align-items: center; margin: 6px 0;">
+                    <span class="profit-badge ${profitClass} ${dataVisible ? '' : 'blur-price'}">${profitSign}${profit}%</span>
                 </div>
                 <div class="action-buttons">
                     ${!isConfirming ? 
@@ -731,18 +723,13 @@
         itemsList.innerHTML = html;
         updateInventoryStats();
 
-        // إضافة مستمعي الأحداث
         document.querySelectorAll('.sell').forEach(b => b.addEventListener('click', e => openSellModal(e.currentTarget.dataset.id)));
         document.querySelectorAll('.edit').forEach(b => b.addEventListener('click', e => editItem(e.currentTarget.dataset.id)));
         document.querySelectorAll('.delete').forEach(b => b.addEventListener('click', e => {
-            const id = e.currentTarget.dataset.id;
-            deleteConfirmId = id;
+            deleteConfirmId = e.currentTarget.dataset.id;
             displayItems(searchInput.value ? items.filter(i => i.name.toLowerCase().includes(searchInput.value.toLowerCase())) : items);
         }));
-        document.querySelectorAll('.confirm-delete').forEach(b => b.addEventListener('click', e => {
-            const id = e.currentTarget.dataset.id;
-            performDelete(id);
-        }));
+        document.querySelectorAll('.confirm-delete').forEach(b => b.addEventListener('click', e => performDelete(e.currentTarget.dataset.id)));
         document.querySelectorAll('.cancel-delete').forEach(b => b.addEventListener('click', e => {
             deleteConfirmId = null;
             displayItems(searchInput.value ? items.filter(i => i.name.toLowerCase().includes(searchInput.value.toLowerCase())) : items);
@@ -805,6 +792,12 @@
             const snap = await database.ref('currencySettings').once('value');
             if (snap.val()) currencySettings = { ...currencySettings, ...snap.val() };
             saveAllToLocalStorage();
+            // تحديث حقول الإعدادات المعروضة
+            document.getElementById('secondaryCurrencyName').value = currencySettings.secondaryCurrencyName;
+            document.getElementById('secondaryCurrencySymbol').value = currencySettings.secondaryCurrencySymbol;
+            document.getElementById('exchangeRate').value = currencySettings.exchangeRate;
+            document.querySelector(`input[name="defaultInputCurrency"][value="${currencySettings.defaultInputCurrency}"]`).checked = true;
+            document.querySelector(`input[name="defaultSellCurrency"][value="${currencySettings.defaultSellCurrency}"]`).checked = true;
             updatePriceLabels();
             updateSecondaryPrices();
         } catch (e) { console.warn(e); }
@@ -991,6 +984,80 @@
         } catch (e) { alert('فشل البيع'); console.error(e); }
     });
 
+    // -------------------- تعديل البيع (مفعل بالكامل) --------------------
+    window.editSale = (saleId) => {
+        const sale = sales.find(s => s.saleId === saleId);
+        if (!sale) return;
+        const product = items.find(i => i.id === sale.itemId);
+        if (!product) return alert('المنتج غير موجود');
+        editSaleId.value = sale.saleId;
+        editOriginalItemId.value = sale.itemId;
+        editOriginalQuantity.value = sale.quantity;
+        editSaleCurrency.value = sale.saleCurrency || 'primary';
+        editProductName.innerText = sale.itemName;
+        editQuantity.value = sale.quantity;
+        editQuantity.max = product.quantity + sale.quantity; // الحد الأقصى المتاح بعد إعادة الكمية
+        if (editSaleCurrency.value === 'primary') {
+            editPriceLabel.innerText = 'سعر الوحدة ($)';
+            editPrice.value = sale.unitPrice;
+            updateSecondaryEditPrice();
+        } else {
+            editPriceLabel.innerText = `سعر الوحدة (${currencySettings.secondaryCurrencySymbol})`;
+            editPrice.value = formatSecondary(convertToSecondary(sale.unitPrice));
+            updatePrimaryEditPrice();
+        }
+        editPrice.oninput = handleEditPriceChange;
+        editSaleModal.style.display = 'flex';
+    };
+
+    function handleEditPriceChange() {
+        if (editSaleCurrency.value === 'primary') updateSecondaryEditPrice();
+        else updatePrimaryEditPrice();
+    }
+    function updateSecondaryEditPrice() {
+        const primary = parseFloat(editPrice.value) || 0;
+        editPriceSecondaryInfo.innerText = `تعادل ${formatSecondary(convertToSecondary(primary))} ${currencySettings.secondaryCurrencySymbol}`;
+    }
+    function updatePrimaryEditPrice() {
+        const sec = parseFloat(editPrice.value) || 0;
+        editPriceSecondaryInfo.innerText = `تعادل $${formatPrimary(convertToPrimary(sec))}`;
+    }
+
+    editSaleForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const saleId = editSaleId.value;
+        const itemId = editOriginalItemId.value;
+        const oldQty = parseInt(editOriginalQuantity.value);
+        const newQty = parseInt(editQuantity.value);
+        let newPriceInPrimary;
+        if (editSaleCurrency.value === 'primary') newPriceInPrimary = parseFloat(editPrice.value);
+        else newPriceInPrimary = convertToPrimary(parseFloat(editPrice.value));
+        if (newQty <= 0 || newPriceInPrimary < 0) return alert('قيم غير صالحة');
+        const sale = sales.find(s => s.saleId === saleId);
+        const product = items.find(i => i.id === itemId);
+        if (!sale || !product) return;
+        const diff = newQty - oldQty;
+        if (diff > 0 && product.quantity < diff) return alert('الكمية غير متوفرة');
+        try {
+            product.quantity -= diff;
+            await database.ref('items/' + product.id).set({
+                name: product.name, purchasePrice: product.purchasePrice, salePrice: product.salePrice, quantity: product.quantity, updatedAt: Date.now()
+            });
+            const newTotal = newQty * newPriceInPrimary;
+            const newProfit = (newPriceInPrimary - product.purchasePrice) * newQty;
+            const updated = { ...sale, quantity: newQty, unitPrice: newPriceInPrimary, totalAmount: newTotal, profit: newProfit };
+            await database.ref('sales/' + saleId).set(updated);
+            items = items.map(i => i.id === product.id ? product : i);
+            Object.assign(sale, updated);
+            displayItems();
+            updateSalesProfitStats();
+            saveAllToLocalStorage();
+            if (historyModal.style.display === 'flex' && salesLogSection.style.display !== 'none') displaySalesLog();
+            editSaleModal.style.display = 'none';
+            updateConnectionStatus('online-status', 'تم التعديل');
+        } catch (e) { alert('فشل التعديل'); console.error(e); }
+    });
+
     // -------------------- السجل والمبيعات --------------------
     function displayActivityLog(filter = currentFilter) {
         let filtered = filter === 'all' ? activityLog : activityLog.filter(a => a.actionType === filter);
@@ -1039,11 +1106,6 @@
             if (historyModal.style.display === 'flex' && salesLogSection.style.display !== 'none') displaySalesLog();
             updateConnectionStatus('online-status', 'تم الإلغاء');
         } catch (e) { alert('فشل'); console.error(e); }
-    };
-
-    window.editSale = (saleId) => {
-        // يمكن تنفيذها لاحقاً حسب الحاجة
-        alert('تعديل البيع قيد التطوير');
     };
 
     // -------------------- أحداث --------------------
@@ -1139,7 +1201,6 @@
         await fetchSales();
         await fetchActivityLog();
         updateConnectionStatus('online-status', 'تم التحميل');
-        // التأكد من أن الشريط السفلي مخفي وأن الأسعار مخفية
         dataVisible = false;
         toggleDataBtn.innerHTML = '<i class="fas fa-eye-slash"></i>';
         footerStats.classList.remove('visible');
