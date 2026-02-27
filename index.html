@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>مدير المحل المتقدم - مع الفئات</title>
+    <title>مدير المحل المتقدم - مع الفئات والمتجر</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Firebase SDK -->
@@ -110,7 +111,7 @@
             gap: 14px;
         }
 
-        /* بطاقة المنتج مع رقم خارجي */
+        /* بطاقة المنتج */
         .product-card {
             background: white;
             border-radius: 24px;
@@ -193,7 +194,11 @@
         .profit-positive { color: #1e7b4c; }
         .profit-negative { color: #b53b3b; }
 
-        .eye-icon {
+        .action-icons {
+            display: flex;
+            gap: 5px;
+        }
+        .icon-btn {
             background: none;
             border: none;
             font-size: 1.1rem;
@@ -202,7 +207,8 @@
             padding: 4px;
             transition: 0.2s;
         }
-        .eye-icon.active { color: #4a6fa5; }
+        .icon-btn.active { color: #4a6fa5; }
+        .icon-btn:hover { color: #1e2b3c; }
 
         .price-row {
             display: flex;
@@ -265,6 +271,7 @@
         .action-btn.delete { background: #ffeae8; color: #c23321; }
         .action-btn.confirm-delete { background: #ef4444; color: white; }
         .action-btn.cancel-delete { background: #94a3b8; color: white; }
+        .action-btn.details { background: #e2e8f0; color: #2d3a4f; }
 
         /* المودالات */
         .modal {
@@ -306,13 +313,17 @@
             align-items: center;
             gap: 8px;
         }
-        .input-wrapper input, .input-wrapper select {
+        .input-wrapper input, .input-wrapper select, .input-wrapper textarea {
             flex: 1;
             padding: 14px 18px;
             border: 1px solid #dde2e9;
             border-radius: 24px;
             font-size: 1rem;
             background: white;
+        }
+        .input-wrapper textarea {
+            min-height: 80px;
+            resize: vertical;
         }
         .currency-switch {
             background: #f1f5f9;
@@ -472,6 +483,51 @@
             cursor: pointer;
         }
 
+        /* قسم معلومات المتجر */
+        .social-links-list {
+            margin-top: 15px;
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 8px;
+        }
+        .social-item {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 8px;
+            background: #f8fafd;
+            padding: 8px;
+            border-radius: 40px;
+        }
+        .social-item input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #dde2e9;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        .delete-social {
+            background: none;
+            border: none;
+            color: #ef4444;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+        .add-social-btn {
+            background: #4a6fa5;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
         /* الجداول */
         .table-wrapper {
             overflow-x: auto;
@@ -496,6 +552,33 @@
             border-bottom: 1px solid #edf2f7;
         }
         .loading, .empty-state { text-align: center; color: #94a3b8; padding: 30px; }
+
+        /* نافذة تفاصيل المنتج */
+        .product-details-view {
+            text-align: center;
+        }
+        .product-details-view img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 16px;
+            margin-bottom: 15px;
+            object-fit: contain;
+            background: #f1f5f9;
+        }
+        .specs-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.85rem;
+        }
+        .specs-table th, .specs-table td {
+            border: 1px solid #e2e8f0;
+            padding: 8px;
+            text-align: right;
+        }
+        .specs-table th {
+            background: #f1f5f9;
+        }
     </style>
 </head>
 <body>
@@ -518,18 +601,16 @@
         <div class="loading">جاري تحميل البيانات...</div>
     </div>
 
-    <!-- مودال إضافة/تعديل المنتج (مع إضافة حقل الفئة) -->
+    <!-- مودال إضافة/تعديل المنتج (مضاف حقول الصورة والوصف والمواصفات) -->
     <div class="modal" id="itemModal">
         <div class="modal-content">
             <div class="modal-header"><h2 id="modalTitle">إضافة قطعة</h2><button class="close-modal" id="closeModal">&times;</button></div>
             <form id="itemForm">
                 <div class="form-group"><label>الاسم *</label><input type="text" id="itemName" required></div>
-                <div class="form-group">
-                    <label>الفئة</label>
-                    <select id="itemCategory">
-                        <option value="">بدون فئة</option>
-                    </select>
-                </div>
+                <div class="form-group"><label>الفئة</label><select id="itemCategory"><option value="">بدون فئة</option></select></div>
+                <div class="form-group"><label>رابط الصورة</label><input type="url" id="itemImageUrl" placeholder="https://example.com/image.jpg"></div>
+                <div class="form-group"><label>الوصف</label><textarea id="itemDescription" rows="3" placeholder="وصف المنتج..."></textarea></div>
+                <div class="form-group"><label>المواصفات (مفتاح: قيمة, كل一行)</label><textarea id="itemSpecs" rows="4" placeholder="مثال:&#10;الماركة: XYZ&#10;اللون: أحمر&#10;المقاس: كبير"></textarea></div>
                 <div class="form-group">
                     <label id="purchasePriceLabel">سعر الشراء ($)</label>
                     <div class="input-wrapper">
@@ -552,7 +633,15 @@
         </div>
     </div>
 
-    <!-- مودال البيع -->
+    <!-- مودال عرض تفاصيل المنتج -->
+    <div class="modal" id="productDetailsModal">
+        <div class="modal-content">
+            <div class="modal-header"><h2>تفاصيل المنتج</h2><button class="close-modal" id="closeDetailsModal">&times;</button></div>
+            <div id="productDetailsContent" class="product-details-view"></div>
+        </div>
+    </div>
+
+    <!-- مودال البيع (بدون تغيير) -->
     <div class="modal" id="sellModal">
         <div class="modal-content">
             <div class="modal-header"><h2>بيع</h2><button class="close-modal" id="closeSellModal">&times;</button></div>
@@ -572,7 +661,7 @@
         </div>
     </div>
 
-    <!-- مودال تعديل بيع -->
+    <!-- مودال تعديل بيع (بدون تغيير) -->
     <div class="modal" id="editSaleModal">
         <div class="modal-content">
             <div class="modal-header"><h2>تعديل بيع</h2><button class="close-modal" id="closeEditSaleModal">&times;</button></div>
@@ -596,7 +685,7 @@
         </div>
     </div>
 
-    <!-- مودال السجل (مع إضافة قسم للفئات في الإعدادات) -->
+    <!-- مودال السجل والإحصائيات (بدون تغيير في المحتوى، لكن سيتم تعبئته بالدوال) -->
     <div class="modal" id="historyModal">
         <div class="modal-content" style="max-width: 480px;">
             <div class="modal-header"><h2>التقارير والإحصائيات</h2><button class="close-modal" id="closeHistoryModal">&times;</button></div>
@@ -663,7 +752,7 @@
         </div>
     </div>
 
-    <!-- مودال الإعدادات (يحتوي الآن على إدارة الفئات) -->
+    <!-- مودال الإعدادات (مضاف قسم معلومات المتجر) -->
     <div class="modal" id="settingsModal">
         <div class="modal-content">
             <div class="modal-header"><h2>الإعدادات</h2><button class="close-modal" id="closeSettingsModal">&times;</button></div>
@@ -676,13 +765,28 @@
 
                 <!-- قسم إدارة الفئات -->
                 <div class="stats-title" style="margin-top: 20px;"><i class="fas fa-tags"></i> إدارة الفئات</div>
-                <div id="categoriesList" class="categories-list">
-                    <!-- تملأ ديناميكياً -->
-                </div>
+                <div id="categoriesList" class="categories-list"></div>
                 <div class="add-category-form">
                     <input type="text" id="newCategoryName" placeholder="اسم الفئة الجديدة">
                     <button type="button" id="addCategoryBtn"><i class="fas fa-plus"></i></button>
                 </div>
+
+                <!-- قسم معلومات المتجر -->
+                <div class="stats-title" style="margin-top: 20px;"><i class="fas fa-store"></i> معلومات المتجر</div>
+                <div class="form-group"><label>اسم المتجر</label><input type="text" id="storeName" placeholder="اسم المتجر"></div>
+                <div class="form-group"><label>حالة المتجر</label><label><input type="checkbox" id="storeOpen"> مفتوح</label></div>
+                <div class="form-group"><label>رقم الهاتف (مع أيقونة)</label>
+                    <div style="display: flex; gap: 5px;">
+                        <input type="text" id="storePhoneNumber" placeholder="رقم الهاتف" style="flex:2;">
+                        <input type="text" id="storePhoneIcon" placeholder="أيقونة (مثل fa-phone)" value="fa-phone" style="flex:1;">
+                    </div>
+                </div>
+                <div class="form-group"><label>رابط خريطة جوجل (embed)</label><input type="url" id="storeMapUrl" placeholder="https://..."></div>
+                <div class="form-group"><label>العنوان</label><input type="text" id="storeAddress" placeholder="العنوان"></div>
+
+                <div class="stats-title"><i class="fas fa-share-alt"></i> روابط التواصل الاجتماعي</div>
+                <div id="socialLinksList" class="social-links-list"></div>
+                <button type="button" id="addSocialBtn" class="add-social-btn"><i class="fas fa-plus"></i></button>
 
                 <div class="form-actions"><button type="button" class="cancel-btn" id="cancelSettingsBtn">إلغاء</button><button type="submit" class="save-btn">حفظ</button></div>
             </form>
@@ -708,7 +812,7 @@
     let items = [];
     let sales = [];
     let activityLog = [];
-    let categories = []; // مصفوفة الفئات { id, name }
+    let categories = [];
     let currentItemId = null;
     let isEditing = false;
     let currentFilter = 'all';
@@ -728,6 +832,15 @@
         defaultSellCurrency: "primary"
     };
 
+    let storeInfo = {
+        name: '',
+        isOpen: false,
+        phone: { number: '', icon: 'fa-phone' },
+        mapUrl: '',
+        address: '',
+        socialLinks: []
+    };
+
     // عناصر DOM
     const connectionStatus = document.getElementById('connectionStatus');
     const itemsList = document.getElementById('itemsList');
@@ -738,6 +851,7 @@
 
     // عناصر المودالات
     const itemModal = document.getElementById('itemModal');
+    const productDetailsModal = document.getElementById('productDetailsModal');
     const sellModal = document.getElementById('sellModal');
     const editSaleModal = document.getElementById('editSaleModal');
     const historyModal = document.getElementById('historyModal');
@@ -747,6 +861,7 @@
     const closeEditSaleModal = document.getElementById('closeEditSaleModal');
     const closeHistoryModal = document.getElementById('closeHistoryModal');
     const closeSettingsModal = document.getElementById('closeSettingsModal');
+    const closeDetailsModal = document.getElementById('closeDetailsModal');
     const cancelBtn = document.getElementById('cancelBtn');
     const cancelSellBtn = document.getElementById('cancelSellBtn');
     const cancelEditSaleBtn = document.getElementById('cancelEditSaleBtn');
@@ -760,6 +875,9 @@
     const modalTitle = document.getElementById('modalTitle');
     const itemName = document.getElementById('itemName');
     const itemCategory = document.getElementById('itemCategory');
+    const itemImageUrl = document.getElementById('itemImageUrl');
+    const itemDescription = document.getElementById('itemDescription');
+    const itemSpecs = document.getElementById('itemSpecs');
     const purchasePrice = document.getElementById('purchasePrice');
     const salePrice = document.getElementById('salePrice');
     const quantity = document.getElementById('quantity');
@@ -768,33 +886,27 @@
     const purchasePriceSecondary = document.getElementById('purchasePriceSecondary');
     const salePriceSecondary = document.getElementById('salePriceSecondary');
 
-    const sellProductName = document.getElementById('sellProductName');
-    const sellQuantity = document.getElementById('sellQuantity');
-    const sellPrice = document.getElementById('sellPrice');
-    const sellPriceLabel = document.getElementById('sellPriceLabel');
-    const sellPriceSecondaryInfo = document.getElementById('sellPriceSecondaryInfo');
+    const productDetailsContent = document.getElementById('productDetailsContent');
 
-    const editSaleId = document.getElementById('editSaleId');
-    const editOriginalItemId = document.getElementById('editOriginalItemId');
-    const editOriginalQuantity = document.getElementById('editOriginalQuantity');
-    const editSaleCurrency = document.getElementById('editSaleCurrency');
-    const editProductName = document.getElementById('editProductName');
-    const editQuantity = document.getElementById('editQuantity');
-    const editPrice = document.getElementById('editPrice');
-    const editPriceLabel = document.getElementById('editPriceLabel');
-    const editPriceSecondaryInfo = document.getElementById('editPriceSecondaryInfo');
+    const storeNameInput = document.getElementById('storeName');
+    const storeOpenCheckbox = document.getElementById('storeOpen');
+    const storePhoneNumber = document.getElementById('storePhoneNumber');
+    const storePhoneIcon = document.getElementById('storePhoneIcon');
+    const storeMapUrl = document.getElementById('storeMapUrl');
+    const storeAddress = document.getElementById('storeAddress');
+    const socialLinksList = document.getElementById('socialLinksList');
+    const addSocialBtn = document.getElementById('addSocialBtn');
 
     const switchPurchaseCurrency = document.getElementById('switchPurchaseCurrency');
     const switchSaleCurrency = document.getElementById('switchSaleCurrency');
     const switchSellCurrency = document.getElementById('switchSellCurrency');
     const switchEditCurrency = document.getElementById('switchEditCurrency');
 
-    // عناصر السجل
-    const reportTabs = document.querySelectorAll('.report-tab');
-    const profitsSection = document.getElementById('profitsSection');
-    const inventorySection = document.getElementById('inventorySection');
-    const salesLogSection = document.getElementById('salesLogSection');
-    const activityLogSection = document.getElementById('activityLogSection');
+    const categoriesList = document.getElementById('categoriesList');
+    const newCategoryName = document.getElementById('newCategoryName');
+    const addCategoryBtn = document.getElementById('addCategoryBtn');
+
+    // عناصر التقارير
     const profitDayDetail = document.getElementById('profitDayDetail');
     const profitWeekDetail = document.getElementById('profitWeekDetail');
     const profitMonthDetail = document.getElementById('profitMonthDetail');
@@ -807,11 +919,7 @@
     const historyTableBody = document.getElementById('historyTableBody');
     const clearHistoryBtn = document.getElementById('clearHistoryBtn');
     const historyFilter = document.querySelector('.history-filter');
-
-    // عناصر إدارة الفئات
-    const categoriesList = document.getElementById('categoriesList');
-    const newCategoryName = document.getElementById('newCategoryName');
-    const addCategoryBtn = document.getElementById('addCategoryBtn');
+    const reportTabs = document.querySelectorAll('.report-tab');
 
     // -------------------- دوال مساعدة --------------------
     function updateConnectionStatus(status, message) {
@@ -880,7 +988,7 @@
         salePriceLabel.innerHTML = `سعر البيع <small style="color:#666;">(${tempSaleCurrency ? currencySettings.secondaryCurrencySymbol : '$'})</small>`;
     }
 
-    // عرض قائمة الفئات في الـ select الخاص بالمنتج وفي صفحة الإعدادات
+    // عرض قائمة الفئات في الـ select الخاص بالمنتج
     function renderCategoriesSelect() {
         let options = '<option value="">بدون فئة</option>';
         categories.forEach(cat => {
@@ -909,7 +1017,6 @@
 
     async function deleteCategory(categoryId) {
         if (!confirm('هل أنت متأكد من حذف هذه الفئة؟')) return;
-        // تحقق من عدم استخدام الفئة في أي منتج
         const used = items.some(item => item.category === categoryId);
         if (used) {
             alert('لا يمكن حذف فئة مستخدمة في منتجات حالياً.');
@@ -947,8 +1054,6 @@
 
             const isConfirming = deleteConfirmId === item.id;
             const isVisible = itemVisibility[item.id] || false;
-
-            // البحث عن اسم الفئة
             const category = categories.find(c => c.id === item.category);
             const categoryName = category ? category.name : '';
 
@@ -964,8 +1069,11 @@
                             <span class="meta-item"><i class="fas fa-cubes"></i> ${item.quantity}</span>
                             <span class="meta-item profit-badge-small ${profitClass} ${isVisible ? '' : 'blur-price'}">${profitSign}${profit}%</span>
                         </div>
-                        <button class="eye-icon" data-id="${item.id}" title="${isVisible ? 'إخفاء' : 'إظهار'} التفاصيل">
+                        <button class="icon-btn eye-icon" data-id="${item.id}" title="${isVisible ? 'إخفاء' : 'إظهار'} التفاصيل">
                             <i class="fas ${isVisible ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                        </button>
+                        <button class="icon-btn info-icon" data-id="${item.id}" title="عرض التفاصيل">
+                            <i class="fas fa-info-circle"></i>
                         </button>
                     </div>
                 </div>
@@ -1015,6 +1123,46 @@
                 displayItems(searchInput.value ? items.filter(i => i.name.toLowerCase().includes(searchInput.value.toLowerCase())) : items);
             });
         });
+        document.querySelectorAll('.info-icon').forEach(btn => {
+            btn.addEventListener('click', e => {
+                e.stopPropagation();
+                const id = btn.dataset.id;
+                showProductDetails(id);
+            });
+        });
+    }
+
+    // عرض تفاصيل المنتج في مودال
+    function showProductDetails(itemId) {
+        const item = items.find(i => i.id === itemId);
+        if (!item) return;
+        
+        let specsHtml = '';
+        if (item.specs) {
+            const lines = item.specs.split('\n').filter(line => line.trim() !== '');
+            if (lines.length > 0) {
+                specsHtml = '<table class="specs-table"><tr><th>الخاصية</th><th>القيمة</th></tr>';
+                lines.forEach(line => {
+                    const parts = line.split(':');
+                    if (parts.length >= 2) {
+                        specsHtml += `<tr><td>${parts[0].trim()}</td><td>${parts.slice(1).join(':').trim()}</td></tr>`;
+                    } else {
+                        specsHtml += `<tr><td colspan="2">${line}</td></tr>`;
+                    }
+                });
+                specsHtml += '</table>';
+            }
+        }
+
+        const imageHtml = item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/200?text=No+Image'">` : '<div style="background:#f1f5f9; height:150px; display:flex; align-items:center; justify-content:center;"><i class="fas fa-image fa-3x" style="color:#94a3b8;"></i></div>';
+        
+        productDetailsContent.innerHTML = `
+            ${imageHtml}
+            <h3>${item.name}</h3>
+            <p><strong>الوصف:</strong> ${item.description || 'لا يوجد'}</p>
+            ${specsHtml}
+        `;
+        productDetailsModal.style.display = 'flex';
     }
 
     // -------------------- عمليات Firebase و localStorage --------------------
@@ -1026,6 +1174,7 @@
             localStorage.setItem('currencySettings', JSON.stringify(currencySettings));
             localStorage.setItem('itemVisibility', JSON.stringify(itemVisibility));
             localStorage.setItem('categories', JSON.stringify(categories));
+            localStorage.setItem('storeInfo', JSON.stringify(storeInfo));
         } catch (e) { console.warn(e); }
     }
 
@@ -1037,10 +1186,12 @@
             if (localStorage.getItem('currencySettings')) currencySettings = JSON.parse(localStorage.getItem('currencySettings'));
             if (localStorage.getItem('itemVisibility')) itemVisibility = JSON.parse(localStorage.getItem('itemVisibility'));
             if (localStorage.getItem('categories')) categories = JSON.parse(localStorage.getItem('categories'));
+            if (localStorage.getItem('storeInfo')) storeInfo = JSON.parse(localStorage.getItem('storeInfo'));
             renderCategoriesSelect();
             renderCategoriesList();
             displayItems();
             updateStats();
+            renderSocialLinksList();
         } catch (e) { console.warn(e); }
     }
 
@@ -1102,6 +1253,75 @@
         } catch (e) { console.warn(e); }
     }
 
+    async function fetchStoreInfo() {
+        try {
+            const snap = await database.ref('storeInfo').once('value');
+            if (snap.val()) storeInfo = { ...storeInfo, ...snap.val() };
+            saveAllToLocalStorage();
+            storeNameInput.value = storeInfo.name || '';
+            storeOpenCheckbox.checked = storeInfo.isOpen || false;
+            storePhoneNumber.value = storeInfo.phone?.number || '';
+            storePhoneIcon.value = storeInfo.phone?.icon || 'fa-phone';
+            storeMapUrl.value = storeInfo.mapUrl || '';
+            storeAddress.value = storeInfo.address || '';
+            renderSocialLinksList();
+        } catch (e) { console.warn(e); }
+    }
+
+    function renderSocialLinksList() {
+        let html = '';
+        storeInfo.socialLinks.forEach((link, index) => {
+            html += `
+                <div class="social-item" data-index="${index}">
+                    <input type="text" placeholder="الرابط" class="social-url" value="${link.url || ''}">
+                    <input type="text" placeholder="الأيقونة (مثل fa-facebook)" class="social-icon" value="${link.icon || ''}">
+                    <button class="delete-social" data-index="${index}"><i class="fas fa-trash"></i></button>
+                </div>
+            `;
+        });
+        socialLinksList.innerHTML = html;
+        document.querySelectorAll('.delete-social').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const index = btn.dataset.index;
+                storeInfo.socialLinks.splice(index, 1);
+                renderSocialLinksList();
+            });
+        });
+    }
+
+    async function saveStoreInfo() {
+        storeInfo.name = storeNameInput.value;
+        storeInfo.isOpen = storeOpenCheckbox.checked;
+        storeInfo.phone = {
+            number: storePhoneNumber.value,
+            icon: storePhoneIcon.value || 'fa-phone'
+        };
+        storeInfo.mapUrl = storeMapUrl.value;
+        storeInfo.address = storeAddress.value;
+        const items = document.querySelectorAll('.social-item');
+        storeInfo.socialLinks = [];
+        items.forEach(item => {
+            const url = item.querySelector('.social-url')?.value;
+            const icon = item.querySelector('.social-icon')?.value;
+            if (url) {
+                storeInfo.socialLinks.push({ url, icon: icon || 'fa-link' });
+            }
+        });
+        try {
+            await database.ref('storeInfo').set(storeInfo);
+            saveAllToLocalStorage();
+            updateConnectionStatus('online-status', 'تم حفظ معلومات المتجر');
+        } catch (e) {
+            alert('فشل حفظ معلومات المتجر');
+            console.error(e);
+        }
+    }
+
+    addSocialBtn.addEventListener('click', () => {
+        storeInfo.socialLinks.push({ url: '', icon: '' });
+        renderSocialLinksList();
+    });
+
     async function saveItemToFirebase(item) {
         const { id, ...data } = item;
         await database.ref('items/' + id).set(data);
@@ -1137,7 +1357,7 @@
         modalTitle.innerText = 'إضافة قطعة';
         updatePriceLabels();
         updateSecondaryPrices();
-        renderCategoriesSelect(); // تحديث قائمة الفئات
+        renderCategoriesSelect();
         itemModal.style.display = 'flex';
     }
 
@@ -1147,6 +1367,9 @@
         currentItemId = itemId; isEditing = true;
         itemName.value = item.name;
         itemCategory.value = item.category || '';
+        itemImageUrl.value = item.imageUrl || '';
+        itemDescription.value = item.description || '';
+        itemSpecs.value = item.specs || '';
         tempPurchaseCurrency = (currencySettings.defaultInputCurrency === 'secondary');
         tempSaleCurrency = (currencySettings.defaultInputCurrency === 'secondary');
         if (tempPurchaseCurrency) {
@@ -1187,6 +1410,9 @@
         e.preventDefault();
         const name = itemName.value.trim();
         const categoryId = itemCategory.value || null;
+        const imageUrl = itemImageUrl.value.trim() || null;
+        const description = itemDescription.value.trim() || null;
+        const specs = itemSpecs.value.trim() || null;
         let purchase, sale;
         if (tempPurchaseCurrency) {
             const pSec = parseFloat(purchasePrice.value);
@@ -1212,6 +1438,9 @@
                 if (!item) return;
                 item.name = name;
                 item.category = categoryId;
+                item.imageUrl = imageUrl;
+                item.description = description;
+                item.specs = specs;
                 item.purchasePrice = purchase;
                 item.salePrice = sale;
                 item.quantity = qty;
@@ -1220,7 +1449,7 @@
                 await addToActivityLog('update', `تعديل "${name}"`, item);
             } else {
                 const newId = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2,9);
-                const newItem = { id: newId, name, category: categoryId, purchasePrice: purchase, salePrice: sale, quantity: qty, createdAt: Date.now(), updatedAt: Date.now() };
+                const newItem = { id: newId, name, category: categoryId, imageUrl, description, specs, purchasePrice: purchase, salePrice: sale, quantity: qty, createdAt: Date.now(), updatedAt: Date.now() };
                 await saveItemToFirebase(newItem);
                 items.push(newItem);
                 await addToActivityLog('add', `إضافة "${name}"`, newItem);
@@ -1234,7 +1463,6 @@
         }
     });
 
-    // أزرار تبديل العملة
     switchPurchaseCurrency.addEventListener('click', () => {
         tempPurchaseCurrency = !tempPurchaseCurrency;
         const currentVal = parseFloat(purchasePrice.value) || 0;
@@ -1483,7 +1711,7 @@
         } catch (e) { alert('فشل'); console.error(e); }
     };
 
-    // -------------------- أحداث التبويبات في نافذة السجل --------------------
+    // أحداث التبويبات في نافذة السجل
     reportTabs.forEach(tab => {
         tab.addEventListener('click', () => {
             reportTabs.forEach(t => t.classList.remove('active'));
@@ -1522,7 +1750,8 @@
     addItemBtn.addEventListener('click', addItem);
     settingsBtn.addEventListener('click', () => {
         settingsModal.style.display = 'flex';
-        renderCategoriesList(); // تحديث قائمة الفئات
+        renderCategoriesList();
+        renderSocialLinksList();
     });
     historyBtn.addEventListener('click', () => {
         historyModal.style.display = 'flex';
@@ -1536,6 +1765,7 @@
     closeEditSaleModal.addEventListener('click', () => editSaleModal.style.display = 'none');
     closeHistoryModal.addEventListener('click', () => historyModal.style.display = 'none');
     closeSettingsModal.addEventListener('click', () => settingsModal.style.display = 'none');
+    closeDetailsModal.addEventListener('click', () => productDetailsModal.style.display = 'none');
     cancelBtn.addEventListener('click', () => itemModal.style.display = 'none');
     cancelSellBtn.addEventListener('click', () => sellModal.style.display = 'none');
     cancelEditSaleBtn.addEventListener('click', () => editSaleModal.style.display = 'none');
@@ -1585,6 +1815,9 @@
             tempSaleCurrency = (currencySettings.defaultInputCurrency === 'secondary');
             tempSellCurrency = (currencySettings.defaultSellCurrency === 'secondary');
             updatePriceLabels(); updateSecondaryPrices(); displayItems();
+            
+            await saveStoreInfo();
+            
             settingsModal.style.display = 'none';
             updateConnectionStatus('online-status', 'تم حفظ الإعدادات');
         } catch (e) { alert('فشل الحفظ'); }
@@ -1596,13 +1829,15 @@
         if (e.target === editSaleModal) editSaleModal.style.display = 'none';
         if (e.target === historyModal) historyModal.style.display = 'none';
         if (e.target === settingsModal) settingsModal.style.display = 'none';
+        if (e.target === productDetailsModal) productDetailsModal.style.display = 'none';
     });
 
     // تهيئة التطبيق
     async function init() {
         updateConnectionStatus('syncing-status', 'جار التحميل...');
         await fetchCurrencySettings();
-        await fetchCategories(); // تحميل الفئات أولاً
+        await fetchCategories();
+        await fetchStoreInfo();
         await fetchItems();
         await fetchSales();
         await fetchActivityLog();
