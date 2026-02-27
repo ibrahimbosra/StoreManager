@@ -110,14 +110,16 @@
             gap: 14px;
         }
 
-        /* بطاقة المنتج */
+        /* بطاقة المنتج مع رقم خارجي */
         .product-card {
             background: white;
             border-radius: 24px;
-            padding: 16px;
+            padding: 16px 16px 16px 20px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.02);
             border: 1px solid #edf2f9;
             transition: 0.2s;
+            position: relative;
+            margin-right: 15px; /* مساحة للرقم */
         }
         .product-card.low-stock {
             border-right: 6px solid #f97316;
@@ -126,6 +128,25 @@
         .product-card.out-of-stock {
             border-right: 6px solid #ef4444;
             background: #fef2f2;
+        }
+        .product-index-outer {
+            position: absolute;
+            right: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 36px;
+            height: 36px;
+            background: #4a6fa5;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1rem;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            border: 2px solid white;
+            z-index: 2;
         }
         .card-header {
             display: flex;
@@ -138,18 +159,6 @@
             align-items: center;
             gap: 6px;
             flex-wrap: wrap;
-        }
-        .product-index {
-            font-weight: 700;
-            color: #4a6fa5;
-            background: #eef2f6;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
         }
         .product-name {
             font-weight: 700;
@@ -280,13 +289,37 @@
         .close-modal {
             background: none; border: none; font-size: 2rem; line-height: 1; cursor: pointer; color: #94a3b8;
         }
-        .form-group { margin-bottom: 18px; }
+        .form-group { margin-bottom: 18px; position: relative; }
         .form-group label {
             display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem;
         }
-        .form-group input, .form-group select {
-            width: 100%; padding: 14px 18px; border: 1px solid #dde2e9; border-radius: 24px; font-size: 1rem;
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
+        .input-wrapper input {
+            flex: 1;
+            padding: 14px 18px;
+            border: 1px solid #dde2e9;
+            border-radius: 24px;
+            font-size: 1rem;
+        }
+        .currency-switch {
+            background: #f1f5f9;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #2d3a4f;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .currency-switch:hover { background: #e2e8f0; }
         .currency-info { font-size: 0.8rem; color: #4b6584; margin-top: 5px; }
         .radio-group { display: flex; gap: 20px; }
         .form-actions { display: flex; gap: 10px; margin-top: 25px; }
@@ -363,7 +396,7 @@
 <div id="app">
     <div class="connection-status" id="connectionStatus" style="display: none;"></div>
 
-    <!-- الرأس (بدون زر العين العام) -->
+    <!-- الرأس -->
     <div class="app-header">
         <div class="search-box">
             <i class="fas fa-search"></i>
@@ -379,20 +412,34 @@
         <div class="loading">جاري تحميل البيانات...</div>
     </div>
 
-    <!-- جميع المودالات -->
     <!-- مودال إضافة/تعديل -->
     <div class="modal" id="itemModal">
         <div class="modal-content">
             <div class="modal-header"><h2 id="modalTitle">إضافة قطعة</h2><button class="close-modal" id="closeModal">&times;</button></div>
             <form id="itemForm">
                 <div class="form-group"><label>الاسم *</label><input type="text" id="itemName" required></div>
-                <div class="form-group"><label id="purchasePriceLabel">سعر الشراء ($)</label><input type="number" id="purchasePrice" step="0.01" min="0" required><div class="currency-info" id="purchasePriceSecondary"></div></div>
-                <div class="form-group"><label id="salePriceLabel">سعر البيع ($)</label><input type="number" id="salePrice" step="0.01" min="0" required><div class="currency-info" id="salePriceSecondary"></div></div>
+                <div class="form-group">
+                    <label id="purchasePriceLabel">سعر الشراء ($)</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="purchasePrice" step="0.01" min="0" required>
+                        <button type="button" class="currency-switch" id="switchPurchaseCurrency" title="تبديل العملة"><i class="fas fa-exchange-alt"></i></button>
+                    </div>
+                    <div class="currency-info" id="purchasePriceSecondary"></div>
+                </div>
+                <div class="form-group">
+                    <label id="salePriceLabel">سعر البيع ($)</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="salePrice" step="0.01" min="0" required>
+                        <button type="button" class="currency-switch" id="switchSaleCurrency" title="تبديل العملة"><i class="fas fa-exchange-alt"></i></button>
+                    </div>
+                    <div class="currency-info" id="salePriceSecondary"></div>
+                </div>
                 <div class="form-group"><label>الكمية</label><input type="number" id="quantity" min="0" required></div>
                 <div class="form-actions"><button type="button" class="cancel-btn" id="cancelBtn">إلغاء</button><button type="submit" class="save-btn">حفظ</button></div>
             </form>
         </div>
     </div>
+
     <!-- مودال البيع -->
     <div class="modal" id="sellModal">
         <div class="modal-content">
@@ -400,11 +447,19 @@
             <form id="sellForm">
                 <div class="form-group"><label>المنتج: <span id="sellProductName"></span></label></div>
                 <div class="form-group"><label>الكمية</label><input type="number" id="sellQuantity" min="1" required></div>
-                <div class="form-group"><label id="sellPriceLabel">السعر ($)</label><input type="number" id="sellPrice" step="0.01" required><div class="currency-info" id="sellPriceSecondaryInfo"></div></div>
+                <div class="form-group">
+                    <label id="sellPriceLabel">السعر ($)</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="sellPrice" step="0.01" required>
+                        <button type="button" class="currency-switch" id="switchSellCurrency" title="تبديل العملة"><i class="fas fa-exchange-alt"></i></button>
+                    </div>
+                    <div class="currency-info" id="sellPriceSecondaryInfo"></div>
+                </div>
                 <div class="form-actions"><button type="button" class="cancel-btn" id="cancelSellBtn">إلغاء</button><button type="submit" class="save-btn">تأكيد</button></div>
             </form>
         </div>
     </div>
+
     <!-- مودال تعديل بيع -->
     <div class="modal" id="editSaleModal">
         <div class="modal-content">
@@ -416,11 +471,19 @@
                 <input type="hidden" id="editSaleCurrency">
                 <div class="form-group"><label>المنتج: <span id="editProductName"></span></label></div>
                 <div class="form-group"><label>الكمية</label><input type="number" id="editQuantity" min="1" required></div>
-                <div class="form-group"><label id="editPriceLabel">السعر</label><input type="number" id="editPrice" step="0.01" required><div class="currency-info" id="editPriceSecondaryInfo"></div></div>
+                <div class="form-group">
+                    <label id="editPriceLabel">السعر</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="editPrice" step="0.01" required>
+                        <button type="button" class="currency-switch" id="switchEditCurrency" title="تبديل العملة"><i class="fas fa-exchange-alt"></i></button>
+                    </div>
+                    <div class="currency-info" id="editPriceSecondaryInfo"></div>
+                </div>
                 <div class="form-actions"><button type="button" class="cancel-btn" id="cancelEditSaleBtn">إلغاء</button><button type="submit" class="save-btn">حفظ</button></div>
             </form>
         </div>
     </div>
+
     <!-- مودال السجل (يحتوي على لوحة الإحصائيات) -->
     <div class="modal" id="historyModal">
         <div class="modal-content" style="max-width: 480px;">
@@ -473,6 +536,7 @@
             </div>
         </div>
     </div>
+
     <!-- مودال الإعدادات -->
     <div class="modal" id="settingsModal">
         <div class="modal-content">
@@ -481,7 +545,7 @@
                 <div class="form-group"><label>اسم العملة الثانوية</label><input type="text" id="secondaryCurrencyName" value="ريال سعودي"></div>
                 <div class="form-group"><label>الرمز</label><input type="text" id="secondaryCurrencySymbol" value="﷼"></div>
                 <div class="form-group"><label>سعر الصرف (1$ =)</label><input type="number" id="exchangeRate" step="0.01" value="3.75"></div>
-                <div class="form-group"><label>عملة الإدخال الافتراضية</label><div class="radio-group"><label><input type="radio" name="defaultInputCurrency" value="primary" checked> دولار</label><label><input type="radio" name="defaultInputCurrency" value="secondary"> ثانوية</label></div></div>
+                <div class="form-group"><label>عملة الإدخال الافتراضية للشراء</label><div class="radio-group"><label><input type="radio" name="defaultInputCurrency" value="primary" checked> دولار</label><label><input type="radio" name="defaultInputCurrency" value="secondary"> ثانوية</label></div></div>
                 <div class="form-group"><label>عملة البيع الافتراضية</label><div class="radio-group"><label><input type="radio" name="defaultSellCurrency" value="primary" checked> دولار</label><label><input type="radio" name="defaultSellCurrency" value="secondary"> ثانوية</label></div></div>
                 <div class="form-actions"><button type="button" class="cancel-btn" id="cancelSettingsBtn">إلغاء</button><button type="submit" class="save-btn">حفظ</button></div>
             </form>
@@ -513,6 +577,12 @@
     let deleteConfirmId = null;
     // خريطة لإظهار/إخفاء سعر الشراء والربح لكل بطاقة على حدة
     let itemVisibility = {}; // { [itemId]: true/false }
+
+    // حالات العملة المؤقتة للنماذج (true = secondary, false = primary)
+    let tempPurchaseCurrency = false; // false يعني دولار (primary)
+    let tempSaleCurrency = false;
+    let tempSellCurrency = false;
+    let tempEditCurrency = false;
 
     let currencySettings = {
         secondaryCurrencyName: "ريال سعودي",
@@ -590,6 +660,12 @@
     const editPriceLabel = document.getElementById('editPriceLabel');
     const editPriceSecondaryInfo = document.getElementById('editPriceSecondaryInfo');
 
+    // أزرار تبديل العملة
+    const switchPurchaseCurrency = document.getElementById('switchPurchaseCurrency');
+    const switchSaleCurrency = document.getElementById('switchSaleCurrency');
+    const switchSellCurrency = document.getElementById('switchSellCurrency');
+    const switchEditCurrency = document.getElementById('switchEditCurrency');
+
     // السجل
     const historyTableBody = document.getElementById('historyTableBody');
     const salesLogBody = document.getElementById('salesLogBody');
@@ -644,28 +720,29 @@
         modalProfitYear.textContent = `$${formatPrimary(year)}`;
     }
 
-    // تحديث الأسعار الثانوية في نموذج القطعة
+    // تحديث الأسعار الثانوية في نموذج القطعة مع مراعاة العملة المؤقتة
     function updateSecondaryPrices() {
-        const p = parseFloat(purchasePrice.value) || 0;
-        const s = parseFloat(salePrice.value) || 0;
-        if (currencySettings.defaultInputCurrency === 'secondary') {
+        let p = parseFloat(purchasePrice.value) || 0;
+        let s = parseFloat(salePrice.value) || 0;
+        // إذا كانت العملة المؤقتة للشراء ثانوية، فإن القيمة المعروضة هي بالعملة الثانوية، نحتاج لحساب الدولار للعرض
+        if (tempPurchaseCurrency) {
             const pPrimary = convertToPrimary(p).toFixed(2);
-            const sPrimary = convertToPrimary(s).toFixed(2);
-            purchasePriceSecondary.innerText = `${Math.round(p)} ${currencySettings.secondaryCurrencySymbol} (≈ $${pPrimary})`;
-            salePriceSecondary.innerText = `${Math.round(s)} ${currencySettings.secondaryCurrencySymbol} (≈ $${sPrimary})`;
+            purchasePriceSecondary.innerText = `${formatSecondary(p)} ${currencySettings.secondaryCurrencySymbol} (≈ $${pPrimary})`;
         } else {
             purchasePriceSecondary.innerText = `${formatSecondary(convertToSecondary(p))} ${currencySettings.secondaryCurrencySymbol}`;
+        }
+        if (tempSaleCurrency) {
+            const sPrimary = convertToPrimary(s).toFixed(2);
+            salePriceSecondary.innerText = `${formatSecondary(s)} ${currencySettings.secondaryCurrencySymbol} (≈ $${sPrimary})`;
+        } else {
             salePriceSecondary.innerText = `${formatSecondary(convertToSecondary(s))} ${currencySettings.secondaryCurrencySymbol}`;
         }
     }
+
     function updatePriceLabels() {
-        if (currencySettings.defaultInputCurrency === 'secondary') {
-            purchasePriceLabel.innerText = `سعر الشراء (${currencySettings.secondaryCurrencySymbol})`;
-            salePriceLabel.innerText = `سعر البيع (${currencySettings.secondaryCurrencySymbol})`;
-        } else {
-            purchasePriceLabel.innerText = 'سعر الشراء ($)';
-            salePriceLabel.innerText = 'سعر البيع ($)';
-        }
+        // لا نغير النص لأنه يعتمد على العملة الافتراضية في الإعدادات، لكننا نضيف إشارة
+        purchasePriceLabel.innerHTML = `سعر الشراء <small style="color:#666;">(${tempPurchaseCurrency ? currencySettings.secondaryCurrencySymbol : '$'})</small>`;
+        salePriceLabel.innerHTML = `سعر البيع <small style="color:#666;">(${tempSaleCurrency ? currencySettings.secondaryCurrencySymbol : '$'})</small>`;
     }
 
     // -------------------- عرض المنتجات كبطاقات --------------------
@@ -691,15 +768,15 @@
             const isVisible = itemVisibility[item.id] || false;
 
             html += `<div class="product-card ${cardClass}" data-id="${item.id}">
+                <div class="product-index-outer">${index+1}</div>
                 <div class="card-header">
                     <div class="product-title">
-                        <span class="product-index">${index+1}</span>
                         <span class="product-name">${item.name}</span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 5px;">
                         <div class="product-meta">
                             <span class="meta-item"><i class="fas fa-cubes"></i> ${item.quantity}</span>
-                            <span class="meta-item profit-badge-small ${profitClass}">${profitSign}${profit}%</span>
+                            <span class="meta-item profit-badge-small ${profitClass} ${isVisible ? '' : 'blur-price'}">${profitSign}${profit}%</span>
                         </div>
                         <button class="eye-icon" data-id="${item.id}" title="${isVisible ? 'إخفاء' : 'إظهار'} التفاصيل">
                             <i class="fas ${isVisible ? 'fa-eye' : 'fa-eye-slash'}"></i>
@@ -819,6 +896,10 @@
             document.getElementById('exchangeRate').value = currencySettings.exchangeRate;
             document.querySelector(`input[name="defaultInputCurrency"][value="${currencySettings.defaultInputCurrency}"]`).checked = true;
             document.querySelector(`input[name="defaultSellCurrency"][value="${currencySettings.defaultSellCurrency}"]`).checked = true;
+            // تعيين العملات المؤقتة حسب الإعدادات
+            tempPurchaseCurrency = (currencySettings.defaultInputCurrency === 'secondary');
+            tempSaleCurrency = (currencySettings.defaultInputCurrency === 'secondary'); // للبيع أيضاً في الإضافة
+            tempSellCurrency = (currencySettings.defaultSellCurrency === 'secondary');
             updatePriceLabels();
             updateSecondaryPrices();
         } catch (e) { console.warn(e); }
@@ -854,6 +935,9 @@
     function addItem() {
         currentItemId = null; isEditing = false;
         itemForm.reset();
+        // إعادة تعيين العملات المؤقتة حسب الإعدادات
+        tempPurchaseCurrency = (currencySettings.defaultInputCurrency === 'secondary');
+        tempSaleCurrency = (currencySettings.defaultInputCurrency === 'secondary');
         modalTitle.innerText = 'إضافة قطعة';
         updatePriceLabels();
         updateSecondaryPrices();
@@ -865,11 +949,17 @@
         if (!item) return;
         currentItemId = itemId; isEditing = true;
         itemName.value = item.name;
-        if (currencySettings.defaultInputCurrency === 'secondary') {
+        // تعيين العملات المؤقتة حسب الإعدادات
+        tempPurchaseCurrency = (currencySettings.defaultInputCurrency === 'secondary');
+        tempSaleCurrency = (currencySettings.defaultInputCurrency === 'secondary');
+        if (tempPurchaseCurrency) {
             purchasePrice.value = Math.round(convertToSecondary(item.purchasePrice));
-            salePrice.value = Math.round(convertToSecondary(item.salePrice));
         } else {
             purchasePrice.value = item.purchasePrice;
+        }
+        if (tempSaleCurrency) {
+            salePrice.value = Math.round(convertToSecondary(item.salePrice));
+        } else {
             salePrice.value = item.salePrice;
         }
         quantity.value = item.quantity;
@@ -899,14 +989,19 @@
         e.preventDefault();
         const name = itemName.value.trim();
         let purchase, sale;
-        if (currencySettings.defaultInputCurrency === 'secondary') {
+        // بناءً على العملة المؤقتة
+        if (tempPurchaseCurrency) {
             const pSec = parseFloat(purchasePrice.value);
-            const sSec = parseFloat(salePrice.value);
-            if (isNaN(pSec) || pSec < 0 || isNaN(sSec) || sSec < 0) return alert('قيم غير صحيحة');
+            if (isNaN(pSec) || pSec < 0) return alert('قيمة شراء غير صحيحة');
             purchase = convertToPrimary(pSec);
-            sale = convertToPrimary(sSec);
         } else {
             purchase = parseFloat(purchasePrice.value);
+        }
+        if (tempSaleCurrency) {
+            const sSec = parseFloat(salePrice.value);
+            if (isNaN(sSec) || sSec < 0) return alert('قيمة بيع غير صحيحة');
+            sale = convertToPrimary(sSec);
+        } else {
             sale = parseFloat(salePrice.value);
         }
         const qty = parseInt(quantity.value);
@@ -936,6 +1031,34 @@
         }
     });
 
+    // أزرار تبديل العملة
+    switchPurchaseCurrency.addEventListener('click', () => {
+        tempPurchaseCurrency = !tempPurchaseCurrency;
+        // تحويل القيمة الحالية
+        const currentVal = parseFloat(purchasePrice.value) || 0;
+        if (tempPurchaseCurrency) {
+            // من دولار إلى ثانوية
+            purchasePrice.value = Math.round(convertToSecondary(currentVal));
+        } else {
+            // من ثانوية إلى دولار
+            purchasePrice.value = convertToPrimary(currentVal).toFixed(2);
+        }
+        updatePriceLabels();
+        updateSecondaryPrices();
+    });
+
+    switchSaleCurrency.addEventListener('click', () => {
+        tempSaleCurrency = !tempSaleCurrency;
+        const currentVal = parseFloat(salePrice.value) || 0;
+        if (tempSaleCurrency) {
+            salePrice.value = Math.round(convertToSecondary(currentVal));
+        } else {
+            salePrice.value = convertToPrimary(currentVal).toFixed(2);
+        }
+        updatePriceLabels();
+        updateSecondaryPrices();
+    });
+
     // -------------------- عمليات البيع --------------------
     function openSellModal(itemId) {
         const item = items.find(i => i.id === itemId);
@@ -943,27 +1066,43 @@
         sellProductName.innerText = item.name;
         sellQuantity.value = 1;
         sellQuantity.max = item.quantity;
-        if (currencySettings.defaultSellCurrency === 'primary') {
-            sellPriceLabel.innerText = 'السعر ($)';
-            sellPrice.value = item.salePrice;
+        tempSellCurrency = (currencySettings.defaultSellCurrency === 'secondary');
+        if (tempSellCurrency) {
+            sellPriceLabel.innerHTML = `السعر <small>(${currencySettings.secondaryCurrencySymbol})</small>`;
+            sellPrice.value = Math.round(convertToSecondary(item.salePrice));
             updateSecondarySellPrice();
         } else {
-            sellPriceLabel.innerText = `السعر (${currencySettings.secondaryCurrencySymbol})`;
-            sellPrice.value = convertToSecondary(item.salePrice);
-            updatePrimarySellPrice();
+            sellPriceLabel.innerHTML = `السعر <small>($)</small>`;
+            sellPrice.value = item.salePrice;
+            updateSecondarySellPrice();
         }
         sellForm.dataset.itemId = itemId;
         sellModal.style.display = 'flex';
     }
 
     function updateSecondarySellPrice() {
-        const primary = parseFloat(sellPrice.value) || 0;
-        sellPriceSecondaryInfo.innerText = `تعادل ${formatSecondary(convertToSecondary(primary))} ${currencySettings.secondaryCurrencySymbol}`;
+        const val = parseFloat(sellPrice.value) || 0;
+        if (tempSellCurrency) {
+            const primary = convertToPrimary(val);
+            sellPriceSecondaryInfo.innerText = `تعادل $${formatPrimary(primary)}`;
+        } else {
+            const sec = convertToSecondary(val);
+            sellPriceSecondaryInfo.innerText = `تعادل ${formatSecondary(sec)} ${currencySettings.secondaryCurrencySymbol}`;
+        }
     }
-    function updatePrimarySellPrice() {
-        const sec = parseFloat(sellPrice.value) || 0;
-        sellPriceSecondaryInfo.innerText = `تعادل $${formatPrimary(convertToPrimary(sec))}`;
-    }
+
+    switchSellCurrency.addEventListener('click', () => {
+        tempSellCurrency = !tempSellCurrency;
+        const currentVal = parseFloat(sellPrice.value) || 0;
+        if (tempSellCurrency) {
+            sellPrice.value = Math.round(convertToSecondary(currentVal));
+            sellPriceLabel.innerHTML = `السعر <small>(${currencySettings.secondaryCurrencySymbol})</small>`;
+        } else {
+            sellPrice.value = convertToPrimary(currentVal).toFixed(2);
+            sellPriceLabel.innerHTML = `السعر <small>($)</small>`;
+        }
+        updateSecondarySellPrice();
+    });
 
     sellForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -972,21 +1111,19 @@
         if (!item) return;
         const qty = parseInt(sellQuantity.value);
         if (qty <= 0 || qty > item.quantity) return alert('كمية غير صالحة');
-        let pricePrimary, usedCurrency;
-        if (currencySettings.defaultSellCurrency === 'primary') {
-            pricePrimary = parseFloat(sellPrice.value);
-            usedCurrency = 'primary';
-        } else {
+        let pricePrimary;
+        if (tempSellCurrency) {
             const sec = parseFloat(sellPrice.value);
             if (isNaN(sec) || sec < 0) return alert('سعر غير صالح');
             pricePrimary = convertToPrimary(sec);
-            usedCurrency = 'secondary';
+        } else {
+            pricePrimary = parseFloat(sellPrice.value);
         }
         const profit = (pricePrimary - item.purchasePrice) * qty;
         const sale = {
             itemId: item.id, itemName: item.name, quantity: qty, unitPrice: pricePrimary,
             totalAmount: pricePrimary * qty, profit, purchasePriceAtTime: item.purchasePrice,
-            timestamp: Date.now(), saleCurrency: usedCurrency
+            timestamp: Date.now(), saleCurrency: tempSellCurrency ? 'secondary' : 'primary'
         };
         try {
             item.quantity -= qty;
@@ -1007,6 +1144,8 @@
 
     // -------------------- تعديل البيع --------------------
     window.editSale = (saleId) => {
+        // أغلق historyModal أولاً
+        historyModal.style.display = 'none';
         const sale = sales.find(s => s.saleId === saleId);
         if (!sale) return;
         const product = items.find(i => i.id === sale.itemId);
@@ -1018,31 +1157,43 @@
         editProductName.innerText = sale.itemName;
         editQuantity.value = sale.quantity;
         editQuantity.max = product.quantity + sale.quantity;
-        if (editSaleCurrency.value === 'primary') {
-            editPriceLabel.innerText = 'سعر الوحدة ($)';
-            editPrice.value = sale.unitPrice;
+        tempEditCurrency = (sale.saleCurrency === 'secondary');
+        if (tempEditCurrency) {
+            editPriceLabel.innerHTML = `سعر الوحدة <small>(${currencySettings.secondaryCurrencySymbol})</small>`;
+            editPrice.value = formatSecondary(convertToSecondary(sale.unitPrice));
             updateSecondaryEditPrice();
         } else {
-            editPriceLabel.innerText = `سعر الوحدة (${currencySettings.secondaryCurrencySymbol})`;
-            editPrice.value = formatSecondary(convertToSecondary(sale.unitPrice));
-            updatePrimaryEditPrice();
+            editPriceLabel.innerHTML = `سعر الوحدة <small>($)</small>`;
+            editPrice.value = sale.unitPrice;
+            updateSecondaryEditPrice();
         }
-        editPrice.oninput = handleEditPriceChange;
+        editPrice.oninput = updateSecondaryEditPrice;
         editSaleModal.style.display = 'flex';
     };
 
-    function handleEditPriceChange() {
-        if (editSaleCurrency.value === 'primary') updateSecondaryEditPrice();
-        else updatePrimaryEditPrice();
-    }
     function updateSecondaryEditPrice() {
-        const primary = parseFloat(editPrice.value) || 0;
-        editPriceSecondaryInfo.innerText = `تعادل ${formatSecondary(convertToSecondary(primary))} ${currencySettings.secondaryCurrencySymbol}`;
+        const val = parseFloat(editPrice.value) || 0;
+        if (tempEditCurrency) {
+            const primary = convertToPrimary(val);
+            editPriceSecondaryInfo.innerText = `تعادل $${formatPrimary(primary)}`;
+        } else {
+            const sec = convertToSecondary(val);
+            editPriceSecondaryInfo.innerText = `تعادل ${formatSecondary(sec)} ${currencySettings.secondaryCurrencySymbol}`;
+        }
     }
-    function updatePrimaryEditPrice() {
-        const sec = parseFloat(editPrice.value) || 0;
-        editPriceSecondaryInfo.innerText = `تعادل $${formatPrimary(convertToPrimary(sec))}`;
-    }
+
+    switchEditCurrency.addEventListener('click', () => {
+        tempEditCurrency = !tempEditCurrency;
+        const currentVal = parseFloat(editPrice.value) || 0;
+        if (tempEditCurrency) {
+            editPrice.value = Math.round(convertToSecondary(currentVal));
+            editPriceLabel.innerHTML = `سعر الوحدة <small>(${currencySettings.secondaryCurrencySymbol})</small>`;
+        } else {
+            editPrice.value = convertToPrimary(currentVal).toFixed(2);
+            editPriceLabel.innerHTML = `سعر الوحدة <small>($)</small>`;
+        }
+        updateSecondaryEditPrice();
+    });
 
     editSaleForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -1051,8 +1202,13 @@
         const oldQty = parseInt(editOriginalQuantity.value);
         const newQty = parseInt(editQuantity.value);
         let newPriceInPrimary;
-        if (editSaleCurrency.value === 'primary') newPriceInPrimary = parseFloat(editPrice.value);
-        else newPriceInPrimary = convertToPrimary(parseFloat(editPrice.value));
+        if (tempEditCurrency) {
+            const sec = parseFloat(editPrice.value);
+            if (isNaN(sec) || sec < 0) return alert('سعر غير صالح');
+            newPriceInPrimary = convertToPrimary(sec);
+        } else {
+            newPriceInPrimary = parseFloat(editPrice.value);
+        }
         if (newQty <= 0 || newPriceInPrimary < 0) return alert('قيم غير صالحة');
         const sale = sales.find(s => s.saleId === saleId);
         const product = items.find(i => i.id === itemId);
@@ -1066,14 +1222,13 @@
             });
             const newTotal = newQty * newPriceInPrimary;
             const newProfit = (newPriceInPrimary - product.purchasePrice) * newQty;
-            const updated = { ...sale, quantity: newQty, unitPrice: newPriceInPrimary, totalAmount: newTotal, profit: newProfit };
+            const updated = { ...sale, quantity: newQty, unitPrice: newPriceInPrimary, totalAmount: newTotal, profit: newProfit, saleCurrency: tempEditCurrency ? 'secondary' : 'primary' };
             await database.ref('sales/' + saleId).set(updated);
             items = items.map(i => i.id === product.id ? product : i);
             Object.assign(sale, updated);
             displayItems();
             updateModalStats();
             saveAllToLocalStorage();
-            if (historyModal.style.display === 'flex' && salesLogSection.style.display !== 'none') displaySalesLog();
             editSaleModal.style.display = 'none';
             updateConnectionStatus('online-status', 'تم التعديل');
         } catch (e) { alert('فشل التعديل'); console.error(e); }
@@ -1150,9 +1305,8 @@
 
     purchasePrice.addEventListener('input', updateSecondaryPrices);
     salePrice.addEventListener('input', updateSecondaryPrices);
-    sellPrice.addEventListener('input', function() {
-        if (currencySettings.defaultSellCurrency === 'primary') updateSecondarySellPrice(); else updatePrimarySellPrice();
-    });
+    sellPrice.addEventListener('input', updateSecondarySellPrice);
+    editPrice.addEventListener('input', updateSecondaryEditPrice);
 
     searchInput.addEventListener('input', (e) => {
         const term = e.target.value.toLowerCase();
@@ -1200,6 +1354,10 @@
             await database.ref('currencySettings').set(newSettings);
             currencySettings = newSettings;
             await addToActivityLog('settings', 'تغيير إعدادات العملة');
+            // تحديث العملات المؤقتة حسب الإعدادات الجديدة
+            tempPurchaseCurrency = (currencySettings.defaultInputCurrency === 'secondary');
+            tempSaleCurrency = (currencySettings.defaultInputCurrency === 'secondary');
+            tempSellCurrency = (currencySettings.defaultSellCurrency === 'secondary');
             updatePriceLabels(); updateSecondaryPrices(); displayItems();
             settingsModal.style.display = 'none';
             updateConnectionStatus('online-status', 'تم حفظ الإعدادات');
