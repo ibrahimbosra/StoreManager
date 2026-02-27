@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -98,6 +97,8 @@
             transition: 0.2s;
         }
         .header-btn.primary { background: #27ae60; color: white; }
+        .header-btn.store-status-open { background: #27ae60; color: white; }
+        .header-btn.store-status-closed { background: #94a3b8; color: white; }
         .header-btn:active { transform: scale(0.94); background: #e2e8f0; }
 
         /* قائمة المنتجات */
@@ -121,6 +122,7 @@
             transition: 0.2s;
             position: relative;
             margin-right: 15px;
+            margin-left: 15px;
         }
         .product-card.low-stock {
             border-right: 6px solid #f97316;
@@ -148,6 +150,31 @@
             box-shadow: 0 3px 10px rgba(0,0,0,0.2);
             border: 2px solid white;
             z-index: 2;
+        }
+        .product-details-outer {
+            position: absolute;
+            left: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 36px;
+            height: 36px;
+            background: #3498db;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1rem;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            border: 2px solid white;
+            z-index: 2;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .product-details-outer:hover {
+            background: #2980b9;
+            transform: translateY(-50%) scale(1.1);
         }
         .card-header {
             display: flex;
@@ -271,7 +298,6 @@
         .action-btn.delete { background: #ffeae8; color: #c23321; }
         .action-btn.confirm-delete { background: #ef4444; color: white; }
         .action-btn.cancel-delete { background: #94a3b8; color: white; }
-        .action-btn.details { background: #e2e8f0; color: #2d3a4f; }
 
         /* المودالات */
         .modal {
@@ -579,6 +605,21 @@
         .specs-table th {
             background: #f1f5f9;
         }
+
+        /* تنسيق أقسام الإعدادات */
+        .settings-section {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 2px solid #eef2f6;
+        }
+        .settings-section:first-of-type {
+            margin-top: 0;
+            border-top: none;
+        }
+        .section-icon {
+            color: #4a6fa5;
+            margin-left: 5px;
+        }
     </style>
 </head>
 <body>
@@ -591,6 +632,10 @@
             <i class="fas fa-search"></i>
             <input type="text" id="searchInput" placeholder="بحث...">
         </div>
+        <!-- زر حالة المتجر (جديد) -->
+        <button class="header-btn" id="storeStatusBtn" title="حالة المتجر">
+            <i class="fas fa-store"></i>
+        </button>
         <button class="header-btn" id="settingsBtn"><i class="fas fa-sliders-h"></i></button>
         <button class="header-btn" id="historyBtn"><i class="fas fa-history"></i></button>
         <button class="header-btn primary" id="addItemBtn"><i class="fas fa-plus"></i></button>
@@ -601,7 +646,7 @@
         <div class="loading">جاري تحميل البيانات...</div>
     </div>
 
-    <!-- مودال إضافة/تعديل المنتج (مضاف حقول الصورة والوصف والمواصفات) -->
+    <!-- مودال إضافة/تعديل المنتج -->
     <div class="modal" id="itemModal">
         <div class="modal-content">
             <div class="modal-header"><h2 id="modalTitle">إضافة قطعة</h2><button class="close-modal" id="closeModal">&times;</button></div>
@@ -641,7 +686,7 @@
         </div>
     </div>
 
-    <!-- مودال البيع (بدون تغيير) -->
+    <!-- مودال البيع -->
     <div class="modal" id="sellModal">
         <div class="modal-content">
             <div class="modal-header"><h2>بيع</h2><button class="close-modal" id="closeSellModal">&times;</button></div>
@@ -661,7 +706,7 @@
         </div>
     </div>
 
-    <!-- مودال تعديل بيع (بدون تغيير) -->
+    <!-- مودال تعديل بيع -->
     <div class="modal" id="editSaleModal">
         <div class="modal-content">
             <div class="modal-header"><h2>تعديل بيع</h2><button class="close-modal" id="closeEditSaleModal">&times;</button></div>
@@ -685,7 +730,7 @@
         </div>
     </div>
 
-    <!-- مودال السجل والإحصائيات (بدون تغيير في المحتوى، لكن سيتم تعبئته بالدوال) -->
+    <!-- مودال السجل والإحصائيات -->
     <div class="modal" id="historyModal">
         <div class="modal-content" style="max-width: 480px;">
             <div class="modal-header"><h2>التقارير والإحصائيات</h2><button class="close-modal" id="closeHistoryModal">&times;</button></div>
@@ -752,43 +797,66 @@
         </div>
     </div>
 
-    <!-- مودال الإعدادات (مضاف قسم معلومات المتجر) -->
+    <!-- مودال الإعدادات (مقسم إلى أقسام) -->
     <div class="modal" id="settingsModal">
         <div class="modal-content">
             <div class="modal-header"><h2>الإعدادات</h2><button class="close-modal" id="closeSettingsModal">&times;</button></div>
             <form id="settingsForm">
-                <div class="form-group"><label>اسم العملة الثانوية</label><input type="text" id="secondaryCurrencyName" value="ريال سعودي"></div>
-                <div class="form-group"><label>الرمز</label><input type="text" id="secondaryCurrencySymbol" value="﷼"></div>
-                <div class="form-group"><label>سعر الصرف (1$ =)</label><input type="number" id="exchangeRate" step="0.01" value="3.75"></div>
-                <div class="form-group"><label>عملة الإدخال الافتراضية للشراء</label><div class="radio-group"><label><input type="radio" name="defaultInputCurrency" value="primary" checked> دولار</label><label><input type="radio" name="defaultInputCurrency" value="secondary"> ثانوية</label></div></div>
-                <div class="form-group"><label>عملة البيع الافتراضية</label><div class="radio-group"><label><input type="radio" name="defaultSellCurrency" value="primary" checked> دولار</label><label><input type="radio" name="defaultSellCurrency" value="secondary"> ثانوية</label></div></div>
-
-                <!-- قسم إدارة الفئات -->
-                <div class="stats-title" style="margin-top: 20px;"><i class="fas fa-tags"></i> إدارة الفئات</div>
-                <div id="categoriesList" class="categories-list"></div>
-                <div class="add-category-form">
-                    <input type="text" id="newCategoryName" placeholder="اسم الفئة الجديدة">
-                    <button type="button" id="addCategoryBtn"><i class="fas fa-plus"></i></button>
-                </div>
-
-                <!-- قسم معلومات المتجر -->
-                <div class="stats-title" style="margin-top: 20px;"><i class="fas fa-store"></i> معلومات المتجر</div>
-                <div class="form-group"><label>اسم المتجر</label><input type="text" id="storeName" placeholder="اسم المتجر"></div>
-                <div class="form-group"><label>حالة المتجر</label><label><input type="checkbox" id="storeOpen"> مفتوح</label></div>
-                <div class="form-group"><label>رقم الهاتف (مع أيقونة)</label>
-                    <div style="display: flex; gap: 5px;">
-                        <input type="text" id="storePhoneNumber" placeholder="رقم الهاتف" style="flex:2;">
-                        <input type="text" id="storePhoneIcon" placeholder="أيقونة (مثل fa-phone)" value="fa-phone" style="flex:1;">
+                <!-- قسم إدارة العملة -->
+                <div class="settings-section">
+                    <div class="stats-title"><i class="fas fa-coins section-icon"></i> 💱 إدارة العملة</div>
+                    <div class="form-group"><label>اسم العملة الثانوية</label><input type="text" id="secondaryCurrencyName" value="ريال سعودي"></div>
+                    <div class="form-group"><label>الرمز</label><input type="text" id="secondaryCurrencySymbol" value="﷼"></div>
+                    <div class="form-group"><label>سعر الصرف (1$ =)</label><input type="number" id="exchangeRate" step="0.01" value="3.75"></div>
+                    <div class="form-group"><label>عملة الإدخال الافتراضية للشراء</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="defaultInputCurrency" value="primary" checked> دولار</label>
+                            <label><input type="radio" name="defaultInputCurrency" value="secondary"> ثانوية</label>
+                        </div>
+                    </div>
+                    <div class="form-group"><label>عملة البيع الافتراضية</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="defaultSellCurrency" value="primary" checked> دولار</label>
+                            <label><input type="radio" name="defaultSellCurrency" value="secondary"> ثانوية</label>
+                        </div>
                     </div>
                 </div>
-                <div class="form-group"><label>رابط خريطة جوجل (embed)</label><input type="url" id="storeMapUrl" placeholder="https://..."></div>
-                <div class="form-group"><label>العنوان</label><input type="text" id="storeAddress" placeholder="العنوان"></div>
 
-                <div class="stats-title"><i class="fas fa-share-alt"></i> روابط التواصل الاجتماعي</div>
-                <div id="socialLinksList" class="social-links-list"></div>
-                <button type="button" id="addSocialBtn" class="add-social-btn"><i class="fas fa-plus"></i></button>
+                <!-- قسم إدارة الفئات -->
+                <div class="settings-section">
+                    <div class="stats-title"><i class="fas fa-tags section-icon"></i> 🏷️ إدارة الفئات</div>
+                    <div id="categoriesList" class="categories-list"></div>
+                    <div class="add-category-form">
+                        <input type="text" id="newCategoryName" placeholder="اسم الفئة الجديدة">
+                        <button type="button" id="addCategoryBtn"><i class="fas fa-plus"></i></button>
+                    </div>
+                </div>
 
-                <div class="form-actions"><button type="button" class="cancel-btn" id="cancelSettingsBtn">إلغاء</button><button type="submit" class="save-btn">حفظ</button></div>
+                <!-- قسم معلومات المتجر (بدون حالة المتجر) -->
+                <div class="settings-section">
+                    <div class="stats-title"><i class="fas fa-store section-icon"></i> 🏪 معلومات المتجر</div>
+                    <div class="form-group"><label>اسم المتجر</label><input type="text" id="storeName" placeholder="اسم المتجر"></div>
+                    <div class="form-group"><label>رقم الهاتف (مع أيقونة)</label>
+                        <div style="display: flex; gap: 5px;">
+                            <input type="text" id="storePhoneNumber" placeholder="رقم الهاتف" style="flex:2;">
+                            <input type="text" id="storePhoneIcon" placeholder="أيقونة (مثل fa-phone)" value="fa-phone" style="flex:1;">
+                        </div>
+                    </div>
+                    <div class="form-group"><label>رابط خريطة جوجل (embed)</label><input type="url" id="storeMapUrl" placeholder="https://..."></div>
+                    <div class="form-group"><label>العنوان</label><input type="text" id="storeAddress" placeholder="العنوان"></div>
+                </div>
+
+                <!-- قسم روابط التواصل الاجتماعي -->
+                <div class="settings-section">
+                    <div class="stats-title"><i class="fas fa-share-alt section-icon"></i> 🔗 روابط التواصل الاجتماعي</div>
+                    <div id="socialLinksList" class="social-links-list"></div>
+                    <button type="button" id="addSocialBtn" class="add-social-btn"><i class="fas fa-plus"></i></button>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="cancel-btn" id="cancelSettingsBtn">إلغاء</button>
+                    <button type="submit" class="save-btn">حفظ</button>
+                </div>
             </form>
         </div>
     </div>
@@ -848,6 +916,7 @@
     const addItemBtn = document.getElementById('addItemBtn');
     const settingsBtn = document.getElementById('settingsBtn');
     const historyBtn = document.getElementById('historyBtn');
+    const storeStatusBtn = document.getElementById('storeStatusBtn'); // زر حالة المتجر الجديد
 
     // عناصر المودالات
     const itemModal = document.getElementById('itemModal');
@@ -889,7 +958,6 @@
     const productDetailsContent = document.getElementById('productDetailsContent');
 
     const storeNameInput = document.getElementById('storeName');
-    const storeOpenCheckbox = document.getElementById('storeOpen');
     const storePhoneNumber = document.getElementById('storePhoneNumber');
     const storePhoneIcon = document.getElementById('storePhoneIcon');
     const storeMapUrl = document.getElementById('storeMapUrl');
@@ -1034,7 +1102,7 @@
         }
     }
 
-    // عرض المنتجات
+    // عرض المنتجات (مع زر التفاصيل الجانبي)
     function displayItems(filtered = items) {
         const sorted = [...filtered].sort((a,b) => a.name.localeCompare(b.name, 'ar'));
         if (sorted.length === 0) {
@@ -1059,6 +1127,9 @@
 
             html += `<div class="product-card ${cardClass}" data-id="${item.id}">
                 <div class="product-index-outer">${index+1}</div>
+                <div class="product-details-outer info-icon" data-id="${item.id}" title="عرض التفاصيل">
+                    <i class="fas fa-info"></i>
+                </div>
                 <div class="card-header">
                     <div class="product-title">
                         <span class="product-name">${item.name}</span>
@@ -1071,9 +1142,6 @@
                         </div>
                         <button class="icon-btn eye-icon" data-id="${item.id}" title="${isVisible ? 'إخفاء' : 'إظهار'} التفاصيل">
                             <i class="fas ${isVisible ? 'fa-eye' : 'fa-eye-slash'}"></i>
-                        </button>
-                        <button class="icon-btn info-icon" data-id="${item.id}" title="عرض التفاصيل">
-                            <i class="fas fa-info-circle"></i>
                         </button>
                     </div>
                 </div>
@@ -1192,6 +1260,7 @@
             displayItems();
             updateStats();
             renderSocialLinksList();
+            updateStoreStatusButton(); // تحديث زر الحالة
         } catch (e) { console.warn(e); }
     }
 
@@ -1259,12 +1328,13 @@
             if (snap.val()) storeInfo = { ...storeInfo, ...snap.val() };
             saveAllToLocalStorage();
             storeNameInput.value = storeInfo.name || '';
-            storeOpenCheckbox.checked = storeInfo.isOpen || false;
+            // storeOpenCheckbox لم يعد موجوداً في الإعدادات
             storePhoneNumber.value = storeInfo.phone?.number || '';
             storePhoneIcon.value = storeInfo.phone?.icon || 'fa-phone';
             storeMapUrl.value = storeInfo.mapUrl || '';
             storeAddress.value = storeInfo.address || '';
             renderSocialLinksList();
+            updateStoreStatusButton(); // تحديث زر الحالة
         } catch (e) { console.warn(e); }
     }
 
@@ -1291,7 +1361,7 @@
 
     async function saveStoreInfo() {
         storeInfo.name = storeNameInput.value;
-        storeInfo.isOpen = storeOpenCheckbox.checked;
+        // storeInfo.isOpen لم نعد نعدله من هنا
         storeInfo.phone = {
             number: storePhoneNumber.value,
             icon: storePhoneIcon.value || 'fa-phone'
@@ -1313,6 +1383,33 @@
             updateConnectionStatus('online-status', 'تم حفظ معلومات المتجر');
         } catch (e) {
             alert('فشل حفظ معلومات المتجر');
+            console.error(e);
+        }
+    }
+
+    // تحديث زر حالة المتجر
+    function updateStoreStatusButton() {
+        if (storeInfo.isOpen) {
+            storeStatusBtn.className = 'header-btn store-status-open';
+            storeStatusBtn.innerHTML = '<i class="fas fa-store"></i>';
+            storeStatusBtn.title = 'المتجر مفتوح (اضغط للإغلاق)';
+        } else {
+            storeStatusBtn.className = 'header-btn store-status-closed';
+            storeStatusBtn.innerHTML = '<i class="fas fa-store-slash"></i>';
+            storeStatusBtn.title = 'المتجر مغلق (اضغط للفتح)';
+        }
+    }
+
+    // تبديل حالة المتجر
+    async function toggleStoreStatus() {
+        storeInfo.isOpen = !storeInfo.isOpen;
+        try {
+            await database.ref('storeInfo/isOpen').set(storeInfo.isOpen);
+            saveAllToLocalStorage();
+            updateStoreStatusButton();
+            updateConnectionStatus('online-status', storeInfo.isOpen ? 'المتجر مفتوح' : 'المتجر مغلق');
+        } catch (e) {
+            alert('فشل تغيير حالة المتجر');
             console.error(e);
         }
     }
@@ -1759,6 +1856,7 @@
         displaySalesLog();
         displayActivityLog(currentFilter);
     });
+    storeStatusBtn.addEventListener('click', toggleStoreStatus); // زر حالة المتجر
 
     closeModal.addEventListener('click', () => itemModal.style.display = 'none');
     closeSellModal.addEventListener('click', () => sellModal.style.display = 'none');
