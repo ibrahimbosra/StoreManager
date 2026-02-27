@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>مدير المحل المتقدم</title>
+    <title>مدير المحل المتقدم - مع الفئات</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Firebase SDK -->
@@ -156,14 +156,22 @@
         }
         .product-title {
             display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 2px;
         }
         .product-name {
             font-weight: 700;
             font-size: 1.1rem;
             color: #1e2b3c;
+        }
+        .product-category {
+            font-size: 0.7rem;
+            color: #6f7d95;
+            background: #eef2f6;
+            padding: 2px 8px;
+            border-radius: 20px;
+            display: inline-block;
         }
         .product-meta {
             display: flex;
@@ -298,12 +306,13 @@
             align-items: center;
             gap: 8px;
         }
-        .input-wrapper input {
+        .input-wrapper input, .input-wrapper select {
             flex: 1;
             padding: 14px 18px;
             border: 1px solid #dde2e9;
             border-radius: 24px;
             font-size: 1rem;
+            background: white;
         }
         .currency-switch {
             background: #f1f5f9;
@@ -329,7 +338,7 @@
         .save-btn { background: #27ae60; color: white; }
         .cancel-btn { background: #f1f5f9; color: #1e2b3c; }
 
-        /* نافذة السجل المُعاد تصميمها */
+        /* نافذة السجل والإحصائيات */
         .report-tabs {
             display: flex;
             flex-wrap: wrap;
@@ -412,6 +421,57 @@
             font-size: 1.2rem;
         }
 
+        /* قسم إدارة الفئات */
+        .categories-list {
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 8px;
+        }
+        .category-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: #f8fafd;
+            border-radius: 40px;
+            margin-bottom: 6px;
+        }
+        .category-name {
+            font-weight: 600;
+        }
+        .delete-category {
+            background: none;
+            border: none;
+            color: #ef4444;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+        .add-category-form {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .add-category-form input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #dde2e9;
+            border-radius: 40px;
+        }
+        .add-category-form button {
+            background: #4a6fa5;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
         /* الجداول */
         .table-wrapper {
             overflow-x: auto;
@@ -458,12 +518,18 @@
         <div class="loading">جاري تحميل البيانات...</div>
     </div>
 
-    <!-- مودال إضافة/تعديل -->
+    <!-- مودال إضافة/تعديل المنتج (مع إضافة حقل الفئة) -->
     <div class="modal" id="itemModal">
         <div class="modal-content">
             <div class="modal-header"><h2 id="modalTitle">إضافة قطعة</h2><button class="close-modal" id="closeModal">&times;</button></div>
             <form id="itemForm">
                 <div class="form-group"><label>الاسم *</label><input type="text" id="itemName" required></div>
+                <div class="form-group">
+                    <label>الفئة</label>
+                    <select id="itemCategory">
+                        <option value="">بدون فئة</option>
+                    </select>
+                </div>
                 <div class="form-group">
                     <label id="purchasePriceLabel">سعر الشراء ($)</label>
                     <div class="input-wrapper">
@@ -530,12 +596,11 @@
         </div>
     </div>
 
-    <!-- مودال السجل (مُعاد تصميمه) -->
+    <!-- مودال السجل (مع إضافة قسم للفئات في الإعدادات) -->
     <div class="modal" id="historyModal">
         <div class="modal-content" style="max-width: 480px;">
             <div class="modal-header"><h2>التقارير والإحصائيات</h2><button class="close-modal" id="closeHistoryModal">&times;</button></div>
             
-            <!-- تبويبات الأقسام الأربعة -->
             <div class="report-tabs">
                 <button class="report-tab active" data-section="profits">💰 أرباح المبيعات</button>
                 <button class="report-tab" data-section="inventory">📦 ملخص المخزون</button>
@@ -543,7 +608,7 @@
                 <button class="report-tab" data-section="activities">📋 سجل العمليات</button>
             </div>
 
-            <!-- قسم أرباح المبيعات (افتراضي) -->
+            <!-- قسم أرباح المبيعات -->
             <div class="report-section active" id="profitsSection">
                 <div class="stats-cards">
                     <div class="stats-title"><i class="fas fa-chart-pie"></i> تفصيل الأرباح</div>
@@ -598,7 +663,7 @@
         </div>
     </div>
 
-    <!-- مودال الإعدادات -->
+    <!-- مودال الإعدادات (يحتوي الآن على إدارة الفئات) -->
     <div class="modal" id="settingsModal">
         <div class="modal-content">
             <div class="modal-header"><h2>الإعدادات</h2><button class="close-modal" id="closeSettingsModal">&times;</button></div>
@@ -608,6 +673,17 @@
                 <div class="form-group"><label>سعر الصرف (1$ =)</label><input type="number" id="exchangeRate" step="0.01" value="3.75"></div>
                 <div class="form-group"><label>عملة الإدخال الافتراضية للشراء</label><div class="radio-group"><label><input type="radio" name="defaultInputCurrency" value="primary" checked> دولار</label><label><input type="radio" name="defaultInputCurrency" value="secondary"> ثانوية</label></div></div>
                 <div class="form-group"><label>عملة البيع الافتراضية</label><div class="radio-group"><label><input type="radio" name="defaultSellCurrency" value="primary" checked> دولار</label><label><input type="radio" name="defaultSellCurrency" value="secondary"> ثانوية</label></div></div>
+
+                <!-- قسم إدارة الفئات -->
+                <div class="stats-title" style="margin-top: 20px;"><i class="fas fa-tags"></i> إدارة الفئات</div>
+                <div id="categoriesList" class="categories-list">
+                    <!-- تملأ ديناميكياً -->
+                </div>
+                <div class="add-category-form">
+                    <input type="text" id="newCategoryName" placeholder="اسم الفئة الجديدة">
+                    <button type="button" id="addCategoryBtn"><i class="fas fa-plus"></i></button>
+                </div>
+
                 <div class="form-actions"><button type="button" class="cancel-btn" id="cancelSettingsBtn">إلغاء</button><button type="submit" class="save-btn">حفظ</button></div>
             </form>
         </div>
@@ -632,6 +708,7 @@
     let items = [];
     let sales = [];
     let activityLog = [];
+    let categories = []; // مصفوفة الفئات { id, name }
     let currentItemId = null;
     let isEditing = false;
     let currentFilter = 'all';
@@ -682,6 +759,7 @@
 
     const modalTitle = document.getElementById('modalTitle');
     const itemName = document.getElementById('itemName');
+    const itemCategory = document.getElementById('itemCategory');
     const purchasePrice = document.getElementById('purchasePrice');
     const salePrice = document.getElementById('salePrice');
     const quantity = document.getElementById('quantity');
@@ -711,7 +789,7 @@
     const switchSellCurrency = document.getElementById('switchSellCurrency');
     const switchEditCurrency = document.getElementById('switchEditCurrency');
 
-    // عناصر السجل الجديدة
+    // عناصر السجل
     const reportTabs = document.querySelectorAll('.report-tab');
     const profitsSection = document.getElementById('profitsSection');
     const inventorySection = document.getElementById('inventorySection');
@@ -730,6 +808,11 @@
     const clearHistoryBtn = document.getElementById('clearHistoryBtn');
     const historyFilter = document.querySelector('.history-filter');
 
+    // عناصر إدارة الفئات
+    const categoriesList = document.getElementById('categoriesList');
+    const newCategoryName = document.getElementById('newCategoryName');
+    const addCategoryBtn = document.getElementById('addCategoryBtn');
+
     // -------------------- دوال مساعدة --------------------
     function updateConnectionStatus(status, message) {
         connectionStatus.style.display = 'flex';
@@ -747,7 +830,7 @@
         return ((sale - purchase) / purchase * 100).toFixed(2);
     }
 
-    // تحديث جميع الإحصائيات (الأرباح والمخزون)
+    // تحديث جميع الإحصائيات
     function updateStats() {
         let totalCapital = 0, totalProfit = 0, totalQty = 0;
         items.forEach(i => {
@@ -797,6 +880,53 @@
         salePriceLabel.innerHTML = `سعر البيع <small style="color:#666;">(${tempSaleCurrency ? currencySettings.secondaryCurrencySymbol : '$'})</small>`;
     }
 
+    // عرض قائمة الفئات في الـ select الخاص بالمنتج وفي صفحة الإعدادات
+    function renderCategoriesSelect() {
+        let options = '<option value="">بدون فئة</option>';
+        categories.forEach(cat => {
+            options += `<option value="${cat.id}">${cat.name}</option>`;
+        });
+        itemCategory.innerHTML = options;
+    }
+
+    function renderCategoriesList() {
+        let html = '';
+        categories.forEach(cat => {
+            html += `<div class="category-item">
+                <span class="category-name">${cat.name}</span>
+                <button class="delete-category" data-id="${cat.id}"><i class="fas fa-trash"></i></button>
+            </div>`;
+        });
+        categoriesList.innerHTML = html;
+        document.querySelectorAll('.delete-category').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const id = btn.dataset.id;
+                deleteCategory(id);
+            });
+        });
+    }
+
+    async function deleteCategory(categoryId) {
+        if (!confirm('هل أنت متأكد من حذف هذه الفئة؟')) return;
+        // تحقق من عدم استخدام الفئة في أي منتج
+        const used = items.some(item => item.category === categoryId);
+        if (used) {
+            alert('لا يمكن حذف فئة مستخدمة في منتجات حالياً.');
+            return;
+        }
+        try {
+            await database.ref('categories/' + categoryId).remove();
+            categories = categories.filter(c => c.id !== categoryId);
+            renderCategoriesSelect();
+            renderCategoriesList();
+            await addToActivityLog('settings', `حذف فئة ${categoryId}`);
+        } catch (e) {
+            alert('فشل حذف الفئة');
+            console.error(e);
+        }
+    }
+
     // عرض المنتجات
     function displayItems(filtered = items) {
         const sorted = [...filtered].sort((a,b) => a.name.localeCompare(b.name, 'ar'));
@@ -818,11 +948,16 @@
             const isConfirming = deleteConfirmId === item.id;
             const isVisible = itemVisibility[item.id] || false;
 
+            // البحث عن اسم الفئة
+            const category = categories.find(c => c.id === item.category);
+            const categoryName = category ? category.name : '';
+
             html += `<div class="product-card ${cardClass}" data-id="${item.id}">
                 <div class="product-index-outer">${index+1}</div>
                 <div class="card-header">
                     <div class="product-title">
                         <span class="product-name">${item.name}</span>
+                        ${categoryName ? `<span class="product-category">${categoryName}</span>` : ''}
                     </div>
                     <div style="display: flex; align-items: center; gap: 5px;">
                         <div class="product-meta">
@@ -890,6 +1025,7 @@
             localStorage.setItem('activityLog', JSON.stringify(activityLog));
             localStorage.setItem('currencySettings', JSON.stringify(currencySettings));
             localStorage.setItem('itemVisibility', JSON.stringify(itemVisibility));
+            localStorage.setItem('categories', JSON.stringify(categories));
         } catch (e) { console.warn(e); }
     }
 
@@ -900,6 +1036,9 @@
             if (localStorage.getItem('activityLog')) activityLog = JSON.parse(localStorage.getItem('activityLog'));
             if (localStorage.getItem('currencySettings')) currencySettings = JSON.parse(localStorage.getItem('currencySettings'));
             if (localStorage.getItem('itemVisibility')) itemVisibility = JSON.parse(localStorage.getItem('itemVisibility'));
+            if (localStorage.getItem('categories')) categories = JSON.parse(localStorage.getItem('categories'));
+            renderCategoriesSelect();
+            renderCategoriesList();
             displayItems();
             updateStats();
         } catch (e) { console.warn(e); }
@@ -953,6 +1092,16 @@
         } catch (e) { console.warn(e); }
     }
 
+    async function fetchCategories() {
+        try {
+            const snap = await database.ref('categories').once('value');
+            categories = snap.val() ? Object.keys(snap.val()).map(k => ({ id: k, name: snap.val()[k] })) : [];
+            saveAllToLocalStorage();
+            renderCategoriesSelect();
+            renderCategoriesList();
+        } catch (e) { console.warn(e); }
+    }
+
     async function saveItemToFirebase(item) {
         const { id, ...data } = item;
         await database.ref('items/' + id).set(data);
@@ -988,6 +1137,7 @@
         modalTitle.innerText = 'إضافة قطعة';
         updatePriceLabels();
         updateSecondaryPrices();
+        renderCategoriesSelect(); // تحديث قائمة الفئات
         itemModal.style.display = 'flex';
     }
 
@@ -996,6 +1146,7 @@
         if (!item) return;
         currentItemId = itemId; isEditing = true;
         itemName.value = item.name;
+        itemCategory.value = item.category || '';
         tempPurchaseCurrency = (currencySettings.defaultInputCurrency === 'secondary');
         tempSaleCurrency = (currencySettings.defaultInputCurrency === 'secondary');
         if (tempPurchaseCurrency) {
@@ -1012,6 +1163,7 @@
         modalTitle.innerText = 'تعديل القطعة';
         updatePriceLabels();
         updateSecondaryPrices();
+        renderCategoriesSelect();
         itemModal.style.display = 'flex';
     }
 
@@ -1034,6 +1186,7 @@
     itemForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const name = itemName.value.trim();
+        const categoryId = itemCategory.value || null;
         let purchase, sale;
         if (tempPurchaseCurrency) {
             const pSec = parseFloat(purchasePrice.value);
@@ -1057,12 +1210,17 @@
             if (isEditing) {
                 const item = items.find(i => i.id === currentItemId);
                 if (!item) return;
-                item.name = name; item.purchasePrice = purchase; item.salePrice = sale; item.quantity = qty; item.updatedAt = Date.now();
+                item.name = name;
+                item.category = categoryId;
+                item.purchasePrice = purchase;
+                item.salePrice = sale;
+                item.quantity = qty;
+                item.updatedAt = Date.now();
                 await saveItemToFirebase(item);
                 await addToActivityLog('update', `تعديل "${name}"`, item);
             } else {
                 const newId = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2,9);
-                const newItem = { id: newId, name, purchasePrice: purchase, salePrice: sale, quantity: qty, createdAt: Date.now(), updatedAt: Date.now() };
+                const newItem = { id: newId, name, category: categoryId, purchasePrice: purchase, salePrice: sale, quantity: qty, createdAt: Date.now(), updatedAt: Date.now() };
                 await saveItemToFirebase(newItem);
                 items.push(newItem);
                 await addToActivityLog('add', `إضافة "${name}"`, newItem);
@@ -1343,9 +1501,29 @@
         });
     });
 
+    // -------------------- إدارة الفئات --------------------
+    addCategoryBtn.addEventListener('click', async () => {
+        const name = newCategoryName.value.trim();
+        if (!name) return alert('الرجاء إدخال اسم الفئة');
+        try {
+            const newCatRef = await database.ref('categories').push(name);
+            categories.push({ id: newCatRef.key, name });
+            renderCategoriesSelect();
+            renderCategoriesList();
+            newCategoryName.value = '';
+            await addToActivityLog('settings', `إضافة فئة ${name}`);
+        } catch (e) {
+            alert('فشل إضافة الفئة');
+            console.error(e);
+        }
+    });
+
     // -------------------- أحداث إضافية --------------------
     addItemBtn.addEventListener('click', addItem);
-    settingsBtn.addEventListener('click', () => settingsModal.style.display = 'flex');
+    settingsBtn.addEventListener('click', () => {
+        settingsModal.style.display = 'flex';
+        renderCategoriesList(); // تحديث قائمة الفئات
+    });
     historyBtn.addEventListener('click', () => {
         historyModal.style.display = 'flex';
         updateStats();
@@ -1424,6 +1602,7 @@
     async function init() {
         updateConnectionStatus('syncing-status', 'جار التحميل...');
         await fetchCurrencySettings();
+        await fetchCategories(); // تحميل الفئات أولاً
         await fetchItems();
         await fetchSales();
         await fetchActivityLog();
