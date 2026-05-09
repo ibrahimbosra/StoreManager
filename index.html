@@ -1002,7 +1002,19 @@
     }
 
     function displayItems(filtered = items) {
-        const sorted = [...filtered].sort((a,b) => a.name.localeCompare(b.name, 'ar'));
+        const searchTerm = searchInputElem.value.trim();
+        let sorted;
+        if (searchTerm) {
+            sorted = [...filtered].sort((a, b) => {
+                const aStarts = a.name.startsWith(searchTerm);
+                const bStarts = b.name.startsWith(searchTerm);
+                if (aStarts && !bStarts) return -1;
+                if (!aStarts && bStarts) return 1;
+                return a.name.localeCompare(b.name, 'ar');
+            });
+        } else {
+            sorted = [...filtered].sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+        }
         if (sorted.length === 0) {
             itemsList.innerHTML = `<div class="empty-state"><i class="fas fa-box-open fa-3x"></i><p>لا توجد منتجات</p><p>أضف منتجاً جديداً</p></div>`;
             updateStats(); return;
