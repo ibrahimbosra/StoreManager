@@ -6,9 +6,10 @@
     <title>مدير المحل المتقدم - أرباح دقيقة (توقيت GMT+3)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Firebase SDK -->
+    <!-- Firebase SDK + Auth -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
         body {
@@ -18,7 +19,87 @@
             justify-content: center;
             align-items: center;
         }
-        #app {
+        /* شاشة تسجيل الدخول */
+        .login-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5000;
+            backdrop-filter: blur(2px);
+        }
+        .login-card {
+            background: white;
+            max-width: 400px;
+            width: 90%;
+            border-radius: 36px;
+            padding: 32px 24px;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .login-card h2 {
+            font-size: 1.8rem;
+            color: #1e2b3c;
+            margin-bottom: 8px;
+        }
+        .login-card p {
+            color: #5f6c84;
+            margin-bottom: 28px;
+            font-size: 0.9rem;
+        }
+        .login-input-group {
+            margin-bottom: 18px;
+            position: relative;
+        }
+        .login-input-group i {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+        .login-input-group input {
+            width: 100%;
+            padding: 14px 50px 14px 18px;
+            border: 1px solid #e2e8f0;
+            border-radius: 40px;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.2s;
+            background: #f8fafc;
+        }
+        .login-input-group input:focus {
+            border-color: #4a6fa5;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(74,111,165,0.1);
+        }
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: #27ae60;
+            border: none;
+            border-radius: 40px;
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 8px;
+        }
+        .login-btn:active { transform: scale(0.97); }
+        .login-error {
+            color: #e74c3c;
+            font-size: 0.8rem;
+            margin-top: 12px;
+            display: none;
+        }
+        .app-main {
             width: 100%;
             max-width: 450px;
             height: 100%;
@@ -535,9 +616,29 @@
     </style>
 </head>
 <body>
-<div id="app">
-    <div class="connection-status" id="connectionStatus" style="display: none;"></div>
 
+<!-- شاشة تسجيل الدخول -->
+<div id="loginContainer" class="login-container">
+    <div class="login-card">
+        <i class="fas fa-store" style="font-size: 48px; color: #27ae60; margin-bottom: 12px;"></i>
+        <h2>تسجيل الدخول</h2>
+        <p>أدخل بياناتك للوصول إلى لوحة الإدارة</p>
+        <div class="login-input-group">
+            <i class="fas fa-envelope"></i>
+            <input type="email" id="loginEmail" placeholder="البريد الإلكتروني" autocomplete="email">
+        </div>
+        <div class="login-input-group">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="loginPassword" placeholder="كلمة المرور" autocomplete="current-password">
+        </div>
+        <button id="doLoginBtn" class="login-btn">دخول <i class="fas fa-arrow-left"></i></button>
+        <div id="loginErrorMsg" class="login-error"></div>
+    </div>
+</div>
+
+<!-- تطبيق الإدارة الرئيسي (يظهر فقط بعد تسجيل الدخول) -->
+<div id="appMain" class="app-main" style="display: none;">
+    <div class="connection-status" id="connectionStatus" style="display: none;"></div>
     <div class="app-header">
         <div class="search-box">
             <i class="fas fa-search"></i>
@@ -545,6 +646,7 @@
         </div>
         <button class="header-btn" id="settingsBtn"><i class="fas fa-sliders-h"></i></button>
         <button class="header-btn" id="historyBtn"><i class="fas fa-history"></i></button>
+        <button class="header-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i></button>
         <button class="header-btn primary" id="addItemBtn"><i class="fas fa-plus"></i></button>
     </div>
 
@@ -634,86 +736,26 @@
                 <button class="report-tab" data-section="sales">🛒 سجل المبيعات</button>
                 <button class="report-tab" data-section="activities">📋 سجل العمليات</button>
             </div>
-
-            <div class="report-section active" id="profitsSection">
-                <div class="stats-cards">
-                    <div class="stats-title"><i class="fas fa-chart-line"></i> تفصيل الأرباح </div>
-                    <div class="profit-period">
-                        <div class="period-item"><span class="period-label">اليوم (منذ بداية اليوم)</span><span class="period-value" id="profitDayDetail">$0.00</span></div>
-                        <div class="period-item"><span class="period-label">الاسبوع (منذ بداية يوم الأحد)</span><span class="period-value" id="profitWeekDetail">$0.00</span></div>
-                        <div class="period-item"><span class="period-label">االشهر (منذ بداية الشهر الحالي)</span><span class="period-value" id="profitMonthDetail">$0.00</span></div>
-                        <div class="period-item"><span class="period-label">السنة (منذ بداية السنة الحالية)</span><span class="period-value" id="profitYearDetail">$0.00</span></div>
-                        <div class="period-item"><span class="period-label">كامل (منذ بداية المشروع)</span><span class="period-value" id="profitAllTime">$0.00</span></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="report-section" id="inventorySection">
-                <div class="stats-cards">
-                    <div class="stats-title"><i class="fas fa-boxes"></i> حالة المخزون</div>
-                    <div class="summary-grid">
-                        <div class="summary-item"><span class="summary-label">إجمالي المنتجات</span><span class="summary-number" id="invTotalQty">0</span></div>
-                        <div class="summary-item"><span class="summary-label">عدد الأصناف</span><span class="summary-number" id="invCategories">0</span></div>
-                        <div class="summary-item"><span class="summary-label">رأس المال</span><span class="summary-number" id="invCapital">$0</span></div>
-                        <div class="summary-item"><span class="summary-label">الربح المحتمل</span><span class="summary-number" id="invProfit">$0</span></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="report-section" id="salesLogSection">
-                <div class="table-wrapper">
-                    <table class="sales-table">
-                        <thead><tr><th>المنتج</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th><th>الربح</th><th>التاريخ</th><th>إجراءات</th></tr></thead>
-                        <tbody id="salesLogBody"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="report-section" id="activityLogSection">
-                <div class="history-filter">
-                    <button class="history-filter-btn active" data-action="all">الكل</button>
-                    <button class="history-filter-btn" data-action="add">إضافة</button>
-                    <button class="history-filter-btn" data-action="update">تعديل</button>
-                    <button class="history-filter-btn" data-action="delete">حذف</button>
-                    <button class="clear-history-btn" id="clearHistoryBtn"><i class="fas fa-trash-alt"></i> مسح</button>
-                </div>
-                <div class="table-wrapper">
-                    <table class="history-table">
-                        <thead><tr><th>#</th><th>التاريخ</th><th>النوع</th><th>التفاصيل</th></tr></thead>
-                        <tbody id="historyTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
+            <div class="report-section active" id="profitsSection"><div class="stats-cards"><div class="stats-title"><i class="fas fa-chart-line"></i> تفصيل الأرباح </div><div class="profit-period"><div class="period-item"><span class="period-label">اليوم (منذ بداية اليوم)</span><span class="period-value" id="profitDayDetail">$0.00</span></div><div class="period-item"><span class="period-label">الاسبوع (منذ بداية يوم الأحد)</span><span class="period-value" id="profitWeekDetail">$0.00</span></div><div class="period-item"><span class="period-label">االشهر (منذ بداية الشهر الحالي)</span><span class="period-value" id="profitMonthDetail">$0.00</span></div><div class="period-item"><span class="period-label">السنة (منذ بداية السنة الحالية)</span><span class="period-value" id="profitYearDetail">$0.00</span></div><div class="period-item"><span class="period-label">كامل (منذ بداية المشروع)</span><span class="period-value" id="profitAllTime">$0.00</span></div></div></div></div>
+            <div class="report-section" id="inventorySection"><div class="stats-cards"><div class="stats-title"><i class="fas fa-boxes"></i> حالة المخزون</div><div class="summary-grid"><div class="summary-item"><span class="summary-label">إجمالي المنتجات</span><span class="summary-number" id="invTotalQty">0</span></div><div class="summary-item"><span class="summary-label">عدد الأصناف</span><span class="summary-number" id="invCategories">0</span></div><div class="summary-item"><span class="summary-label">رأس المال</span><span class="summary-number" id="invCapital">$0</span></div><div class="summary-item"><span class="summary-label">الربح المحتمل</span><span class="summary-number" id="invProfit">$0</span></div></div></div></div>
+            <div class="report-section" id="salesLogSection"><div class="table-wrapper"><table class="sales-table"><thead><tr><th>المنتج</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th><th>الربح</th><th>التاريخ</th><th>إجراءات</th></tr></thead><tbody id="salesLogBody"></tbody></table></div></div>
+            <div class="report-section" id="activityLogSection"><div class="history-filter"><button class="history-filter-btn active" data-action="all">الكل</button><button class="history-filter-btn" data-action="add">إضافة</button><button class="history-filter-btn" data-action="update">تعديل</button><button class="history-filter-btn" data-action="delete">حذف</button><button class="clear-history-btn" id="clearHistoryBtn"><i class="fas fa-trash-alt"></i> مسح</button></div><div class="table-wrapper"><table class="history-table"><thead><tr><th>#</th><th>التاريخ</th><th>النوع</th><th>التفاصيل</th></tr></thead><tbody id="historyTableBody"></tbody></table></div></div>
         </div>
     </div>
 
-    <!-- مودال الإعدادات (فقط العملات) -->
+    <!-- مودال الإعدادات -->
     <div class="modal" id="settingsModal">
         <div class="modal-content">
             <div class="modal-header"><h2>إعدادات العملة</h2><button class="close-modal" id="closeSettingsModal">&times;</button></div>
             <form id="settingsForm">
-                <div class="settings-section">
-                    <div class="stats-title"><i class="fas fa-coins section-icon"></i> 💱 إدارة العملة</div>
+                <div class="settings-section"><div class="stats-title"><i class="fas fa-coins section-icon"></i> 💱 إدارة العملة</div>
                     <div class="form-group"><label>اسم العملة الثانوية</label><div class="input-wrapper"><i class="fas fa-coins"></i><input type="text" id="secondaryCurrencyName" value="ريال سعودي"></div></div>
                     <div class="form-group"><label>الرمز</label><div class="input-wrapper"><i class="fas fa-hashtag"></i><input type="text" id="secondaryCurrencySymbol" value="﷼"></div></div>
                     <div class="form-group"><label>سعر الصرف (1$ =)</label><div class="input-wrapper"><i class="fas fa-exchange-alt"></i><input type="number" id="exchangeRate" step="0.01" value="3.75"></div></div>
-                    <div class="form-group"><label>عملة الإدخال الافتراضية للشراء</label>
-                        <div class="radio-group">
-                            <label><input type="radio" name="defaultInputCurrency" value="primary" checked> دولار</label>
-                            <label><input type="radio" name="defaultInputCurrency" value="secondary"> ثانوية</label>
-                        </div>
-                    </div>
-                    <div class="form-group"><label>عملة البيع الافتراضية</label>
-                        <div class="radio-group">
-                            <label><input type="radio" name="defaultSellCurrency" value="primary" checked> دولار</label>
-                            <label><input type="radio" name="defaultSellCurrency" value="secondary"> ثانوية</label>
-                        </div>
-                    </div>
+                    <div class="form-group"><label>عملة الإدخال الافتراضية للشراء</label><div class="radio-group"><label><input type="radio" name="defaultInputCurrency" value="primary" checked> دولار</label><label><input type="radio" name="defaultInputCurrency" value="secondary"> ثانوية</label></div></div>
+                    <div class="form-group"><label>عملة البيع الافتراضية</label><div class="radio-group"><label><input type="radio" name="defaultSellCurrency" value="primary" checked> دولار</label><label><input type="radio" name="defaultSellCurrency" value="secondary"> ثانوية</label></div></div>
                 </div>
-                <div class="form-actions">
-                    <button type="button" class="cancel-btn" id="cancelSettingsBtn">إلغاء</button>
-                    <button type="submit" class="save-btn">حفظ</button>
-                </div>
+                <div class="form-actions"><button type="button" class="cancel-btn" id="cancelSettingsBtn">إلغاء</button><button type="submit" class="save-btn">حفظ</button></div>
             </form>
         </div>
     </div>
@@ -732,6 +774,7 @@
     };
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
+    const auth = firebase.auth();
 
     let items = [];
     let sales = [];
@@ -755,7 +798,16 @@
         defaultSellCurrency: "primary"
     };
 
-    // DOM element references
+    // عناصر DOM
+    const appMain = document.getElementById('appMain');
+    const loginContainer = document.getElementById('loginContainer');
+    const loginEmail = document.getElementById('loginEmail');
+    const loginPassword = document.getElementById('loginPassword');
+    const doLoginBtn = document.getElementById('doLoginBtn');
+    const loginErrorMsg = document.getElementById('loginErrorMsg');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    // باقي العناصر
     const itemsList = document.getElementById('itemsList');
     const searchInputElem = document.getElementById('searchInput');
     const addItemBtn = document.getElementById('addItemBtn');
@@ -803,7 +855,7 @@
     const historyFilterDiv = document.querySelector('.history-filter');
     const clearHistoryBtnElem = document.getElementById('clearHistoryBtn');
 
-    // دوال التوقيت GMT+3
+    // دوال التوقيت GMT+3 كما هي
     function getStartOfDayGMT3(date = new Date()) {
         let utc = date.getTime();
         let offset = 3 * 60 * 60 * 1000;
@@ -845,6 +897,7 @@
 
     function updateConnectionStatus(status, message) {
         const cs = document.getElementById('connectionStatus');
+        if (!cs) return;
         cs.style.display = 'flex';
         cs.className = 'connection-status ' + status;
         cs.innerHTML = `<i class="fas ${status==='online-status'?'fa-wifi':status==='offline-status'?'fa-wifi-slash':'fa-sync-alt fa-spin'}"></i><span>${message || ''}</span>`;
@@ -939,7 +992,6 @@
             updateConnectionStatus('offline-status', 'استخدام البيانات المحفوظة');
         }
     }
-
     async function fetchSales() {
         try {
             const snap = await database.ref('sales').once('value');
@@ -948,7 +1000,6 @@
             updateStats();
         } catch(e) { console.warn(e); }
     }
-
     async function fetchActivityLog() {
         try {
             const snap = await database.ref('activityLog').once('value');
@@ -956,7 +1007,6 @@
             saveAllToLocalStorage();
         } catch(e) { console.warn(e); }
     }
-
     async function fetchCurrencySettings() {
         try {
             const snap = await database.ref('currencySettings').once('value');
@@ -975,32 +1025,20 @@
         } catch(e) { console.warn(e); }
     }
 
-    async function saveItemToFirebase(item) {
-        const { id, ...data } = item;
-        await database.ref('items/' + id).set(data);
-        saveAllToLocalStorage();
-    }
-
-    async function deleteItemFromFirebase(id) {
-        await database.ref('items/' + id).remove();
-        saveAllToLocalStorage();
-    }
-
+    async function saveItemToFirebase(item) { const { id, ...data } = item; await database.ref('items/' + id).set(data); saveAllToLocalStorage(); }
+    async function deleteItemFromFirebase(id) { await database.ref('items/' + id).remove(); saveAllToLocalStorage(); }
     function generateActivityId() { return 'act_' + Date.now() + '_' + Math.random().toString(36).substr(2,9); }
     function formatDateTime(date) { return date.toLocaleString('ar-EG'); }
-
     async function addToActivityLog(actionType, details, itemData = null) {
         const timestamp = Date.now();
         const activityId = generateActivityId();
         const activity = { activityId, actionType, details, timestamp, dateTime: formatDateTime(new Date(timestamp)), itemData };
         activityLog.unshift(activity);
-        try {
-            await database.ref('activityLog/' + activityId).set(activity);
-            saveAllToLocalStorage();
-        } catch(e) { console.warn(e); }
+        try { await database.ref('activityLog/' + activityId).set(activity); saveAllToLocalStorage(); } catch(e) { console.warn(e); }
         if (historyModal.style.display === 'flex' && document.getElementById('activityLogSection').style.display !== 'none') displayActivityLog();
     }
 
+    // دوال العرض (displayItems, displaySalesLog, displayActivityLog إلخ كما هي مع الحفاظ على الوظائف)
     function displayItems(filtered = items) {
         const searchTerm = searchInputElem.value.trim();
         let sorted;
@@ -1030,479 +1068,95 @@
             else if (item.quantity <= 2) cardClass = 'low-stock';
             const isConfirming = deleteConfirmId === item.id;
             const isVisible = itemVisibility[item.id] || false;
-
             html += `<div class="product-card ${cardClass}" data-id="${item.id}">
                 <div class="product-index-outer">${index+1}</div>
                 <div class="card-header">
-                    <div class="product-title">
-                        <span class="product-name">${item.name}</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 5px;">
-                        <div class="product-meta">
-                            <span class="meta-item"><i class="fas fa-cubes"></i> ${item.quantity}</span>
-                            <span class="meta-item profit-badge-small ${profitClass} ${isVisible ? '' : 'blur-price'}">${profit}%</span>
-                        </div>
-                        <button class="icon-btn eye-icon" data-id="${item.id}" title="${isVisible ? 'إخفاء' : 'إظهار'} التفاصيل">
-                            <i class="fas ${isVisible ? 'fa-eye' : 'fa-eye-slash'}"></i>
-                        </button>
-                    </div>
+                    <div class="product-title"><span class="product-name">${item.name}</span></div>
+                    <div style="display: flex; align-items: center; gap: 5px;"><div class="product-meta"><span class="meta-item"><i class="fas fa-cubes"></i> ${item.quantity}</span><span class="meta-item profit-badge-small ${profitClass} ${isVisible ? '' : 'blur-price'}">${profit}%</span></div><button class="icon-btn eye-icon" data-id="${item.id}" title="${isVisible ? 'إخفاء' : 'إظهار'} التفاصيل"><i class="fas ${isVisible ? 'fa-eye' : 'fa-eye-slash'}"></i></button></div>
                 </div>
-                <div class="price-row">
-                    <div class="price-col purchase-price">
-                        <div class="price-label">شراء</div>
-                        <div class="primary-price ${isVisible ? '' : 'blur-price'}">$${formatPrimary(item.purchasePrice)}</div>
-                        <div class="secondary-price ${isVisible ? '' : 'blur-price'}">${purchaseSec} ${currencySettings.secondaryCurrencySymbol}</div>
-                    </div>
-                    <div class="price-col sale-price">
-                        <div class="price-label">بيع</div>
-                        <div class="primary-price">$${formatPrimary(item.salePrice)}</div>
-                        <div class="secondary-price">${saleSec} ${currencySettings.secondaryCurrencySymbol}</div>
-                    </div>
-                </div>
-                <div class="action-buttons">
-                    ${!isConfirming ? 
-                        `<button class="action-btn sell" data-id="${item.id}" ${item.quantity===0?'disabled':''}><i class="fas fa-shopping-cart"></i> بيع</button>
-                         <button class="action-btn edit" data-id="${item.id}"><i class="fas fa-edit"></i> تعديل</button>
-                         <button class="action-btn delete" data-id="${item.id}"><i class="fas fa-trash-alt"></i> حذف</button>`
-                        :
-                        `<button class="action-btn confirm-delete" data-id="${item.id}"><i class="fas fa-check"></i> تأكيد</button>
-                         <button class="action-btn cancel-delete" data-id="${item.id}"><i class="fas fa-times"></i> إلغاء</button>`
-                    }
-                </div>
+                <div class="price-row"><div class="price-col purchase-price"><div class="price-label">شراء</div><div class="primary-price ${isVisible ? '' : 'blur-price'}">$${formatPrimary(item.purchasePrice)}</div><div class="secondary-price ${isVisible ? '' : 'blur-price'}">${purchaseSec} ${currencySettings.secondaryCurrencySymbol}</div></div><div class="price-col sale-price"><div class="price-label">بيع</div><div class="primary-price">$${formatPrimary(item.salePrice)}</div><div class="secondary-price">${saleSec} ${currencySettings.secondaryCurrencySymbol}</div></div></div>
+                <div class="action-buttons">${!isConfirming ? `<button class="action-btn sell" data-id="${item.id}" ${item.quantity===0?'disabled':''}><i class="fas fa-shopping-cart"></i> بيع</button><button class="action-btn edit" data-id="${item.id}"><i class="fas fa-edit"></i> تعديل</button><button class="action-btn delete" data-id="${item.id}"><i class="fas fa-trash-alt"></i> حذف</button>` : `<button class="action-btn confirm-delete" data-id="${item.id}"><i class="fas fa-check"></i> تأكيد</button><button class="action-btn cancel-delete" data-id="${item.id}"><i class="fas fa-times"></i> إلغاء</button>`}</div>
             </div>`;
         });
         itemsList.innerHTML = html;
         updateStats();
-
         document.querySelectorAll('.sell').forEach(b => b.addEventListener('click', e => openSellModal(e.currentTarget.dataset.id)));
         document.querySelectorAll('.edit').forEach(b => b.addEventListener('click', e => editItem(e.currentTarget.dataset.id)));
         document.querySelectorAll('.delete').forEach(b => b.addEventListener('click', e => { deleteConfirmId = e.currentTarget.dataset.id; displayItems(searchInputElem.value ? items.filter(i => i.name.toLowerCase().includes(searchInputElem.value.toLowerCase())) : items); }));
         document.querySelectorAll('.confirm-delete').forEach(b => b.addEventListener('click', e => performDelete(e.currentTarget.dataset.id)));
         document.querySelectorAll('.cancel-delete').forEach(b => b.addEventListener('click', e => { deleteConfirmId = null; displayItems(searchInputElem.value ? items.filter(i => i.name.toLowerCase().includes(searchInputElem.value.toLowerCase())) : items); }));
-        document.querySelectorAll('.eye-icon').forEach(btn => {
-            btn.addEventListener('click', e => {
-                e.stopPropagation();
-                const id = btn.dataset.id;
-                itemVisibility[id] = !itemVisibility[id];
-                displayItems(searchInputElem.value ? items.filter(i => i.name.toLowerCase().includes(searchInputElem.value.toLowerCase())) : items);
-            });
-        });
+        document.querySelectorAll('.eye-icon').forEach(btn => { btn.addEventListener('click', e => { e.stopPropagation(); const id = btn.dataset.id; itemVisibility[id] = !itemVisibility[id]; displayItems(searchInputElem.value ? items.filter(i => i.name.toLowerCase().includes(searchInputElem.value.toLowerCase())) : items); }); });
     }
 
-    async function performDelete(itemId) {
-        const item = items.find(i => i.id === itemId);
-        if (!item) return;
-        try {
-            await deleteItemFromFirebase(itemId);
-            items = items.filter(i => i.id !== itemId);
-            await addToActivityLog('delete', `حذف "${item.name}"`, item);
-            deleteConfirmId = null;
-            displayItems();
-            updateConnectionStatus('online-status', 'تم الحذف');
-        } catch(e) { alert('فشل الحذف'); console.error(e); }
-    }
+    async function performDelete(itemId) { const item = items.find(i => i.id === itemId); if (!item) return; try { await deleteItemFromFirebase(itemId); items = items.filter(i => i.id !== itemId); await addToActivityLog('delete', `حذف "${item.name}"`, item); deleteConfirmId = null; displayItems(); updateConnectionStatus('online-status', 'تم الحذف'); } catch(e) { alert('فشل الحذف'); console.error(e); } }
+    function addItem() { currentItemId = null; isEditing = false; itemForm.reset(); tempPurchaseCurrency = (currencySettings.defaultInputCurrency === 'secondary'); tempSaleCurrency = (currencySettings.defaultInputCurrency === 'secondary'); modalTitle.innerText = 'إضافة قطعة'; updatePriceLabels(); updateSecondaryPrices(); itemModal.style.display = 'flex'; }
+    function editItem(itemId) { const item = items.find(i => i.id === itemId); if (!item) return; currentItemId = itemId; isEditing = true; itemName.value = item.name; tempPurchaseCurrency = (currencySettings.defaultInputCurrency === 'secondary'); tempSaleCurrency = (currencySettings.defaultInputCurrency === 'secondary'); if (tempPurchaseCurrency) purchasePrice.value = Math.round(convertToSecondary(item.purchasePrice)); else purchasePrice.value = item.purchasePrice; if (tempSaleCurrency) salePrice.value = Math.round(convertToSecondary(item.salePrice)); else salePrice.value = item.salePrice; quantity.value = item.quantity; modalTitle.innerText = 'تعديل القطعة'; updatePriceLabels(); updateSecondaryPrices(); itemModal.style.display = 'flex'; }
 
-    function addItem() {
-        currentItemId = null; isEditing = false;
-        itemForm.reset();
-        tempPurchaseCurrency = (currencySettings.defaultInputCurrency === 'secondary');
-        tempSaleCurrency = (currencySettings.defaultInputCurrency === 'secondary');
-        modalTitle.innerText = 'إضافة قطعة';
-        updatePriceLabels();
-        updateSecondaryPrices();
-        itemModal.style.display = 'flex';
-    }
+    itemForm.addEventListener('submit', async (e) => { e.preventDefault(); const name = itemName.value.trim(); let purchase, sale; if (tempPurchaseCurrency) { const pSec = parseFloat(purchasePrice.value); if (isNaN(pSec) || pSec < 0) return alert('قيمة شراء غير صحيحة'); purchase = convertToPrimary(pSec); } else { purchase = parseFloat(purchasePrice.value); } if (tempSaleCurrency) { const sSec = parseFloat(salePrice.value); if (isNaN(sSec) || sSec < 0) return alert('قيمة بيع غير صحيحة'); sale = convertToPrimary(sSec); } else { sale = parseFloat(salePrice.value); } const qty = parseInt(quantity.value); if (!name || isNaN(purchase) || isNaN(sale) || isNaN(qty) || purchase < 0 || sale < 0 || qty < 0) return alert('يرجى ملء الحقول بشكل صحيح'); try { if (isEditing) { const item = items.find(i => i.id === currentItemId); if (!item) return; item.name = name; item.purchasePrice = purchase; item.salePrice = sale; item.quantity = qty; item.updatedAt = Date.now(); await saveItemToFirebase(item); await addToActivityLog('update', `تعديل "${name}"`, item); } else { const newId = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2,9); const newItem = { id: newId, name, purchasePrice: purchase, salePrice: sale, quantity: qty, createdAt: Date.now(), updatedAt: Date.now() }; await saveItemToFirebase(newItem); items.push(newItem); await addToActivityLog('add', `إضافة "${name}"`, newItem); } displayItems(); itemModal.style.display = 'none'; updateConnectionStatus('online-status', isEditing ? 'تم التحديث' : 'تمت الإضافة'); } catch(e) { alert('فشل الحفظ'); console.error(e); } });
+    function openSellModal(itemId) { const item = items.find(i => i.id === itemId); if (!item) return; sellProductName.innerText = item.name; sellQuantity.value = 1; sellQuantity.max = item.quantity; tempSellCurrency = (currencySettings.defaultSellCurrency === 'secondary'); if (tempSellCurrency) { sellPriceLabelSpan.innerHTML = `السعر <small>(${currencySettings.secondaryCurrencySymbol})</small>`; sellPriceInput.value = Math.round(convertToSecondary(item.salePrice)); } else { sellPriceLabelSpan.innerHTML = `السعر <small>($)</small>`; sellPriceInput.value = item.salePrice; } updateSecondarySellPrice(); sellForm.dataset.itemId = itemId; sellModal.style.display = 'flex'; }
+    function updateSecondarySellPrice() { const val = parseFloat(sellPriceInput.value) || 0; if (tempSellCurrency) { const primary = convertToPrimary(val); sellPriceSecondaryInfo.innerText = `تعادل $${formatPrimary(primary)}`; } else { const sec = convertToSecondary(val); sellPriceSecondaryInfo.innerText = `تعادل ${formatSecondary(sec)} ${currencySettings.secondaryCurrencySymbol}`; } }
+    switchSellCurrencyBtn.addEventListener('click', () => { tempSellCurrency = !tempSellCurrency; const currentVal = parseFloat(sellPriceInput.value) || 0; if (tempSellCurrency) { sellPriceInput.value = Math.round(convertToSecondary(currentVal)); sellPriceLabelSpan.innerHTML = `السعر <small>(${currencySettings.secondaryCurrencySymbol})</small>`; } else { sellPriceInput.value = convertToPrimary(currentVal).toFixed(2); sellPriceLabelSpan.innerHTML = `السعر <small>($)</small>`; } updateSecondarySellPrice(); });
+    sellForm.addEventListener('submit', async (e) => { e.preventDefault(); const itemId = sellForm.dataset.itemId; const item = items.find(i => i.id === itemId); if (!item) return; const qty = parseInt(sellQuantity.value); if (qty <= 0 || qty > item.quantity) return alert('كمية غير صالحة'); let pricePrimary; if (tempSellCurrency) { const sec = parseFloat(sellPriceInput.value); if (isNaN(sec) || sec < 0) return alert('سعر غير صالح'); pricePrimary = convertToPrimary(sec); } else { pricePrimary = parseFloat(sellPriceInput.value); } const profit = (pricePrimary - item.purchasePrice) * qty; const saleObj = { itemId: item.id, itemName: item.name, quantity: qty, unitPrice: pricePrimary, totalAmount: pricePrimary * qty, profit, purchasePriceAtTime: item.purchasePrice, timestamp: Date.now(), saleCurrency: tempSellCurrency ? 'secondary' : 'primary' }; try { item.quantity -= qty; await database.ref('items/' + item.id).set({ name: item.name, purchasePrice: item.purchasePrice, salePrice: item.salePrice, quantity: item.quantity, updatedAt: Date.now() }); const newSaleRef = await database.ref('sales').push(saleObj); saleObj.saleId = newSaleRef.key; items = items.map(i => i.id === item.id ? item : i); sales.unshift(saleObj); displayItems(); updateStats(); saveAllToLocalStorage(); sellModal.style.display = 'none'; updateConnectionStatus('online-status', 'تم البيع'); if (historyModal.style.display === 'flex' && document.getElementById('salesLogSection').style.display !== 'none') displaySalesLog(); } catch(e) { alert('فشل البيع'); console.error(e); } });
+    window.editSale = (saleId) => { historyModal.style.display = 'none'; const sale = sales.find(s => s.saleId === saleId); if (!sale) return; const product = items.find(i => i.id === sale.itemId); if (!product) return alert('المنتج غير موجود'); editSaleId.value = sale.saleId; editOriginalItemId.value = sale.itemId; editOriginalQuantity.value = sale.quantity; editSaleCurrency.value = sale.saleCurrency || 'primary'; editProductNameSpan.innerText = sale.itemName; editQuantityInput.value = sale.quantity; editQuantityInput.max = product.quantity + sale.quantity; tempEditCurrency = (sale.saleCurrency === 'secondary'); if (tempEditCurrency) { editPriceLabelSpan.innerHTML = `سعر الوحدة <small>(${currencySettings.secondaryCurrencySymbol})</small>`; editPriceInput.value = formatSecondary(convertToSecondary(sale.unitPrice)); } else { editPriceLabelSpan.innerHTML = `سعر الوحدة <small>($)</small>`; editPriceInput.value = sale.unitPrice; } updateSecondaryEditPrice(); editSaleModal.style.display = 'flex'; };
+    function updateSecondaryEditPrice() { const val = parseFloat(editPriceInput.value) || 0; if (tempEditCurrency) { const primary = convertToPrimary(val); editPriceSecondaryInfo.innerText = `تعادل $${formatPrimary(primary)}`; } else { const sec = convertToSecondary(val); editPriceSecondaryInfo.innerText = `تعادل ${formatSecondary(sec)} ${currencySettings.secondaryCurrencySymbol}`; } }
+    switchEditCurrencyBtn.addEventListener('click', () => { tempEditCurrency = !tempEditCurrency; const currentVal = parseFloat(editPriceInput.value) || 0; if (tempEditCurrency) { editPriceInput.value = Math.round(convertToSecondary(currentVal)); editPriceLabelSpan.innerHTML = `سعر الوحدة <small>(${currencySettings.secondaryCurrencySymbol})</small>`; } else { editPriceInput.value = convertToPrimary(currentVal).toFixed(2); editPriceLabelSpan.innerHTML = `سعر الوحدة <small>($)</small>`; } updateSecondaryEditPrice(); });
+    editSaleForm.addEventListener('submit', async (e) => { e.preventDefault(); const saleId = editSaleId.value; const itemId = editOriginalItemId.value; const oldQty = parseInt(editOriginalQuantity.value); const newQty = parseInt(editQuantityInput.value); let newPriceInPrimary; if (tempEditCurrency) { const sec = parseFloat(editPriceInput.value); if (isNaN(sec) || sec < 0) return alert('سعر غير صالح'); newPriceInPrimary = convertToPrimary(sec); } else { newPriceInPrimary = parseFloat(editPriceInput.value); } if (newQty <= 0 || newPriceInPrimary < 0) return alert('قيم غير صالحة'); const sale = sales.find(s => s.saleId === saleId); const product = items.find(i => i.id === itemId); if (!sale || !product) return; const diff = newQty - oldQty; if (diff > 0 && product.quantity < diff) return alert('الكمية غير متوفرة'); try { product.quantity -= diff; await database.ref('items/' + product.id).set({ name: product.name, purchasePrice: product.purchasePrice, salePrice: product.salePrice, quantity: product.quantity, updatedAt: Date.now() }); const newTotal = newQty * newPriceInPrimary; const newProfit = (newPriceInPrimary - product.purchasePrice) * newQty; const updated = { ...sale, quantity: newQty, unitPrice: newPriceInPrimary, totalAmount: newTotal, profit: newProfit, saleCurrency: tempEditCurrency ? 'secondary' : 'primary' }; await database.ref('sales/' + saleId).set(updated); items = items.map(i => i.id === product.id ? product : i); Object.assign(sale, updated); displayItems(); updateStats(); saveAllToLocalStorage(); editSaleModal.style.display = 'none'; updateConnectionStatus('online-status', 'تم التعديل'); if (historyModal.style.display === 'flex' && document.getElementById('salesLogSection').style.display !== 'none') displaySalesLog(); } catch(e) { alert('فشل التعديل'); console.error(e); } });
+    function displaySalesLog() { if (!sales.length) { salesLogBody.innerHTML = '<tr><td colspan="7" class="empty-state">لا توجد مبيعات</td></tr>'; return; } const grouped = {}; sales.forEach(sale => { const d = new Date(sale.timestamp); const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; if (!grouped[dateStr]) grouped[dateStr] = []; grouped[dateStr].push(sale); }); let html = ''; Object.keys(grouped).sort((a,b)=>b.localeCompare(a)).forEach(dateStr => { const dateObj = new Date(dateStr + 'T12:00:00'); const dayName = dateObj.toLocaleDateString('ar-EG', { weekday: 'long' }); html += `<tr class="date-group-header"><td colspan="7">${dayName} ${dateStr}</td></tr>`; grouped[dateStr].forEach(s => { html += `<tr><td>${s.itemName}</td><td>${s.quantity}</td><td>$${formatPrimary(s.unitPrice)}</td><td>$${formatPrimary(s.totalAmount)}</td><td>$${formatPrimary(s.profit)}</td><td>${new Date(s.timestamp).toLocaleString('ar-EG')}</td><td><button class="action-btn edit" onclick="editSale('${s.saleId}')"><i class="fas fa-edit"></i></button> <button class="action-btn delete" onclick="cancelSale('${s.saleId}')"><i class="fas fa-undo-alt"></i></button></td></tr>`; }); }); salesLogBody.innerHTML = html; }
+    window.cancelSale = async (saleId) => { if (!confirm('إلغاء البيع؟')) return; const sale = sales.find(s => s.saleId === saleId); if (!sale) return; const product = items.find(i => i.id === sale.itemId); if (!product) return alert('المنتج غير موجود'); try { product.quantity += sale.quantity; await database.ref('items/' + product.id).set({ name: product.name, purchasePrice: product.purchasePrice, salePrice: product.salePrice, quantity: product.quantity, updatedAt: Date.now() }); await database.ref('sales/' + saleId).remove(); items = items.map(i => i.id === product.id ? product : i); sales = sales.filter(s => s.saleId !== saleId); displayItems(); updateStats(); saveAllToLocalStorage(); if (historyModal.style.display === 'flex' && document.getElementById('salesLogSection').style.display !== 'none') displaySalesLog(); updateConnectionStatus('online-status', 'تم الإلغاء'); } catch(e) { alert('فشل'); console.error(e); } };
+    function displayActivityLog(filter = currentFilter) { let filtered = filter === 'all' ? activityLog : activityLog.filter(a => a.actionType === filter); if (!filtered.length) { historyTableBody.innerHTML = '<tr><td colspan="4" class="empty-state">لا توجد عمليات</td></tr>'; return; } let html = ''; filtered.forEach((act, idx) => { let typeTxt = { add:'إضافة', update:'تعديل', delete:'حذف', settings:'إعدادات' }[act.actionType] || act.actionType; html += `<tr><td>${idx+1}</td><td>${act.dateTime || ''}</td><td>${typeTxt}</td><td>${act.details}</td></tr>`; }); historyTableBody.innerHTML = html; }
 
-    function editItem(itemId) {
-        const item = items.find(i => i.id === itemId);
-        if (!item) return;
-        currentItemId = itemId; isEditing = true;
-        itemName.value = item.name;
-        tempPurchaseCurrency = (currencySettings.defaultInputCurrency === 'secondary');
-        tempSaleCurrency = (currencySettings.defaultInputCurrency === 'secondary');
-        if (tempPurchaseCurrency) purchasePrice.value = Math.round(convertToSecondary(item.purchasePrice));
-        else purchasePrice.value = item.purchasePrice;
-        if (tempSaleCurrency) salePrice.value = Math.round(convertToSecondary(item.salePrice));
-        else salePrice.value = item.salePrice;
-        quantity.value = item.quantity;
-        modalTitle.innerText = 'تعديل القطعة';
-        updatePriceLabels();
-        updateSecondaryPrices();
-        itemModal.style.display = 'flex';
-    }
-
-    itemForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const name = itemName.value.trim();
-        let purchase, sale;
-        if (tempPurchaseCurrency) {
-            const pSec = parseFloat(purchasePrice.value);
-            if (isNaN(pSec) || pSec < 0) return alert('قيمة شراء غير صحيحة');
-            purchase = convertToPrimary(pSec);
-        } else {
-            purchase = parseFloat(purchasePrice.value);
-        }
-        if (tempSaleCurrency) {
-            const sSec = parseFloat(salePrice.value);
-            if (isNaN(sSec) || sSec < 0) return alert('قيمة بيع غير صحيحة');
-            sale = convertToPrimary(sSec);
-        } else {
-            sale = parseFloat(salePrice.value);
-        }
-        const qty = parseInt(quantity.value);
-        if (!name || isNaN(purchase) || isNaN(sale) || isNaN(qty) || purchase < 0 || sale < 0 || qty < 0)
-            return alert('يرجى ملء الحقول بشكل صحيح');
-
-        try {
-            if (isEditing) {
-                const item = items.find(i => i.id === currentItemId);
-                if (!item) return;
-                item.name = name;
-                item.purchasePrice = purchase;
-                item.salePrice = sale;
-                item.quantity = qty;
-                item.updatedAt = Date.now();
-                await saveItemToFirebase(item);
-                await addToActivityLog('update', `تعديل "${name}"`, item);
-            } else {
-                const newId = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2,9);
-                const newItem = { id: newId, name, purchasePrice: purchase, salePrice: sale, quantity: qty, createdAt: Date.now(), updatedAt: Date.now() };
-                await saveItemToFirebase(newItem);
-                items.push(newItem);
-                await addToActivityLog('add', `إضافة "${name}"`, newItem);
-            }
-            displayItems();
-            itemModal.style.display = 'none';
-            updateConnectionStatus('online-status', isEditing ? 'تم التحديث' : 'تمت الإضافة');
-        } catch(e) { alert('فشل الحفظ'); console.error(e); }
-    });
-
-    function openSellModal(itemId) {
-        const item = items.find(i => i.id === itemId);
-        if (!item) return;
-        sellProductName.innerText = item.name;
-        sellQuantity.value = 1;
-        sellQuantity.max = item.quantity;
-        tempSellCurrency = (currencySettings.defaultSellCurrency === 'secondary');
-        if (tempSellCurrency) {
-            sellPriceLabelSpan.innerHTML = `السعر <small>(${currencySettings.secondaryCurrencySymbol})</small>`;
-            sellPriceInput.value = Math.round(convertToSecondary(item.salePrice));
-        } else {
-            sellPriceLabelSpan.innerHTML = `السعر <small>($)</small>`;
-            sellPriceInput.value = item.salePrice;
-        }
-        updateSecondarySellPrice();
-        sellForm.dataset.itemId = itemId;
-        sellModal.style.display = 'flex';
-    }
-
-    function updateSecondarySellPrice() {
-        const val = parseFloat(sellPriceInput.value) || 0;
-        if (tempSellCurrency) {
-            const primary = convertToPrimary(val);
-            sellPriceSecondaryInfo.innerText = `تعادل $${formatPrimary(primary)}`;
-        } else {
-            const sec = convertToSecondary(val);
-            sellPriceSecondaryInfo.innerText = `تعادل ${formatSecondary(sec)} ${currencySettings.secondaryCurrencySymbol}`;
-        }
-    }
-
-    switchSellCurrencyBtn.addEventListener('click', () => {
-        tempSellCurrency = !tempSellCurrency;
-        const currentVal = parseFloat(sellPriceInput.value) || 0;
-        if (tempSellCurrency) {
-            sellPriceInput.value = Math.round(convertToSecondary(currentVal));
-            sellPriceLabelSpan.innerHTML = `السعر <small>(${currencySettings.secondaryCurrencySymbol})</small>`;
-        } else {
-            sellPriceInput.value = convertToPrimary(currentVal).toFixed(2);
-            sellPriceLabelSpan.innerHTML = `السعر <small>($)</small>`;
-        }
-        updateSecondarySellPrice();
-    });
-
-    sellForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const itemId = sellForm.dataset.itemId;
-        const item = items.find(i => i.id === itemId);
-        if (!item) return;
-        const qty = parseInt(sellQuantity.value);
-        if (qty <= 0 || qty > item.quantity) return alert('كمية غير صالحة');
-        let pricePrimary;
-        if (tempSellCurrency) {
-            const sec = parseFloat(sellPriceInput.value);
-            if (isNaN(sec) || sec < 0) return alert('سعر غير صالح');
-            pricePrimary = convertToPrimary(sec);
-        } else {
-            pricePrimary = parseFloat(sellPriceInput.value);
-        }
-        const profit = (pricePrimary - item.purchasePrice) * qty;
-        const sale = {
-            itemId: item.id, itemName: item.name, quantity: qty, unitPrice: pricePrimary,
-            totalAmount: pricePrimary * qty, profit, purchasePriceAtTime: item.purchasePrice,
-            timestamp: Date.now(), saleCurrency: tempSellCurrency ? 'secondary' : 'primary'
-        };
-        try {
-            item.quantity -= qty;
-            await database.ref('items/' + item.id).set({
-                name: item.name, purchasePrice: item.purchasePrice, salePrice: item.salePrice, quantity: item.quantity, updatedAt: Date.now()
-            });
-            const newSaleRef = await database.ref('sales').push(sale);
-            sale.saleId = newSaleRef.key;
-            items = items.map(i => i.id === item.id ? item : i);
-            sales.unshift(sale);
-            displayItems();
-            updateStats();
-            saveAllToLocalStorage();
-            sellModal.style.display = 'none';
-            updateConnectionStatus('online-status', 'تم البيع');
-            if (historyModal.style.display === 'flex' && document.getElementById('salesLogSection').style.display !== 'none') displaySalesLog();
-        } catch(e) { alert('فشل البيع'); console.error(e); }
-    });
-
-    window.editSale = (saleId) => {
-        historyModal.style.display = 'none';
-        const sale = sales.find(s => s.saleId === saleId);
-        if (!sale) return;
-        const product = items.find(i => i.id === sale.itemId);
-        if (!product) return alert('المنتج غير موجود');
-        editSaleId.value = sale.saleId;
-        editOriginalItemId.value = sale.itemId;
-        editOriginalQuantity.value = sale.quantity;
-        editSaleCurrency.value = sale.saleCurrency || 'primary';
-        editProductNameSpan.innerText = sale.itemName;
-        editQuantityInput.value = sale.quantity;
-        editQuantityInput.max = product.quantity + sale.quantity;
-        tempEditCurrency = (sale.saleCurrency === 'secondary');
-        if (tempEditCurrency) {
-            editPriceLabelSpan.innerHTML = `سعر الوحدة <small>(${currencySettings.secondaryCurrencySymbol})</small>`;
-            editPriceInput.value = formatSecondary(convertToSecondary(sale.unitPrice));
-        } else {
-            editPriceLabelSpan.innerHTML = `سعر الوحدة <small>($)</small>`;
-            editPriceInput.value = sale.unitPrice;
-        }
-        updateSecondaryEditPrice();
-        editSaleModal.style.display = 'flex';
-    };
-
-    function updateSecondaryEditPrice() {
-        const val = parseFloat(editPriceInput.value) || 0;
-        if (tempEditCurrency) {
-            const primary = convertToPrimary(val);
-            editPriceSecondaryInfo.innerText = `تعادل $${formatPrimary(primary)}`;
-        } else {
-            const sec = convertToSecondary(val);
-            editPriceSecondaryInfo.innerText = `تعادل ${formatSecondary(sec)} ${currencySettings.secondaryCurrencySymbol}`;
-        }
-    }
-
-    switchEditCurrencyBtn.addEventListener('click', () => {
-        tempEditCurrency = !tempEditCurrency;
-        const currentVal = parseFloat(editPriceInput.value) || 0;
-        if (tempEditCurrency) {
-            editPriceInput.value = Math.round(convertToSecondary(currentVal));
-            editPriceLabelSpan.innerHTML = `سعر الوحدة <small>(${currencySettings.secondaryCurrencySymbol})</small>`;
-        } else {
-            editPriceInput.value = convertToPrimary(currentVal).toFixed(2);
-            editPriceLabelSpan.innerHTML = `سعر الوحدة <small>($)</small>`;
-        }
-        updateSecondaryEditPrice();
-    });
-
-    editSaleForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const saleId = editSaleId.value;
-        const itemId = editOriginalItemId.value;
-        const oldQty = parseInt(editOriginalQuantity.value);
-        const newQty = parseInt(editQuantityInput.value);
-        let newPriceInPrimary;
-        if (tempEditCurrency) {
-            const sec = parseFloat(editPriceInput.value);
-            if (isNaN(sec) || sec < 0) return alert('سعر غير صالح');
-            newPriceInPrimary = convertToPrimary(sec);
-        } else {
-            newPriceInPrimary = parseFloat(editPriceInput.value);
-        }
-        if (newQty <= 0 || newPriceInPrimary < 0) return alert('قيم غير صالحة');
-        const sale = sales.find(s => s.saleId === saleId);
-        const product = items.find(i => i.id === itemId);
-        if (!sale || !product) return;
-        const diff = newQty - oldQty;
-        if (diff > 0 && product.quantity < diff) return alert('الكمية غير متوفرة');
-        try {
-            product.quantity -= diff;
-            await database.ref('items/' + product.id).set({
-                name: product.name, purchasePrice: product.purchasePrice, salePrice: product.salePrice, quantity: product.quantity, updatedAt: Date.now()
-            });
-            const newTotal = newQty * newPriceInPrimary;
-            const newProfit = (newPriceInPrimary - product.purchasePrice) * newQty;
-            const updated = { ...sale, quantity: newQty, unitPrice: newPriceInPrimary, totalAmount: newTotal, profit: newProfit, saleCurrency: tempEditCurrency ? 'secondary' : 'primary' };
-            await database.ref('sales/' + saleId).set(updated);
-            items = items.map(i => i.id === product.id ? product : i);
-            Object.assign(sale, updated);
-            displayItems();
-            updateStats();
-            saveAllToLocalStorage();
-            editSaleModal.style.display = 'none';
-            updateConnectionStatus('online-status', 'تم التعديل');
-            if (historyModal.style.display === 'flex' && document.getElementById('salesLogSection').style.display !== 'none') displaySalesLog();
-        } catch(e) { alert('فشل التعديل'); console.error(e); }
-    });
-
-    function displaySalesLog() {
-        if (!sales.length) { salesLogBody.innerHTML = '<tr><td colspan="7" class="empty-state">لا توجد مبيعات</td></tr>'; return; }
-        const grouped = {};
-        sales.forEach(sale => {
-            const d = new Date(sale.timestamp);
-            const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-            if (!grouped[dateStr]) grouped[dateStr] = [];
-            grouped[dateStr].push(sale);
-        });
-        let html = '';
-        Object.keys(grouped).sort((a,b)=>b.localeCompare(a)).forEach(dateStr => {
-            const dateObj = new Date(dateStr + 'T12:00:00');
-            const dayName = dateObj.toLocaleDateString('ar-EG', { weekday: 'long' });
-            html += `<tr class="date-group-header"><td colspan="7">${dayName} ${dateStr}</td></tr>`;
-            grouped[dateStr].forEach(s => {
-                html += `<tr>
-                    <td>${s.itemName}</td>
-                    <td>${s.quantity}</td>
-                    <td>$${formatPrimary(s.unitPrice)}</td>
-                    <td>$${formatPrimary(s.totalAmount)}</td>
-                    <td>$${formatPrimary(s.profit)}</td>
-                    <td>${new Date(s.timestamp).toLocaleString('ar-EG')}</td>
-                    <td><button class="action-btn edit" onclick="editSale('${s.saleId}')"><i class="fas fa-edit"></i></button> <button class="action-btn delete" onclick="cancelSale('${s.saleId}')"><i class="fas fa-undo-alt"></i></button></td>
-                </tr>`;
-            });
-        });
-        salesLogBody.innerHTML = html;
-    }
-
-    window.cancelSale = async (saleId) => {
-        if (!confirm('إلغاء البيع؟')) return;
-        const sale = sales.find(s => s.saleId === saleId);
-        if (!sale) return;
-        const product = items.find(i => i.id === sale.itemId);
-        if (!product) return alert('المنتج غير موجود');
-        try {
-            product.quantity += sale.quantity;
-            await database.ref('items/' + product.id).set({ name: product.name, purchasePrice: product.purchasePrice, salePrice: product.salePrice, quantity: product.quantity, updatedAt: Date.now() });
-            await database.ref('sales/' + saleId).remove();
-            items = items.map(i => i.id === product.id ? product : i);
-            sales = sales.filter(s => s.saleId !== saleId);
-            displayItems(); updateStats(); saveAllToLocalStorage();
-            if (historyModal.style.display === 'flex' && document.getElementById('salesLogSection').style.display !== 'none') displaySalesLog();
-            updateConnectionStatus('online-status', 'تم الإلغاء');
-        } catch(e) { alert('فشل'); console.error(e); }
-    };
-
-    function displayActivityLog(filter = currentFilter) {
-        let filtered = filter === 'all' ? activityLog : activityLog.filter(a => a.actionType === filter);
-        if (!filtered.length) { historyTableBody.innerHTML = '<tr><td colspan="4" class="empty-state">لا توجد عمليات</td></tr>'; return; }
-        let html = '';
-        filtered.forEach((act, idx) => {
-            let typeTxt = { add:'إضافة', update:'تعديل', delete:'حذف', settings:'إعدادات' }[act.actionType] || act.actionType;
-            html += `<tr><td>${idx+1}</td><td>${act.dateTime || ''}</td><td>${typeTxt}</td><td>${act.details}</td></tr>`;
-        });
-        historyTableBody.innerHTML = html;
-    }
-
-    // Event listeners
+    // ربط الأحداث العامة
     addItemBtn.addEventListener('click', addItem);
     settingsBtn.addEventListener('click', () => settingsModal.style.display = 'flex');
     historyBtn.addEventListener('click', () => { historyModal.style.display = 'flex'; updateStats(); displaySalesLog(); displayActivityLog(); });
     document.querySelectorAll('.close-modal, .cancel-btn').forEach(btn => btn.addEventListener('click', () => document.querySelectorAll('.modal').forEach(m => m.style.display = 'none')));
-    switchPurchaseCurrencyBtn.addEventListener('click', () => {
-        tempPurchaseCurrency = !tempPurchaseCurrency;
-        const currentVal = parseFloat(purchasePrice.value) || 0;
-        if (tempPurchaseCurrency) purchasePrice.value = Math.round(convertToSecondary(currentVal));
-        else purchasePrice.value = convertToPrimary(currentVal).toFixed(2);
-        updatePriceLabels(); updateSecondaryPrices();
-    });
-    switchSaleCurrencyBtn.addEventListener('click', () => {
-        tempSaleCurrency = !tempSaleCurrency;
-        const currentVal = parseFloat(salePrice.value) || 0;
-        if (tempSaleCurrency) salePrice.value = Math.round(convertToSecondary(currentVal));
-        else salePrice.value = convertToPrimary(currentVal).toFixed(2);
-        updatePriceLabels(); updateSecondaryPrices();
-    });
-    purchasePrice.addEventListener('input', updateSecondaryPrices);
-    salePrice.addEventListener('input', updateSecondaryPrices);
-    sellPriceInput.addEventListener('input', updateSecondarySellPrice);
-    editPriceInput.addEventListener('input', updateSecondaryEditPrice);
-    searchInputElem.addEventListener('input', (e) => {
-        const term = e.target.value.toLowerCase();
-        displayItems(items.filter(i => i.name.toLowerCase().includes(term)));
-    });
+    switchPurchaseCurrencyBtn.addEventListener('click', () => { tempPurchaseCurrency = !tempPurchaseCurrency; const currentVal = parseFloat(purchasePrice.value) || 0; if (tempPurchaseCurrency) purchasePrice.value = Math.round(convertToSecondary(currentVal)); else purchasePrice.value = convertToPrimary(currentVal).toFixed(2); updatePriceLabels(); updateSecondaryPrices(); });
+    switchSaleCurrencyBtn.addEventListener('click', () => { tempSaleCurrency = !tempSaleCurrency; const currentVal = parseFloat(salePrice.value) || 0; if (tempSaleCurrency) salePrice.value = Math.round(convertToSecondary(currentVal)); else salePrice.value = convertToPrimary(currentVal).toFixed(2); updatePriceLabels(); updateSecondaryPrices(); });
+    purchasePrice.addEventListener('input', updateSecondaryPrices); salePrice.addEventListener('input', updateSecondaryPrices); sellPriceInput.addEventListener('input', updateSecondarySellPrice); editPriceInput.addEventListener('input', updateSecondaryEditPrice);
+    searchInputElem.addEventListener('input', (e) => { const term = e.target.value.toLowerCase(); displayItems(items.filter(i => i.name.toLowerCase().includes(term))); });
+    reportTabsList.forEach(tab => { tab.addEventListener('click', () => { reportTabsList.forEach(t => t.classList.remove('active')); tab.classList.add('active'); const sectionId = tab.dataset.section; document.querySelectorAll('.report-section').forEach(s => s.classList.remove('active')); if (sectionId === 'profits') document.getElementById('profitsSection').classList.add('active'); else if (sectionId === 'inventory') document.getElementById('inventorySection').classList.add('active'); else if (sectionId === 'sales') document.getElementById('salesLogSection').classList.add('active'); else if (sectionId === 'activities') document.getElementById('activityLogSection').classList.add('active'); if (sectionId === 'sales') displaySalesLog(); if (sectionId === 'activities') displayActivityLog(currentFilter); if (sectionId === 'profits' || sectionId === 'inventory') updateStats(); }); });
+    historyFilterDiv.addEventListener('click', (e) => { if (e.target.classList.contains('history-filter-btn')) { document.querySelectorAll('.history-filter-btn').forEach(b => b.classList.remove('active')); e.target.classList.add('active'); currentFilter = e.target.dataset.action; displayActivityLog(currentFilter); } });
+    clearHistoryBtnElem.addEventListener('click', async () => { if (confirm('مسح سجل العمليات بالكامل؟')) { try { await database.ref('activityLog').remove(); activityLog = []; saveAllToLocalStorage(); displayActivityLog(); } catch(e) { alert('فشل'); } } });
+    settingsFormElem.addEventListener('submit', async (e) => { e.preventDefault(); const newSettings = { secondaryCurrencyName: document.getElementById('secondaryCurrencyName').value.trim(), secondaryCurrencySymbol: document.getElementById('secondaryCurrencySymbol').value.trim(), exchangeRate: parseFloat(document.getElementById('exchangeRate').value), defaultInputCurrency: document.querySelector('input[name="defaultInputCurrency"]:checked').value, defaultSellCurrency: document.querySelector('input[name="defaultSellCurrency"]:checked').value }; if (!newSettings.secondaryCurrencyName || !newSettings.secondaryCurrencySymbol || isNaN(newSettings.exchangeRate) || newSettings.exchangeRate <= 0) return alert('بيانات غير صحيحة'); try { await database.ref('currencySettings').set(newSettings); currencySettings = newSettings; await addToActivityLog('settings', 'تغيير إعدادات العملة'); tempPurchaseCurrency = (currencySettings.defaultInputCurrency === 'secondary'); tempSaleCurrency = (currencySettings.defaultInputCurrency === 'secondary'); tempSellCurrency = (currencySettings.defaultSellCurrency === 'secondary'); updatePriceLabels(); updateSecondaryPrices(); displayItems(); settingsModal.style.display = 'none'; updateConnectionStatus('online-status', 'تم حفظ الإعدادات'); } catch(e) { alert('فشل الحفظ'); } });
+    window.addEventListener('click', (e) => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; });
 
-    // Fixed tab switching
-    reportTabsList.forEach(tab => {
-        tab.addEventListener('click', () => {
-            reportTabsList.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            const sectionId = tab.dataset.section;
-            document.querySelectorAll('.report-section').forEach(s => s.classList.remove('active'));
-            if (sectionId === 'profits') document.getElementById('profitsSection').classList.add('active');
-            else if (sectionId === 'inventory') document.getElementById('inventorySection').classList.add('active');
-            else if (sectionId === 'sales') document.getElementById('salesLogSection').classList.add('active');
-            else if (sectionId === 'activities') document.getElementById('activityLogSection').classList.add('active');
-            if (sectionId === 'sales') displaySalesLog();
-            if (sectionId === 'activities') displayActivityLog(currentFilter);
-            if (sectionId === 'profits' || sectionId === 'inventory') updateStats();
-        });
-    });
-
-    historyFilterDiv.addEventListener('click', (e) => {
-        if (e.target.classList.contains('history-filter-btn')) {
-            document.querySelectorAll('.history-filter-btn').forEach(b => b.classList.remove('active'));
-            e.target.classList.add('active');
-            currentFilter = e.target.dataset.action;
-            displayActivityLog(currentFilter);
-        }
-    });
-
-    clearHistoryBtnElem.addEventListener('click', async () => {
-        if (confirm('مسح سجل العمليات بالكامل؟')) {
-            try { await database.ref('activityLog').remove(); activityLog = []; saveAllToLocalStorage(); displayActivityLog(); } catch(e) { alert('فشل'); }
-        }
-    });
-
-    settingsFormElem.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const newSettings = {
-            secondaryCurrencyName: document.getElementById('secondaryCurrencyName').value.trim(),
-            secondaryCurrencySymbol: document.getElementById('secondaryCurrencySymbol').value.trim(),
-            exchangeRate: parseFloat(document.getElementById('exchangeRate').value),
-            defaultInputCurrency: document.querySelector('input[name="defaultInputCurrency"]:checked').value,
-            defaultSellCurrency: document.querySelector('input[name="defaultSellCurrency"]:checked').value
-        };
-        if (!newSettings.secondaryCurrencyName || !newSettings.secondaryCurrencySymbol || isNaN(newSettings.exchangeRate) || newSettings.exchangeRate <= 0)
-            return alert('بيانات غير صحيحة');
+    // تسجيل الدخول
+    doLoginBtn.addEventListener('click', async () => {
+        const email = loginEmail.value.trim();
+        const password = loginPassword.value.trim();
+        if (!email || !password) { loginErrorMsg.innerText = 'البريد وكلمة المرور مطلوبة'; loginErrorMsg.style.display = 'block'; return; }
+        loginErrorMsg.style.display = 'none';
         try {
-            await database.ref('currencySettings').set(newSettings);
-            currencySettings = newSettings;
-            await addToActivityLog('settings', 'تغيير إعدادات العملة');
-            tempPurchaseCurrency = (currencySettings.defaultInputCurrency === 'secondary');
-            tempSaleCurrency = (currencySettings.defaultInputCurrency === 'secondary');
-            tempSellCurrency = (currencySettings.defaultSellCurrency === 'secondary');
-            updatePriceLabels(); updateSecondaryPrices(); displayItems();
-            settingsModal.style.display = 'none';
-            updateConnectionStatus('online-status', 'تم حفظ الإعدادات');
-        } catch(e) { alert('فشل الحفظ'); }
+            await auth.signInWithEmailAndPassword(email, password);
+        } catch(err) {
+            loginErrorMsg.innerText = 'فشل تسجيل الدخول: تحقق من البريد وكلمة المرور';
+            loginErrorMsg.style.display = 'block';
+        }
     });
 
-    window.addEventListener('click', (e) => {
-        if (e.target.classList.contains('modal')) e.target.style.display = 'none';
+    // تسجيل الخروج
+    logoutBtn.addEventListener('click', async () => {
+        await auth.signOut();
     });
 
-    async function init() {
-        updateConnectionStatus('syncing-status', 'جار التحميل...');
-        await fetchCurrencySettings();
-        await fetchItems();
-        await fetchSales();
-        await fetchActivityLog();
-        updateConnectionStatus('online-status', 'تم التحميل');
-    }
-    init();
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            loginContainer.style.display = 'none';
+            appMain.style.display = 'flex';
+            updateConnectionStatus('syncing-status', 'جار التحميل...');
+            await fetchCurrencySettings();
+            await fetchItems();
+            await fetchSales();
+            await fetchActivityLog();
+            updateConnectionStatus('online-status', 'تم التحميل');
+        } else {
+            loginContainer.style.display = 'flex';
+            appMain.style.display = 'none';
+            loginEmail.value = '';
+            loginPassword.value = '';
+            loginErrorMsg.style.display = 'none';
+        }
+    });
 </script>
 </body>
 </html>
