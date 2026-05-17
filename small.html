@@ -124,7 +124,6 @@
     let currentItemId = null, isEditing = false;
     let tempPurchaseCurrency = false, tempSaleCurrency = false, tempSellCurrency = false, tempEditCurrency = false;
     let itemVisibility = {};
-    let socialLinks = []; // for store info
 
     // Helper Functions (time, format, etc.)
     function getStartOfDayGMT3(d = new Date()) { let off = 3 * 3600000, g = d.getTime() + off; let y = new Date(g).getUTCFullYear(), m = new Date(g).getUTCMonth(), day = new Date(g).getUTCDate(); return Date.UTC(y, m, day, 0, 0, 0) - off; }
@@ -308,15 +307,12 @@
         displayItems();
         addToActivityLog('category', 'تعيين منتجات لفئة');
         renderCategoriesUI();
-        // Refresh checklist after assign
         renderProductsChecklistForCategory(document.getElementById('assignCategorySelect').value);
     }
-    // Improved checklist with alphabetical order, search, and pre-checked for selected category
     function renderProductsChecklistForCategory(categoryId) {
         const container = document.getElementById('productsChecklist');
         if (!container) return;
         let filtered = [...items];
-        // Alphabetical order by name
         filtered.sort((a,b) => a.name.localeCompare(b.name, 'ar'));
         const searchTerm = document.getElementById('assignProductSearch')?.value.toLowerCase() || '';
         if (searchTerm) filtered = filtered.filter(p => p.name.toLowerCase().includes(searchTerm));
@@ -328,7 +324,6 @@
         });
         container.innerHTML = html;
     }
-    // Initial checklist (no category selected)
     function renderProductsChecklist() { renderProductsChecklistForCategory(''); }
 
     // Social Links for Store Info
@@ -381,7 +376,7 @@
     }
     async function saveStoreInfoToFirebase(info) { await db.collection('storeInfo').doc('info').set(info); }
 
-    // Dynamic Specifications & Images (unchanged logic)
+    // Dynamic Specifications & Images
     function addSpecificationRow(key = '', val = '') {
         const div = document.createElement('div');
         div.className = 'spec-row';
@@ -447,7 +442,7 @@
         else addImageRow('', true);
     }
 
-    // Items CRUD (unchanged but with category select)
+    // Items CRUD
     async function fetchItems() {
         try {
             const snap = await db.collection('items').get();
@@ -622,8 +617,8 @@
         } catch (err) { alert('فشل الحفظ: ' + err.message); }
     });
 
-    // Sales Logic (unchanged)
-    function openSellModal(itemId) { /* same as before but keep */ 
+    // Sales Logic
+    function openSellModal(itemId) {
         const item = items.find(i => i.id === itemId);
         if (!item) return;
         document.getElementById('sellProductName').innerText = item.name;
@@ -674,9 +669,11 @@
         } catch (err) { alert('فشل البيع'); }
     };
 
-    // Sales Log & Activity Log (unchanged)
+    // Sales Log & Activity Log
     function displaySalesLog() {
-        if (!sales.length) { document.getElementById('salesLogBody').innerHTML = '<tr><td colspan="7">لا توجد مبيعات</td></tr>'; return; }
+        const tbody = document.getElementById('salesLogBody');
+        if (!tbody) return;
+        if (!sales.length) { tbody.innerHTML = '<tr><td colspan="7">لا توجد مبيعات</td></tr>'; return; }
         const grouped = {};
         sales.forEach(s => {
             const d = new Date(s.timestamp);
@@ -692,7 +689,7 @@
                 html += `<tr><td>${escapeHtml(s.itemName)}</td><td>${s.quantity}</td><td>$${formatPrimary(s.unitPrice)}</td><td>$${formatPrimary(s.totalAmount)}</td><td>$${formatPrimary(s.profit)}</td><td>${new Date(s.timestamp).toLocaleString('ar-EG')}</td><td><button onclick="editSale('${s.saleId}')">تعديل</button> <button onclick="cancelSale('${s.saleId}')">إلغاء</button></td></tr>`;
             });
         });
-        document.getElementById('salesLogBody').innerHTML = html;
+        tbody.innerHTML = html;
     }
     window.editSale = (saleId) => {
         document.getElementById('historyModal').style.display = 'none';
@@ -766,10 +763,12 @@
         } catch (err) { alert('فشل الإلغاء'); }
     };
     function displayActivityLog() {
-        if (!activityLog.length) { document.getElementById('historyTableBody').innerHTML = '<tr><td colspan="4">لا توجد عمليات</td></tr>'; return; }
+        const tbody = document.getElementById('historyTableBody');
+        if (!tbody) return;
+        if (!activityLog.length) { tbody.innerHTML = '<tr><td colspan="4">لا توجد عمليات</td></tr>'; return; }
         let html = '';
         activityLog.forEach((a, i) => html += `<tr><td>${i + 1}</td><td>${a.dateTime || ''}</td><td>${a.actionType}</td><td>${a.details}</td></tr>`);
-        document.getElementById('historyTableBody').innerHTML = html;
+        tbody.innerHTML = html;
     }
     async function addToActivityLog(type, details, extra) {
         const entry = { actionType: type, details, dateTime: new Date().toLocaleString('ar-EG'), timestamp: Date.now() };
@@ -907,20 +906,25 @@
     });
     window.addEventListener('click', (e) => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; });
 
-    // Fix report tabs (make sure they work)
+    // Fix report tabs: correct section IDs
     function initReportTabs() {
-        document.querySelectorAll('.report-tab').forEach(tab => {
+        const tabs = document.querySelectorAll('.report-tab');
+        tabs.forEach(tab => {
             tab.addEventListener('click', () => {
-                document.querySelectorAll('.report-tab').forEach(t => t.classList.remove('active'));
+                tabs.forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
                 const sec = tab.dataset.section;
-                document.querySelectorAll('.report-section').forEach(s => s.classList.remove('active'));
-                const sectionId = sec + 'Section';
-                const section = document.getElementById(sectionId);
-                if (section) section.classList.add('active');
+                const sections = document.querySelectorAll('.report-section');
+                sections.forEach(s => s.classList.remove('active'));
+                let targetId = '';
+                if (sec === 'sales') targetId = 'salesLogSection';
+                else if (sec === 'activities') targetId = 'activityLogSection';
+                else targetId = sec + 'Section';
+                const targetSection = document.getElementById(targetId);
+                if (targetSection) targetSection.classList.add('active');
                 if (sec === 'sales') displaySalesLog();
-                if (sec === 'activities') displayActivityLog();
-                if (sec === 'profits' || sec === 'inventory') updateStats();
+                else if (sec === 'activities') displayActivityLog();
+                else if (sec === 'profits' || sec === 'inventory') updateStats();
             });
         });
     }
