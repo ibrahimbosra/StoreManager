@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>مدير المحل - خفيف</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif}
+        body{background:#f4f4f4;display:flex;justify-content:center;align-items:center;height:100vh}
+        .login-container{position:fixed;top:0;left:0;width:100%;height:100%;background:#f4f4f4;display:flex;align-items:center;justify-content:center;z-index:5000}
+        .login-card{background:#fff;border:1px solid #ccc;padding:30px;width:300px;text-align:center}
+        .login-input-group{margin:10px 0}
+        .login-input-group input{width:100%;padding:8px;border:1px solid #aaa}
+        .login-btn{width:100%;padding:10px;border:1px solid #000;background:#eee;cursor:pointer}
+        .login-error{color:red;margin-top:10px;display:none}
+        .app-main{width:100%;max-width:480px;height:100%;background:#fff;border:1px solid #aaa;display:flex;flex-direction:column;overflow:hidden;position:relative}
+        .connection-status{position:absolute;top:2px;left:2px;z-index:2000;background:#fff;border:1px solid #aaa;padding:2px 8px;font-size:12px;display:none}
+        .app-header{display:flex;gap:4px;padding:8px;border-bottom:1px solid #ccc;flex-wrap:wrap;align-items:center}
+        .search-box{flex:1;position:relative}
+        .search-box input{width:100%;padding:8px;border:1px solid #aaa}
+        .header-btn{padding:8px 12px;border:1px solid #aaa;background:#eee;cursor:pointer;font-size:14px}
+        .items-container{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:10px}
+        .product-card{border:1px solid #ddd;padding:10px;background:#fafafa;display:flex;flex-direction:column;gap:6px}
+        .action-btn{padding:6px 10px;border:1px solid #aaa;background:#eee;cursor:pointer;margin:2px}
+        .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;z-index:3000}
+        .modal-content{background:#fff;border:1px solid #aaa;padding:20px;width:90%;max-width:420px;max-height:85vh;overflow-y:auto}
+        .form-group{margin-bottom:12px}
+        .form-group label{display:block;margin-bottom:4px}
+        .input-wrapper{display:flex;align-items:center;border:1px solid #aaa}
+        .input-wrapper input,.input-wrapper select{flex:1;padding:8px;border:none;outline:none}
+        .currency-switch{padding:8px;border:none;background:#eee;cursor:pointer}
+        .toggle-row{display:flex;justify-content:space-between;align-items:center;padding:8px;border:1px solid #ddd;margin-bottom:6px}
+        .report-tabs button{padding:8px 12px;border:1px solid #aaa;background:#eee;margin:2px;cursor:pointer}
+        .report-tabs button.active{background:#ccc}
+        .report-section{display:none}
+        .report-section.active{display:block}
+        .table-wrapper{overflow-x:auto;max-height:250px;border:1px solid #ddd}
+        table{width:100%;border-collapse:collapse;font-size:13px}
+        th,td{border:1px solid #ccc;padding:6px;text-align:center}
+        .date-group-header{background:#f0f0f0;font-weight:bold}
+    </style>
+</head>
+<body>
+<div id="loginContainer" class="login-container">
+    <div class="login-card">
+        <h2>تسجيل الدخول</h2>
+        <p>أدخل بياناتك</p>
+        <div class="login-input-group">
+            <input type="email" id="loginEmail" placeholder="البريد الإلكتروني" autocomplete="email">
+        </div>
+        <div class="login-input-group">
+            <input type="password" id="loginPassword" placeholder="كلمة المرور" autocomplete="current-password">
+        </div>
+        <button id="doLoginBtn" class="login-btn">دخول</button>
+        <div id="loginErrorMsg" class="login-error"></div>
+    </div>
+</div>
+
+<div id="appMain" class="app-main" style="display: none;">
+    <div class="connection-status" id="connectionStatus"></div>
+    <div class="app-header">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="بحث...">
+        </div>
+        <button class="header-btn" id="storeInfoBtn">معلومات</button>
+        <button class="header-btn" id="settingsBtn">إعدادات</button>
+        <button class="header-btn" id="historyBtn">تقارير</button>
+        <button class="header-btn" id="logoutBtn">خروج</button>
+        <button class="header-btn" id="addItemBtn">إضافة</button>
+    </div>
+
+    <div class="items-container" id="itemsList">
+        جاري التحميل...
+    </div>
+
+    <div class="modal" id="itemModal">
+        <div class="modal-content">
+            <h2 id="modalTitle">إضافة قطعة</h2>
+            <form id="itemForm">
+                <div class="form-group">
+                    <label>الاسم</label>
+                    <div class="input-wrapper"><input type="text" id="itemName" required></div>
+                </div>
+                <div class="form-group">
+                    <label id="purchasePriceLabel">سعر الشراء ($)</label>
+                    <div class="input-wrapper"><input type="number" id="purchasePrice" step="0.01" min="0" required><button type="button" class="currency-switch" id="switchPurchaseCurrency">تبديل</button></div>
+                    <div id="purchasePriceSecondary"></div>
+                </div>
+                <div class="form-group">
+                    <label id="salePriceLabel">سعر البيع ($)</label>
+                    <div class="input-wrapper"><input type="number" id="salePrice" step="0.01" min="0" required><button type="button" class="currency-switch" id="switchSaleCurrency">تبديل</button></div>
+                    <div id="salePriceSecondary"></div>
+                </div>
+                <div class="form-group">
+                    <label>الكمية</label>
+                    <div class="input-wrapper"><input type="number" id="quantity" min="0" required></div>
+                </div>
+                <div style="margin-top:15px">
+                    <div class="toggle-row"><span>مخفي للزبائن</span><label class="switch"><input type="checkbox" id="productHidden"></label></div>
+                    <div class="toggle-row"><span>كمية محدودة</span><label class="switch"><input type="checkbox" id="productLimitedQty"></label></div>
+                    <div class="toggle-row"><span>تفعيل الخصم</span><label class="switch"><input type="checkbox" id="productDiscountEnabled"></label></div>
+                    <div class="form-group" id="discountValueGroup" style="display:none">
+                        <label>قيمة الخصم (%)</label>
+                        <div class="input-wrapper"><input type="number" id="productDiscountValue" step="0.1" min="0" max="100"></div>
+                    </div>
+                    <div class="toggle-row"><span>إظهار السعر للزبائن</span><label class="switch"><input type="checkbox" id="productShowPrice"></label></div>
+                    <div class="form-group">
+                        <label>رابط الصورة</label>
+                        <div class="input-wrapper"><input type="url" id="productImageUrl" placeholder="https://..."></div>
+                    </div>
+                </div>
+                <div style="display:flex;gap:10px;margin-top:15px"><button type="button" id="cancelBtn">إلغاء</button><button type="submit" class="save-btn">حفظ</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="storeInfoModal">
+        <div class="modal-content">
+            <h2>معلومات المتجر للزبائن</h2>
+            <form id="storeInfoForm">
+                <div class="form-group"><label>اسم المتجر</label><div class="input-wrapper"><input type="text" id="storeName"></div></div>
+                <div class="form-group"><label>العنوان</label><div class="input-wrapper"><input type="text" id="storeAddress"></div></div>
+                <div class="form-group"><label>رقم التواصل</label><div class="input-wrapper"><input type="text" id="storePhone"></div></div>
+                <div class="form-group"><label>رابط Google Maps</label><div class="input-wrapper"><input type="url" id="storeMapLink"></div></div>
+                <div class="form-group"><label>رابط صورة المحل</label><div class="input-wrapper"><input type="url" id="storeImageUrl"></div></div>
+                <div style="display:flex;gap:10px;margin-top:15px"><button type="button" id="cancelStoreInfoBtn">إلغاء</button><button type="submit" class="save-btn">حفظ</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="sellModal">
+        <div class="modal-content">
+            <h2>بيع</h2>
+            <form id="sellForm">
+                <div class="form-group"><label>المنتج: <span id="sellProductName"></span></label></div>
+                <div class="form-group"><label>الكمية</label><div class="input-wrapper"><input type="number" id="sellQuantity" min="1" required></div></div>
+                <div class="form-group"><label id="sellPriceLabel">السعر ($)</label><div class="input-wrapper"><input type="number" id="sellPrice" step="0.01" required><button type="button" class="currency-switch" id="switchSellCurrency">تبديل</button></div><div id="sellPriceSecondaryInfo"></div></div>
+                <div style="display:flex;gap:10px;margin-top:15px"><button type="button" id="cancelSellBtn">إلغاء</button><button type="submit" class="save-btn">تأكيد</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="editSaleModal">
+        <div class="modal-content">
+            <h2>تعديل بيع</h2>
+            <form id="editSaleForm">
+                <input type="hidden" id="editSaleId"><input type="hidden" id="editOriginalItemId"><input type="hidden" id="editOriginalQuantity"><input type="hidden" id="editSaleCurrency">
+                <div class="form-group"><label>المنتج: <span id="editProductName"></span></label></div>
+                <div class="form-group"><label>الكمية</label><div class="input-wrapper"><input type="number" id="editQuantity" min="1" required></div></div>
+                <div class="form-group"><label id="editPriceLabel">السعر</label><div class="input-wrapper"><input type="number" id="editPrice" step="0.01" required><button type="button" class="currency-switch" id="switchEditCurrency">تبديل</button></div><div id="editPriceSecondaryInfo"></div></div>
+                <div style="display:flex;gap:10px;margin-top:15px"><button type="button" id="cancelEditSaleBtn">إلغاء</button><button type="submit" class="save-btn">حفظ</button></div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="historyModal">
+        <div class="modal-content">
+            <h2>التقارير</h2>
+            <div class="report-tabs">
+                <button class="report-tab active" data-section="profits">أرباح</button>
+                <button class="report-tab" data-section="inventory">مخزون</button>
+                <button class="report-tab" data-section="sales">مبيعات</button>
+                <button class="report-tab" data-section="activities">عمليات</button>
+            </div>
+            <div class="report-section active" id="profitsSection">
+                <div><strong>اليوم:</strong> <span id="profitDayDetail">$0.00</span></div>
+                <div><strong>الأسبوع:</strong> <span id="profitWeekDetail">$0.00</span></div>
+                <div><strong>الشهر:</strong> <span id="profitMonthDetail">$0.00</span></div>
+                <div><strong>السنة:</strong> <span id="profitYearDetail">$0.00</span></div>
+                <div><strong>الكلي:</strong> <span id="profitAllTime">$0.00</span></div>
+            </div>
+            <div class="report-section" id="inventorySection">
+                <div><strong>إجمالي المنتجات:</strong> <span id="invTotalQty">0</span></div>
+                <div><strong>عدد الأصناف:</strong> <span id="invCategories">0</span></div>
+                <div><strong>رأس المال:</strong> <span id="invCapital">$0</span></div>
+                <div><strong>الربح المحتمل:</strong> <span id="invProfit">$0</span></div>
+            </div>
+            <div class="report-section" id="salesLogSection">
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>المنتج</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th><th>الربح</th><th>التاريخ</th><th>إجراءات</th></tr></thead>
+                        <tbody id="salesLogBody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="report-section" id="activityLogSection">
+                <button id="clearHistoryBtn">مسح السجل</button>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>#</th><th>التاريخ</th><th>النوع</th><th>التفاصيل</th></tr></thead>
+                        <tbody id="historyTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <h2>إعدادات العملة</h2>
+            <form id="settingsForm">
+                <div class="form-group"><label>اسم العملة الثانوية</label><div class="input-wrapper"><input type="text" id="secondaryCurrencyName" value="ريال سعودي"></div></div>
+                <div class="form-group"><label>الرمز</label><div class="input-wrapper"><input type="text" id="secondaryCurrencySymbol" value="﷼"></div></div>
+                <div class="form-group"><label>سعر الصرف (1$ =)</label><div class="input-wrapper"><input type="number" id="exchangeRate" step="0.01" value="3.75"></div></div>
+                <div class="form-group"><label>عملة الشراء الافتراضية</label>
+                    <label><input type="radio" name="defaultInputCurrency" value="primary" checked> دولار</label>
+                    <label><input type="radio" name="defaultInputCurrency" value="secondary"> ثانوية</label>
+                </div>
+                <div class="form-group"><label>عملة البيع الافتراضية</label>
+                    <label><input type="radio" name="defaultSellCurrency" value="primary" checked> دولار</label>
+                    <label><input type="radio" name="defaultSellCurrency" value="secondary"> ثانوية</label>
+                </div>
+                <div style="display:flex;gap:10px;margin-top:15px"><button type="button" id="cancelSettingsBtn">إلغاء</button><button type="submit" class="save-btn">حفظ</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBeJ0sbdCqz60a-yqzuZSt6QstDhR3TRtM",
+        authDomain: "profit-zone-e03c6.firebaseapp.com",
+        databaseURL: "https://profit-zone-e03c6-default-rtdb.firebaseio.com",
+        projectId: "profit-zone-e03c6",
+        storageBucket: "profit-zone-e03c6.firebasestorage.app",
+        messagingSenderId: "306955059136",
+        appId: "1:306955059136:web:a450be9721f4a2db0d1225"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    db.enablePersistence().catch(() => {});
+
+    let items = [], sales = [], activityLog = [], currencySettings = {
+        secondaryCurrencyName: "ريال سعودي", secondaryCurrencySymbol: "﷼", exchangeRate: 3.75,
+        defaultInputCurrency: "primary", defaultSellCurrency: "primary"
+    };
+    let currentItemId = null, isEditing = false, tempPurchaseCurrency = false, tempSaleCurrency = false, tempSellCurrency = false, tempEditCurrency = false;
+    let itemVisibility = {};
+
+    const appMain = document.getElementById('appMain'), loginContainer = document.getElementById('loginContainer'),
+        loginEmail = document.getElementById('loginEmail'), loginPassword = document.getElementById('loginPassword'),
+        doLoginBtn = document.getElementById('doLoginBtn'), loginErrorMsg = document.getElementById('loginErrorMsg'),
+        logoutBtn = document.getElementById('logoutBtn'), itemsList = document.getElementById('itemsList'),
+        searchInputElem = document.getElementById('searchInput'), addItemBtn = document.getElementById('addItemBtn'),
+        settingsBtn = document.getElementById('settingsBtn'), historyBtn = document.getElementById('historyBtn'),
+        itemModal = document.getElementById('itemModal'), sellModal = document.getElementById('sellModal'),
+        editSaleModal = document.getElementById('editSaleModal'), historyModal = document.getElementById('historyModal'),
+        settingsModal = document.getElementById('settingsModal'), itemForm = document.getElementById('itemForm'),
+        sellForm = document.getElementById('sellForm'), editSaleForm = document.getElementById('editSaleForm'),
+        settingsFormElem = document.getElementById('settingsForm'), modalTitle = document.getElementById('modalTitle'),
+        itemName = document.getElementById('itemName'), purchasePrice = document.getElementById('purchasePrice'),
+        salePrice = document.getElementById('salePrice'), quantity = document.getElementById('quantity'),
+        purchasePriceLabel = document.getElementById('purchasePriceLabel'), salePriceLabel = document.getElementById('salePriceLabel'),
+        purchasePriceSecondary = document.getElementById('purchasePriceSecondary'), salePriceSecondary = document.getElementById('salePriceSecondary'),
+        sellProductName = document.getElementById('sellProductName'), sellQuantity = document.getElementById('sellQuantity'),
+        sellPriceInput = document.getElementById('sellPrice'), sellPriceLabelSpan = document.getElementById('sellPriceLabel'),
+        sellPriceSecondaryInfo = document.getElementById('sellPriceSecondaryInfo'),
+        editSaleId = document.getElementById('editSaleId'), editOriginalItemId = document.getElementById('editOriginalItemId'),
+        editOriginalQuantity = document.getElementById('editOriginalQuantity'), editSaleCurrency = document.getElementById('editSaleCurrency'),
+        editProductNameSpan = document.getElementById('editProductName'), editQuantityInput = document.getElementById('editQuantity'),
+        editPriceInput = document.getElementById('editPrice'), editPriceLabelSpan = document.getElementById('editPriceLabel'),
+        editPriceSecondaryInfo = document.getElementById('editPriceSecondaryInfo'),
+        salesLogBody = document.getElementById('salesLogBody'), historyTableBody = document.getElementById('historyTableBody'),
+        switchPurchaseCurrencyBtn = document.getElementById('switchPurchaseCurrency'), switchSaleCurrencyBtn = document.getElementById('switchSaleCurrency'),
+        switchSellCurrencyBtn = document.getElementById('switchSellCurrency'), switchEditCurrencyBtn = document.getElementById('switchEditCurrency'),
+        clearHistoryBtnElem = document.getElementById('clearHistoryBtn'),
+        productHiddenCheck = document.getElementById('productHidden'), productLimitedQtyCheck = document.getElementById('productLimitedQty'),
+        productDiscountEnabledCheck = document.getElementById('productDiscountEnabled'), productDiscountValue = document.getElementById('productDiscountValue'),
+        discountValueGroup = document.getElementById('discountValueGroup'), productShowPriceCheck = document.getElementById('productShowPrice'),
+        productImageUrl = document.getElementById('productImageUrl'),
+        storeInfoModal = document.getElementById('storeInfoModal'), storeInfoForm = document.getElementById('storeInfoForm'),
+        storeNameInput = document.getElementById('storeName'), storeAddressInput = document.getElementById('storeAddress'),
+        storePhoneInput = document.getElementById('storePhone'), storeMapLinkInput = document.getElementById('storeMapLink'),
+        storeImageUrlInput = document.getElementById('storeImageUrl'),
+        connectionStatus = document.getElementById('connectionStatus');
+
+    productDiscountEnabledCheck.addEventListener('change', () => { discountValueGroup.style.display = productDiscountEnabledCheck.checked ? 'block' : 'none'; });
+
+    function getStartOfDayGMT3(d = new Date()) { let utc = d.getTime(), off = 3*3600000, g = utc+off; let y=new Date(g).getUTCFullYear(),m=new Date(g).getUTCMonth(),day=new Date(g).getUTCDate(); return Date.UTC(y,m,day,0,0,0)-off; }
+    function getStartOfWeekGMT3(d = new Date()) { let s=getStartOfDayGMT3(d), off=3*3600000; let g=new Date(s+off); return s - (g.getUTCDay()*86400000); }
+    function getStartOfMonthGMT3(d = new Date()) { let s=getStartOfDayGMT3(d), off=3*3600000; let g=new Date(s+off); return Date.UTC(g.getUTCFullYear(),g.getUTCMonth(),1,0,0,0)-off; }
+    function getStartOfYearGMT3(d = new Date()) { let s=getStartOfDayGMT3(d), off=3*3600000; let g=new Date(s+off); return Date.UTC(g.getUTCFullYear(),0,1,0,0,0)-off; }
+    function formatPrimary(a) { return a.toFixed(2); }
+    function formatSecondary(a) { return Number.isInteger(a)?a:a.toFixed(2).replace(/\.0+$/,''); }
+    function convertToSecondary(a) { return a*currencySettings.exchangeRate; }
+    function convertToPrimary(a) { return a/currencySettings.exchangeRate; }
+    function calculateProfitPercent(p,s) { if(p===0) return s>0?100:0; return ((s-p)/p*100).toFixed(2); }
+
+    function updateStats() {
+        let cap=0, pot=0, tot=0;
+        items.forEach(i=>{ cap+=i.purchasePrice*i.quantity; pot+=(i.salePrice-i.purchasePrice)*i.quantity; tot+=i.quantity; });
+        document.getElementById('invTotalQty').innerText=tot;
+        document.getElementById('invCategories').innerText=items.length;
+        document.getElementById('invCapital').innerText='$'+formatPrimary(cap);
+        document.getElementById('invProfit').innerText='$'+formatPrimary(pot);
+        let now=Date.now(), ds=getStartOfDayGMT3(), ws=getStartOfWeekGMT3(), ms=getStartOfMonthGMT3(), ys=getStartOfYearGMT3();
+        let pd=0,pw=0,pm=0,py=0,pa=0;
+        sales.forEach(s=>{ pa+=s.profit||0; if(s.timestamp>=ds) pd+=s.profit; if(s.timestamp>=ws) pw+=s.profit; if(s.timestamp>=ms) pm+=s.profit; if(s.timestamp>=ys) py+=s.profit; });
+        document.getElementById('profitDayDetail').innerText='$'+formatPrimary(pd);
+        document.getElementById('profitWeekDetail').innerText='$'+formatPrimary(pw);
+        document.getElementById('profitMonthDetail').innerText='$'+formatPrimary(pm);
+        document.getElementById('profitYearDetail').innerText='$'+formatPrimary(py);
+        document.getElementById('profitAllTime').innerText='$'+formatPrimary(pa);
+    }
+
+    function updateSecondaryPrices() {
+        let p=parseFloat(purchasePrice.value)||0, s=parseFloat(salePrice.value)||0;
+        if(tempPurchaseCurrency) purchasePriceSecondary.innerText=formatSecondary(p)+' '+currencySettings.secondaryCurrencySymbol+' (≈ $'+convertToPrimary(p).toFixed(2)+')';
+        else purchasePriceSecondary.innerText=formatSecondary(convertToSecondary(p))+' '+currencySettings.secondaryCurrencySymbol;
+        if(tempSaleCurrency) salePriceSecondary.innerText=formatSecondary(s)+' '+currencySettings.secondaryCurrencySymbol+' (≈ $'+convertToPrimary(s).toFixed(2)+')';
+        else salePriceSecondary.innerText=formatSecondary(convertToSecondary(s))+' '+currencySettings.secondaryCurrencySymbol;
+    }
+
+    function updatePriceLabels() {
+        purchasePriceLabel.innerHTML='سعر الشراء ('+(tempPurchaseCurrency?currencySettings.secondaryCurrencySymbol:'$')+')';
+        salePriceLabel.innerHTML='سعر البيع ('+(tempSaleCurrency?currencySettings.secondaryCurrencySymbol:'$')+')';
+    }
+
+    async function saveAllToLocalStorage() {
+        try { localStorage.setItem('items',JSON.stringify(items)); localStorage.setItem('sales',JSON.stringify(sales)); localStorage.setItem('activityLog',JSON.stringify(activityLog)); localStorage.setItem('currencySettings',JSON.stringify(currencySettings)); localStorage.setItem('itemVisibility',JSON.stringify(itemVisibility)); } catch(e) {}
+    }
+    function loadAllFromLocalStorage() {
+        try { if(localStorage.getItem('items')) items=JSON.parse(localStorage.getItem('items')); if(localStorage.getItem('sales')) sales=JSON.parse(localStorage.getItem('sales')); if(localStorage.getItem('activityLog')) activityLog=JSON.parse(localStorage.getItem('activityLog')); if(localStorage.getItem('currencySettings')) currencySettings=JSON.parse(localStorage.getItem('currencySettings')); if(localStorage.getItem('itemVisibility')) itemVisibility=JSON.parse(localStorage.getItem('itemVisibility')); displayItems(); updateStats(); } catch(e) {}
+    }
+
+    async function fetchItems() {
+        try { const snap = await db.collection('items').get(); items = snap.docs.map(d=>({id:d.id,...d.data()})); saveAllToLocalStorage(); displayItems(); } catch(e) { loadAllFromLocalStorage(); connectionStatus.innerText='استخدام محلي'; connectionStatus.style.display='block'; }
+    }
+    async function fetchSales() {
+        try { const snap = await db.collection('sales').orderBy('timestamp','desc').get(); sales = snap.docs.map(d=>({saleId:d.id,...d.data()})); saveAllToLocalStorage(); updateStats(); } catch(e) {}
+    }
+    async function fetchActivityLog() {
+        try { const snap = await db.collection('activityLog').orderBy('timestamp','desc').get(); activityLog = snap.docs.map(d=>({activityId:d.id,...d.data()})); saveAllToLocalStorage(); } catch(e) {}
+    }
+    async function fetchCurrencySettings() {
+        try { const d = await db.collection('currencySettings').doc('settings').get(); if(d.exists) currencySettings = {...currencySettings,...d.data()}; saveAllToLocalStorage(); document.getElementById('secondaryCurrencyName').value=currencySettings.secondaryCurrencyName; document.getElementById('secondaryCurrencySymbol').value=currencySettings.secondaryCurrencySymbol; document.getElementById('exchangeRate').value=currencySettings.exchangeRate; document.querySelector(`input[name="defaultInputCurrency"][value="${currencySettings.defaultInputCurrency}"]`).checked=true; document.querySelector(`input[name="defaultSellCurrency"][value="${currencySettings.defaultSellCurrency}"]`).checked=true; tempPurchaseCurrency=(currencySettings.defaultInputCurrency==='secondary'); tempSaleCurrency=(currencySettings.defaultInputCurrency==='secondary'); tempSellCurrency=(currencySettings.defaultSellCurrency==='secondary'); updatePriceLabels(); updateSecondaryPrices(); } catch(e) {}
+    }
+
+    async function fetchStoreInfo() {
+        try { const d = await db.collection('storeInfo').doc('info').get(); if(d.exists){ const data=d.data(); storeNameInput.value=data.name||''; storeAddressInput.value=data.address||''; storePhoneInput.value=data.phone||''; storeMapLinkInput.value=data.googleMapsLink||''; storeImageUrlInput.value=data.imageUrl||''; } } catch(e) {}
+    }
+    async function saveStoreInfoToFirebase(info) { await db.collection('storeInfo').doc('info').set(info); }
+
+    function getProductFormData() {
+        return { hidden:productHiddenCheck.checked, limitedQuantity:productLimitedQtyCheck.checked, discountEnabled:productDiscountEnabledCheck.checked,
+            discountValue:productDiscountEnabledCheck.checked?parseFloat(productDiscountValue.value)||0:0, showPrice:productShowPriceCheck.checked,
+            imageUrl:productImageUrl.value.trim()||'' };
+    }
+    function setProductFormData(item) {
+        productHiddenCheck.checked=item.hidden||false; productLimitedQtyCheck.checked=item.limitedQuantity||false;
+        productDiscountEnabledCheck.checked=item.discountEnabled||false; productDiscountValue.value=item.discountValue||0;
+        discountValueGroup.style.display=item.discountEnabled?'block':'none'; productShowPriceCheck.checked=item.showPrice||false;
+        productImageUrl.value=item.imageUrl||'';
+    }
+    function resetProductFormData() {
+        productHiddenCheck.checked=false; productLimitedQtyCheck.checked=false; productDiscountEnabledCheck.checked=false;
+        productDiscountValue.value=0; discountValueGroup.style.display='none'; productShowPriceCheck.checked=false; productImageUrl.value='';
+    }
+
+    function displayItems(filtered=items) {
+        const term=searchInputElem.value.trim().toLowerCase();
+        let sorted=term?[...filtered].sort((a,b)=>a.name.startsWith(term)?-1:b.name.startsWith(term)?1:a.name.localeCompare(b.name,'ar')):[...filtered].sort((a,b)=>a.name.localeCompare(b.name,'ar'));
+        if(!sorted.length){ itemsList.innerHTML='<div>لا توجد منتجات</div>'; updateStats(); return; }
+        let html='';
+        sorted.forEach((item,idx)=>{
+            const prof=calculateProfitPercent(item.purchasePrice,item.salePrice);
+            const pSec=formatSecondary(convertToSecondary(item.purchasePrice)), sSec=formatSecondary(convertToSecondary(item.salePrice));
+            const vis=itemVisibility[item.id]||false;
+            html+=`<div class="product-card" data-id="${item.id}">
+                <div><strong>${idx+1}. ${item.name}</strong> (${item.quantity})</div>
+                <div>شراء: $${formatPrimary(item.purchasePrice)} / ${pSec} ${currencySettings.secondaryCurrencySymbol}</div>
+                <div>بيع: $${formatPrimary(item.salePrice)} / ${sSec} ${currencySettings.secondaryCurrencySymbol}</div>
+                <div>الربح: ${prof}%</div>
+                <div><button class="action-btn sell" data-id="${item.id}" ${item.quantity===0?'disabled':''}>بيع</button>
+                <button class="action-btn edit" data-id="${item.id}">تعديل</button>
+                <button class="action-btn delete" data-id="${item.id}">حذف</button>
+                <button class="eye-btn" data-id="${item.id}">${vis?'إخفاء':'إظهار'}</button></div>
+            </div>`;
+        });
+        itemsList.innerHTML=html;
+        updateStats();
+        document.querySelectorAll('.sell').forEach(b=>b.addEventListener('click',e=>openSellModal(e.currentTarget.dataset.id)));
+        document.querySelectorAll('.edit').forEach(b=>b.addEventListener('click',e=>editItem(e.currentTarget.dataset.id)));
+        document.querySelectorAll('.delete').forEach(b=>b.addEventListener('click',e=>{ if(confirm('حذف؟')) performDelete(e.currentTarget.dataset.id); }));
+        document.querySelectorAll('.eye-btn').forEach(b=>b.addEventListener('click',e=>{ const id=b.dataset.id; itemVisibility[id]=!itemVisibility[id]; displayItems(); }));
+    }
+
+    async function performDelete(itemId) {
+        const item=items.find(i=>i.id===itemId); if(!item)return;
+        try { await db.collection('items').doc(itemId).delete(); items=items.filter(i=>i.id!==itemId); await addToActivityLog('delete',`حذف "${item.name}"`,item); displayItems(); connectionStatus.innerText='تم الحذف'; connectionStatus.style.display='block'; } catch(e) { alert('فشل'); }
+    }
+
+    function addItem() {
+        currentItemId=null; isEditing=false; itemForm.reset(); resetProductFormData();
+        tempPurchaseCurrency=(currencySettings.defaultInputCurrency==='secondary'); tempSaleCurrency=(currencySettings.defaultInputCurrency==='secondary');
+        modalTitle.innerText='إضافة قطعة'; updatePriceLabels(); updateSecondaryPrices(); itemModal.style.display='flex';
+    }
+    function editItem(id) {
+        const item=items.find(i=>i.id===id); if(!item)return;
+        currentItemId=id; isEditing=true; itemName.value=item.name;
+        tempPurchaseCurrency=(currencySettings.defaultInputCurrency==='secondary'); tempSaleCurrency=(currencySettings.defaultInputCurrency==='secondary');
+        purchasePrice.value=tempPurchaseCurrency?Math.round(convertToSecondary(item.purchasePrice)):item.purchasePrice;
+        salePrice.value=tempSaleCurrency?Math.round(convertToSecondary(item.salePrice)):item.salePrice;
+        quantity.value=item.quantity; setProductFormData(item); modalTitle.innerText='تعديل القطعة';
+        updatePriceLabels(); updateSecondaryPrices(); itemModal.style.display='flex';
+    }
+
+    itemForm.addEventListener('submit', async(e)=>{
+        e.preventDefault();
+        const name=itemName.value.trim();
+        let purchase=tempPurchaseCurrency?convertToPrimary(parseFloat(purchasePrice.value)||0):parseFloat(purchasePrice.value)||0;
+        let sale=tempSaleCurrency?convertToPrimary(parseFloat(salePrice.value)||0):parseFloat(salePrice.value)||0;
+        const qty=parseInt(quantity.value)||0;
+        if(!name||purchase<0||sale<0||qty<0) return alert('خطأ');
+        const extra=getProductFormData();
+        try {
+            if(isEditing){
+                const item=items.find(i=>i.id===currentItemId); if(!item)return;
+                Object.assign(item,{name,purchasePrice:purchase,salePrice:sale,quantity:qty,...extra,updatedAt:Date.now()});
+                await db.collection('items').doc(item.id).set(item);
+                await addToActivityLog('update',`تعديل "${name}"`,item);
+            } else {
+                const newId='item_'+Date.now()+'_'+Math.random().toString(36).substr(2,9);
+                const newItem={id:newId,name,purchasePrice:purchase,salePrice:sale,quantity:qty,...extra,createdAt:Date.now(),updatedAt:Date.now()};
+                await db.collection('items').doc(newId).set(newItem); items.push(newItem);
+                await addToActivityLog('add',`إضافة "${name}"`,newItem);
+            }
+            displayItems(); itemModal.style.display='none'; connectionStatus.innerText='تم'; connectionStatus.style.display='block';
+        } catch(e) { alert('فشل'); }
+    });
+
+    function openSellModal(itemId) {
+        const item=items.find(i=>i.id===itemId); if(!item)return;
+        sellProductName.innerText=item.name; sellQuantity.value=1; sellQuantity.max=item.quantity;
+        tempSellCurrency=(currencySettings.defaultSellCurrency==='secondary');
+        sellPriceLabelSpan.innerHTML='السعر ('+(tempSellCurrency?currencySettings.secondaryCurrencySymbol:'$')+')';
+        sellPriceInput.value=tempSellCurrency?Math.round(convertToSecondary(item.salePrice)):item.salePrice;
+        updateSecondarySellPrice(); sellForm.dataset.itemId=itemId; sellModal.style.display='flex';
+    }
+    function updateSecondarySellPrice() {
+        const v=parseFloat(sellPriceInput.value)||0;
+        if(tempSellCurrency) sellPriceSecondaryInfo.innerText='تعادل $'+formatPrimary(convertToPrimary(v));
+        else sellPriceSecondaryInfo.innerText='تعادل '+formatSecondary(convertToSecondary(v))+' '+currencySettings.secondaryCurrencySymbol;
+    }
+    switchSellCurrencyBtn.addEventListener('click',()=>{
+        tempSellCurrency=!tempSellCurrency;
+        const cur=parseFloat(sellPriceInput.value)||0;
+        sellPriceInput.value=tempSellCurrency?Math.round(convertToSecondary(cur)):convertToPrimary(cur).toFixed(2);
+        sellPriceLabelSpan.innerHTML='السعر ('+(tempSellCurrency?currencySettings.secondaryCurrencySymbol:'$')+')';
+        updateSecondarySellPrice();
+    });
+    sellForm.addEventListener('submit',async(e)=>{
+        e.preventDefault();
+        const itemId=sellForm.dataset.itemId; const item=items.find(i=>i.id===itemId); if(!item)return;
+        const qty=parseInt(sellQuantity.value); if(qty<=0||qty>item.quantity) return alert('كمية غير صالحة');
+        let price=tempSellCurrency?convertToPrimary(parseFloat(sellPriceInput.value)||0):parseFloat(sellPriceInput.value)||0;
+        if(price<0)return;
+        const profit=(price-item.purchasePrice)*qty;
+        const saleObj={itemId:item.id,itemName:item.name,quantity:qty,unitPrice:price,totalAmount:price*qty,profit,purchasePriceAtTime:item.purchasePrice,timestamp:Date.now(),saleCurrency:tempSellCurrency?'secondary':'primary'};
+        try {
+            item.quantity-=qty; await db.collection('items').doc(item.id).update({quantity:item.quantity,updatedAt:Date.now()});
+            const ref=await db.collection('sales').add(saleObj); saleObj.saleId=ref.id; items=items.map(i=>i.id===item.id?item:i); sales.unshift(saleObj);
+            displayItems(); updateStats(); saveAllToLocalStorage(); sellModal.style.display='none'; connectionStatus.innerText='تم البيع'; connectionStatus.style.display='block';
+            if(historyModal.style.display==='flex' && document.getElementById('salesLogSection').style.display!=='none') displaySalesLog();
+        } catch(e) { alert('فشل'); }
+    });
+
+    window.editSale = (saleId)=>{
+        historyModal.style.display='none';
+        const sale=sales.find(s=>s.saleId===saleId); if(!sale)return;
+        const prod=items.find(i=>i.id===sale.itemId); if(!prod)return alert('المنتج غير موجود');
+        editSaleId.value=sale.saleId; editOriginalItemId.value=sale.itemId; editOriginalQuantity.value=sale.quantity;
+        editSaleCurrency.value=sale.saleCurrency||'primary'; editProductNameSpan.innerText=sale.itemName;
+        editQuantityInput.value=sale.quantity; editQuantityInput.max=prod.quantity+sale.quantity;
+        tempEditCurrency=(sale.saleCurrency==='secondary');
+        editPriceLabelSpan.innerHTML='السعر ('+(tempEditCurrency?currencySettings.secondaryCurrencySymbol:'$')+')';
+        editPriceInput.value=tempEditCurrency?formatSecondary(convertToSecondary(sale.unitPrice)):sale.unitPrice;
+        updateSecondaryEditPrice(); editSaleModal.style.display='flex';
+    };
+    function updateSecondaryEditPrice() {
+        const v=parseFloat(editPriceInput.value)||0;
+        if(tempEditCurrency) editPriceSecondaryInfo.innerText='تعادل $'+formatPrimary(convertToPrimary(v));
+        else editPriceSecondaryInfo.innerText='تعادل '+formatSecondary(convertToSecondary(v))+' '+currencySettings.secondaryCurrencySymbol;
+    }
+    switchEditCurrencyBtn.addEventListener('click',()=>{
+        tempEditCurrency=!tempEditCurrency;
+        const cur=parseFloat(editPriceInput.value)||0;
+        editPriceInput.value=tempEditCurrency?Math.round(convertToSecondary(cur)):convertToPrimary(cur).toFixed(2);
+        editPriceLabelSpan.innerHTML='السعر ('+(tempEditCurrency?currencySettings.secondaryCurrencySymbol:'$')+')';
+        updateSecondaryEditPrice();
+    });
+    editSaleForm.addEventListener('submit',async(e)=>{
+        e.preventDefault();
+        const saleId=editSaleId.value, itemId=editOriginalItemId.value, oldQty=parseInt(editOriginalQuantity.value), newQty=parseInt(editQuantityInput.value);
+        let price=tempEditCurrency?convertToPrimary(parseFloat(editPriceInput.value)||0):parseFloat(editPriceInput.value)||0;
+        if(newQty<=0||price<0)return alert('قيم غير صالحة');
+        const sale=sales.find(s=>s.saleId===saleId), prod=items.find(i=>i.id===itemId); if(!sale||!prod)return;
+        const diff=newQty-oldQty; if(diff>0&&prod.quantity<diff)return alert('الكمية غير متوفرة');
+        try {
+            prod.quantity-=diff; await db.collection('items').doc(prod.id).update({quantity:prod.quantity,updatedAt:Date.now()});
+            const newTotal=newQty*price, newProfit=(price-prod.purchasePrice)*newQty;
+            const upd={...sale,quantity:newQty,unitPrice:price,totalAmount:newTotal,profit:newProfit,saleCurrency:tempEditCurrency?'secondary':'primary'};
+            await db.collection('sales').doc(saleId).set(upd); items=items.map(i=>i.id===prod.id?prod:i); Object.assign(sale,upd);
+            displayItems(); updateStats(); saveAllToLocalStorage(); editSaleModal.style.display='none'; connectionStatus.innerText='تم التعديل'; connectionStatus.style.display='block';
+            if(historyModal.style.display==='flex' && document.getElementById('salesLogSection').style.display!=='none') displaySalesLog();
+        } catch(e) { alert('فشل'); }
+    });
+
+    function displaySalesLog() {
+        if(!sales.length){ salesLogBody.innerHTML='<tr><td colspan="7">لا توجد مبيعات</td></tr>'; return; }
+        const grouped={};
+        sales.forEach(s=>{ const d=new Date(s.timestamp); const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; if(!grouped[ds])grouped[ds]=[]; grouped[ds].push(s); });
+        let html='';
+        Object.keys(grouped).sort((a,b)=>b.localeCompare(a)).forEach(ds=>{
+            const day=new Date(ds+'T12:00:00').toLocaleDateString('ar-EG',{weekday:'long'});
+            html+=`<tr class="date-group-header"><td colspan="7">${day} ${ds}</td></tr>`;
+            grouped[ds].forEach(s=>html+=`<tr><td>${s.itemName}</td><td>${s.quantity}</td><td>$${formatPrimary(s.unitPrice)}</td><td>$${formatPrimary(s.totalAmount)}</td><td>$${formatPrimary(s.profit)}</td><td>${new Date(s.timestamp).toLocaleString('ar-EG')}</td><td><button onclick="editSale('${s.saleId}')">تعديل</button> <button onclick="cancelSale('${s.saleId}')">إلغاء</button></td></tr>`);
+        });
+        salesLogBody.innerHTML=html;
+    }
+    window.cancelSale = async(saleId)=>{
+        if(!confirm('إلغاء البيع؟'))return;
+        const sale=sales.find(s=>s.saleId===saleId), prod=items.find(i=>i.id===sale.itemId); if(!sale||!prod)return;
+        try {
+            prod.quantity+=sale.quantity; await db.collection('items').doc(prod.id).update({quantity:prod.quantity,updatedAt:Date.now()});
+            await db.collection('sales').doc(saleId).delete(); items=items.map(i=>i.id===prod.id?prod:i); sales=sales.filter(s=>s.saleId!==saleId);
+            displayItems(); updateStats(); saveAllToLocalStorage(); if(historyModal.style.display==='flex') displaySalesLog();
+            connectionStatus.innerText='تم الإلغاء'; connectionStatus.style.display='block';
+        } catch(e) { alert('فشل'); }
+    };
+
+    function displayActivityLog() {
+        if(!activityLog.length){ historyTableBody.innerHTML='<tr><td colspan="4">لا توجد عمليات</td></tr>'; return; }
+        let html='';
+        activityLog.forEach((a,i)=>html+=`<tr><td>${i+1}</td><td>${a.dateTime||''}</td><td>${a.actionType}</td><td>${a.details}</td></tr>`);
+        historyTableBody.innerHTML=html;
+    }
+    async function addToActivityLog(type,details,extra){
+        const entry={actionType:type,details,dateTime:new Date().toLocaleString('ar-EG'),timestamp:Date.now()};
+        try { await db.collection('activityLog').add(entry); activityLog.unshift(entry); saveAllToLocalStorage(); } catch(e){}
+    }
+
+    addItemBtn.addEventListener('click',addItem);
+    settingsBtn.addEventListener('click',()=>settingsModal.style.display='flex');
+    historyBtn.addEventListener('click',()=>{ historyModal.style.display='flex'; updateStats(); displaySalesLog(); displayActivityLog(); });
+    document.querySelectorAll('.modal .close-modal, #cancelBtn, #cancelSellBtn, #cancelEditSaleBtn, #cancelSettingsBtn, #cancelStoreInfoBtn').forEach(b=>b.addEventListener('click',()=>document.querySelectorAll('.modal').forEach(m=>m.style.display='none')));
+    switchPurchaseCurrencyBtn.addEventListener('click',()=>{ tempPurchaseCurrency=!tempPurchaseCurrency; const v=parseFloat(purchasePrice.value)||0; purchasePrice.value=tempPurchaseCurrency?Math.round(convertToSecondary(v)):convertToPrimary(v).toFixed(2); updatePriceLabels(); updateSecondaryPrices(); });
+    switchSaleCurrencyBtn.addEventListener('click',()=>{ tempSaleCurrency=!tempSaleCurrency; const v=parseFloat(salePrice.value)||0; salePrice.value=tempSaleCurrency?Math.round(convertToSecondary(v)):convertToPrimary(v).toFixed(2); updatePriceLabels(); updateSecondaryPrices(); });
+    purchasePrice.addEventListener('input',updateSecondaryPrices); salePrice.addEventListener('input',updateSecondaryPrices);
+    sellPriceInput.addEventListener('input',updateSecondarySellPrice); editPriceInput.addEventListener('input',updateSecondaryEditPrice);
+    searchInputElem.addEventListener('input',()=>{ const t=searchInputElem.value.toLowerCase(); displayItems(items.filter(i=>i.name.toLowerCase().includes(t))); });
+    document.querySelectorAll('.report-tab').forEach(tab=>{ tab.addEventListener('click',()=>{ document.querySelectorAll('.report-tab').forEach(t=>t.classList.remove('active')); tab.classList.add('active'); const sec=tab.dataset.section; document.querySelectorAll('.report-section').forEach(s=>s.classList.remove('active')); if(sec==='profits') document.getElementById('profitsSection').classList.add('active'); else if(sec==='inventory') document.getElementById('inventorySection').classList.add('active'); else if(sec==='sales') document.getElementById('salesLogSection').classList.add('active'); else if(sec==='activities') document.getElementById('activityLogSection').classList.add('active'); if(sec==='sales') displaySalesLog(); if(sec==='activities') displayActivityLog(); if(sec==='profits'||sec==='inventory') updateStats(); }); });
+    clearHistoryBtnElem.addEventListener('click',async()=>{ if(confirm('مسح السجل؟')){ try { const snap=await db.collection('activityLog').get(); const batch=db.batch(); snap.docs.forEach(d=>batch.delete(d.ref)); await batch.commit(); activityLog=[]; saveAllToLocalStorage(); displayActivityLog(); } catch(e) { alert('فشل'); } } });
+    settingsFormElem.addEventListener('submit',async(e)=>{ e.preventDefault(); const ns={ secondaryCurrencyName:document.getElementById('secondaryCurrencyName').value.trim(), secondaryCurrencySymbol:document.getElementById('secondaryCurrencySymbol').value.trim(), exchangeRate:parseFloat(document.getElementById('exchangeRate').value), defaultInputCurrency:document.querySelector('input[name="defaultInputCurrency"]:checked').value, defaultSellCurrency:document.querySelector('input[name="defaultSellCurrency"]:checked').value }; if(!ns.secondaryCurrencyName||!ns.secondaryCurrencySymbol||isNaN(ns.exchangeRate)||ns.exchangeRate<=0)return alert('خطأ'); try { await db.collection('currencySettings').doc('settings').set(ns); currencySettings=ns; await addToActivityLog('settings','تغيير إعدادات العملة'); tempPurchaseCurrency=(ns.defaultInputCurrency==='secondary'); tempSaleCurrency=(ns.defaultInputCurrency==='secondary'); tempSellCurrency=(ns.defaultSellCurrency==='secondary'); updatePriceLabels(); updateSecondaryPrices(); displayItems(); settingsModal.style.display='none'; connectionStatus.innerText='تم الحفظ'; connectionStatus.style.display='block'; } catch(e) { alert('فشل'); } });
+    window.addEventListener('click',(e)=>{ if(e.target.classList.contains('modal')) e.target.style.display='none'; });
+    document.getElementById('storeInfoBtn').addEventListener('click',()=>{ storeInfoModal.style.display='flex'; fetchStoreInfo(); });
+    storeInfoForm.addEventListener('submit',async(e)=>{ e.preventDefault(); const info={ name:storeNameInput.value.trim(), address:storeAddressInput.value.trim(), phone:storePhoneInput.value.trim(), googleMapsLink:storeMapLinkInput.value.trim(), imageUrl:storeImageUrlInput.value.trim() }; try { await saveStoreInfoToFirebase(info); await addToActivityLog('settings','تحديث معلومات المتجر'); storeInfoModal.style.display='none'; connectionStatus.innerText='تم'; connectionStatus.style.display='block'; } catch(e) { alert('فشل'); } });
+    doLoginBtn.addEventListener('click',async()=>{ const e=loginEmail.value.trim(), p=loginPassword.value.trim(); if(!e||!p){ loginErrorMsg.innerText='مطلوب'; loginErrorMsg.style.display='block'; return; } loginErrorMsg.style.display='none'; try { await auth.signInWithEmailAndPassword(e,p); } catch(err) { loginErrorMsg.innerText='فشل الدخول'; loginErrorMsg.style.display='block'; } });
+    logoutBtn.addEventListener('click',async()=>{ await auth.signOut(); });
+    auth.onAuthStateChanged(async(user)=>{ if(user){ loginContainer.style.display='none'; appMain.style.display='flex'; connectionStatus.innerText='جار التحميل...'; connectionStatus.style.display='block'; await fetchCurrencySettings(); await fetchItems(); await fetchSales(); await fetchActivityLog(); connectionStatus.innerText='تم'; setTimeout(()=>connectionStatus.style.display='none',2000); } else { loginContainer.style.display='flex'; appMain.style.display='none'; } });
+</script>
+</body>
+</html>
