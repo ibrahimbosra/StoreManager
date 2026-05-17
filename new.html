@@ -966,7 +966,7 @@
 
     // Global data
     let items = [], sales = [], activityLog = [], categories = [];
-    let currencySettings = { secondaryCurrencyName:"$", secondaryCurrencySymbol:"$", exchangeRate:3.75, defaultInputCurrency:"primary", defaultSellCurrency:"primary" };
+    let currencySettings = { secondaryCurrencyName:"ريال سعودي", secondaryCurrencySymbol:"﷼", exchangeRate:3.75, defaultInputCurrency:"primary", defaultSellCurrency:"primary" };
     let currentItemId = null, isEditing = false;
     let tempPurchaseCurrency = false, tempSaleCurrency = false, tempSellCurrency = false, tempEditCurrency = false;
     let itemVisibility = {};
@@ -1069,9 +1069,34 @@
     function collectImages(){ let rows=document.querySelectorAll('#imagesContainer .image-row'); let images=[]; rows.forEach(row=>{ let urlInput=row.querySelector('input'); let isPrimaryBtn=row.querySelector('.set-primary-btn'); if(urlInput&&urlInput.value.trim()) images.push({url:urlInput.value.trim(),isPrimary:isPrimaryBtn&&isPrimaryBtn.innerText.includes('رئيسي')});}); if(images.length&&!images.some(img=>img.isPrimary)) images[0].isPrimary=true; return images;}
     function loadSpecificationsAndImages(product){ let specC=document.getElementById('specificationsContainer'); let imgC=document.getElementById('imagesContainer'); specC.innerHTML=''; imgC.innerHTML=''; if(product.specifications) product.specifications.forEach(spec=>addSpecificationRow(spec.key,spec.value)); else addSpecificationRow('',''); if(product.images) product.images.forEach(img=>addImageRow(img.url,img.isPrimary)); else addImageRow('',true);}
 
-    function addSocialRow(network='',url='',icon=''){ let div=document.createElement('div'); div.className='social-row'; div.innerHTML=`<input type="text" placeholder="اسم الشبكة" value="${escapeHtml(network)}"><input type="url" placeholder="الرابط" value="${escapeHtml(url)}"><input type="text" placeholder="أيقونة" value="${escapeHtml(icon)}"><button type="button" class="remove-social">✖</button>`; div.querySelector('.remove-social').addEventListener('click',()=>div.remove()); document.getElementById('socialLinksContainer').appendChild(div);}
-    function collectSocialLinks(){ let rows=document.querySelectorAll('#socialLinksContainer .social-row'); let links=[]; rows.forEach(row=>{ let inputs=row.querySelectorAll('input'); if(inputs[0]&&inputs[1]&&inputs[0].value.trim()&&inputs[1].value.trim()) links.push({network:inputs[0].value.trim(),url:inputs[1].value.trim(),icon:inputs[2].value.trim()});}); return links;}
-    function loadSocialLinks(links){ let container=document.getElementById('socialLinksContainer'); container.innerHTML=''; if(links&&links.length) links.forEach(l=>addSocialRow(l.network,l.url,l.icon||'')); else addSocialRow('','','');}
+    // Social links: فقط الرابط والأيقونة بدون اسم الشبكة
+    function addSocialRow(url='',icon=''){ 
+        let div=document.createElement('div'); 
+        div.className='social-row'; 
+        div.innerHTML=`<input type="url" placeholder="الرابط" value="${escapeHtml(url)}"><input type="text" placeholder="أيقونة (مثال: fab fa-whatsapp)" value="${escapeHtml(icon)}"><button type="button" class="remove-social">✖</button>`; 
+        div.querySelector('.remove-social').addEventListener('click',()=>div.remove()); 
+        document.getElementById('socialLinksContainer').appendChild(div);
+    }
+    function collectSocialLinks(){ 
+        let rows=document.querySelectorAll('#socialLinksContainer .social-row'); 
+        let links=[]; 
+        rows.forEach(row=>{ 
+            let inputs=row.querySelectorAll('input'); 
+            // المدخل الأول هو الرابط، والثاني الأيقونة
+            if(inputs[0]&&inputs[0].value.trim()) 
+                links.push({network:'', url:inputs[0].value.trim(), icon:inputs[1]?inputs[1].value.trim():''}); 
+        }); 
+        return links;
+    }
+    function loadSocialLinks(links){ 
+        let container=document.getElementById('socialLinksContainer'); 
+        container.innerHTML=''; 
+        if(links&&links.length) 
+            links.forEach(l=>addSocialRow(l.url||'', l.icon||'')); 
+        else 
+            addSocialRow('','');
+    }
+
     async function fetchStoreInfo(){ let d=await db.collection('storeInfo').doc('info').get(); if(d.exists){ let data=d.data(); document.getElementById('storeName').value=data.name||''; document.getElementById('storeAddress').value=data.address||''; document.getElementById('storePhone').value=data.phone||''; document.getElementById('storeMapLink').value=data.googleMapsLink||''; document.getElementById('storeImageUrl').value=data.imageUrl||''; document.getElementById('storeVideoUrl').value=data.videoUrl||''; loadSocialLinks(data.socialLinks||[]);} else loadSocialLinks([]);}
     async function saveStoreInfoToFirebase(info){ await db.collection('storeInfo').doc('info').set(info);}
 
@@ -1146,7 +1171,7 @@
     document.getElementById('assignProductSearch').addEventListener('input',()=>{ let catId=document.getElementById('assignCategorySelect').value; renderProductsChecklistForCategory(catId);});
     document.getElementById('addSpecBtn').addEventListener('click',()=>addSpecificationRow('',''));
     document.getElementById('addImageBtn').addEventListener('click',()=>addImageRow('',false));
-    document.getElementById('addSocialBtn').addEventListener('click',()=>addSocialRow('','',''));
+    document.getElementById('addSocialBtn').addEventListener('click',()=>addSocialRow('',''));
     document.getElementById('switchPurchaseCurrency').addEventListener('click',()=>{ tempPurchaseCurrency=!tempPurchaseCurrency; let v=parseFloat(document.getElementById('purchasePrice').value)||0; document.getElementById('purchasePrice').value=tempPurchaseCurrency?Math.round(convertToSecondary(v)):convertToPrimary(v).toFixed(2); updatePriceLabels(); updateSecondaryPrices();});
     document.getElementById('switchSaleCurrency').addEventListener('click',()=>{ tempSaleCurrency=!tempSaleCurrency; let v=parseFloat(document.getElementById('salePrice').value)||0; document.getElementById('salePrice').value=tempSaleCurrency?Math.round(convertToSecondary(v)):convertToPrimary(v).toFixed(2); updatePriceLabels(); updateSecondaryPrices();});
     document.getElementById('switchSellCurrency').addEventListener('click',()=>{ tempSellCurrency=!tempSellCurrency; let v=parseFloat(document.getElementById('sellPrice').value)||0; document.getElementById('sellPrice').value=tempSellCurrency?Math.round(convertToSecondary(v)):convertToPrimary(v).toFixed(2); document.getElementById('sellPriceLabel').innerHTML='السعر ('+(tempSellCurrency?currencySettings.secondaryCurrencySymbol:'$')+')'; let ev=new Event('input'); document.getElementById('sellPrice').dispatchEvent(ev);});
