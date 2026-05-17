@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>مدير المحل - خفيف</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         *{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif}
         body{background:#f4f4f4;display:flex;justify-content:center;align-items:center;height:100vh}
@@ -23,7 +24,7 @@
         .product-card{border:1px solid #ddd;padding:10px;background:#fafafa;display:flex;flex-direction:column;gap:6px}
         .action-btn{padding:6px 10px;border:1px solid #aaa;background:#eee;cursor:pointer;margin:2px}
         .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;z-index:3000}
-        .modal-content{background:#fff;border:1px solid #aaa;padding:20px;width:90%;max-width:420px;max-height:85vh;overflow-y:auto}
+        .modal-content{background:#fff;border:1px solid #aaa;padding:20px;width:90%;max-width:480px;max-height:85vh;overflow-y:auto}
         .form-group{margin-bottom:12px}
         .form-group label{display:block;margin-bottom:4px}
         .input-wrapper{display:flex;align-items:center;border:1px solid #aaa}
@@ -38,6 +39,17 @@
         table{width:100%;border-collapse:collapse;font-size:13px}
         th,td{border:1px solid #ccc;padding:6px;text-align:center}
         .date-group-header{background:#f0f0f0;font-weight:bold}
+        .spec-row, .image-row, .social-row{display:flex;gap:6px;margin-bottom:8px;align-items:center}
+        .spec-row input, .image-row input, .social-row input{flex:1;padding:6px;border:1px solid #ccc}
+        .spec-row button, .image-row button, .social-row button{padding:4px 8px;cursor:pointer}
+        .cat-list-item{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee;padding:8px}
+        .cat-actions button{margin:0 4px}
+        .group-assign-section{border-top:2px solid #ccc;margin-top:16px;padding-top:12px}
+        .products-checklist{max-height:200px;overflow-y:auto;border:1px solid #ddd;padding:6px;margin:8px 0}
+        .product-check{display:flex;align-items:center;gap:8px;padding:4px}
+        .save-btn{background:#4caf50;color:#fff;border:none;padding:6px 12px;cursor:pointer}
+        .search-small{width:100%;padding:5px;margin-bottom:8px;border:1px solid #ccc}
+        .social-icon-preview{width:30px;text-align:center}
     </style>
 </head>
 <body>
@@ -45,12 +57,8 @@
     <div class="login-card">
         <h2>تسجيل الدخول</h2>
         <p>أدخل بياناتك</p>
-        <div class="login-input-group">
-            <input type="email" id="loginEmail" placeholder="البريد الإلكتروني" autocomplete="email">
-        </div>
-        <div class="login-input-group">
-            <input type="password" id="loginPassword" placeholder="كلمة المرور" autocomplete="current-password">
-        </div>
+        <div class="login-input-group"><input type="email" id="loginEmail" placeholder="البريد الإلكتروني" autocomplete="email"></div>
+        <div class="login-input-group"><input type="password" id="loginPassword" placeholder="كلمة المرور" autocomplete="current-password"></div>
         <button id="doLoginBtn" class="login-btn">دخول</button>
         <div id="loginErrorMsg" class="login-error"></div>
     </div>
@@ -59,167 +67,37 @@
 <div id="appMain" class="app-main" style="display: none;">
     <div class="connection-status" id="connectionStatus"></div>
     <div class="app-header">
-        <div class="search-box">
-            <input type="text" id="searchInput" placeholder="بحث...">
-        </div>
+        <div class="search-box"><input type="text" id="searchInput" placeholder="بحث..."></div>
         <button class="header-btn" id="storeInfoBtn">معلومات</button>
         <button class="header-btn" id="settingsBtn">إعدادات</button>
         <button class="header-btn" id="historyBtn">تقارير</button>
+        <button class="header-btn" id="categoriesBtn">الفئات</button>
         <button class="header-btn" id="logoutBtn">خروج</button>
         <button class="header-btn" id="addItemBtn">إضافة</button>
     </div>
+    <div class="items-container" id="itemsList">جاري التحميل...</div>
 
-    <div class="items-container" id="itemsList">
-        جاري التحميل...
-    </div>
+    <!-- نافذة إضافة/تعديل المنتج -->
+    <div class="modal" id="itemModal"><div class="modal-content"><h2 id="modalTitle">إضافة قطعة</h2><form id="itemForm"><div class="form-group"><label>الاسم</label><div class="input-wrapper"><input type="text" id="itemName" required></div></div><div class="form-group"><label id="purchasePriceLabel">سعر الشراء ($)</label><div class="input-wrapper"><input type="number" id="purchasePrice" step="0.01" min="0" required><button type="button" class="currency-switch" id="switchPurchaseCurrency">تبديل</button></div><div id="purchasePriceSecondary"></div></div><div class="form-group"><label id="salePriceLabel">سعر البيع ($)</label><div class="input-wrapper"><input type="number" id="salePrice" step="0.01" min="0" required><button type="button" class="currency-switch" id="switchSaleCurrency">تبديل</button></div><div id="salePriceSecondary"></div></div><div class="form-group"><label>الكمية</label><div class="input-wrapper"><input type="number" id="quantity" min="0" required></div></div><div class="form-group"><label>الفئة</label><div class="input-wrapper"><select id="productCategoryId"><option value="">-- بدون فئة --</option></select></div></div><div class="form-group"><label>وصف المنتج</label><textarea id="productDescription" rows="3" style="width:100%;padding:6px;border:1px solid #aaa"></textarea></div><div class="form-group"><label>رابط يوتيوب (فيديو)</label><div class="input-wrapper"><input type="url" id="productYoutubeUrl" placeholder="https://youtube.com/..."></div></div><div class="form-group"><label>الخصائص</label><div id="specificationsContainer"></div><button type="button" id="addSpecBtn" class="action-btn" style="margin-top:4px">+ إضافة خاصية</button></div><div class="form-group"><label>الصور (روابط)</label><div id="imagesContainer"></div><button type="button" id="addImageBtn" class="action-btn" style="margin-top:4px">+ إضافة صورة</button></div><div class="toggle-row"><span>مخفي للزبائن</span><label><input type="checkbox" id="productHidden"></label></div><div class="toggle-row"><span>كمية محدودة</span><label><input type="checkbox" id="productLimitedQty"></label></div><div class="toggle-row"><span>تفعيل الخصم</span><label><input type="checkbox" id="productDiscountEnabled"></label></div><div class="form-group" id="discountValueGroup" style="display:none"><label>قيمة الخصم (%)</label><div class="input-wrapper"><input type="number" id="productDiscountValue" step="0.1" min="0" max="100"></div></div><div class="toggle-row"><span>إظهار السعر للزبائن</span><label><input type="checkbox" id="productShowPrice"></label></div><div style="display:flex;gap:10px;margin-top:15px"><button type="button" id="cancelBtn">إلغاء</button><button type="submit" class="save-btn">حفظ</button></div></form></div></div>
 
-    <div class="modal" id="itemModal">
-        <div class="modal-content">
-            <h2 id="modalTitle">إضافة قطعة</h2>
-            <form id="itemForm">
-                <div class="form-group">
-                    <label>الاسم</label>
-                    <div class="input-wrapper"><input type="text" id="itemName" required></div>
-                </div>
-                <div class="form-group">
-                    <label id="purchasePriceLabel">سعر الشراء ($)</label>
-                    <div class="input-wrapper"><input type="number" id="purchasePrice" step="0.01" min="0" required><button type="button" class="currency-switch" id="switchPurchaseCurrency">تبديل</button></div>
-                    <div id="purchasePriceSecondary"></div>
-                </div>
-                <div class="form-group">
-                    <label id="salePriceLabel">سعر البيع ($)</label>
-                    <div class="input-wrapper"><input type="number" id="salePrice" step="0.01" min="0" required><button type="button" class="currency-switch" id="switchSaleCurrency">تبديل</button></div>
-                    <div id="salePriceSecondary"></div>
-                </div>
-                <div class="form-group">
-                    <label>الكمية</label>
-                    <div class="input-wrapper"><input type="number" id="quantity" min="0" required></div>
-                </div>
-                <div style="margin-top:15px">
-                    <div class="toggle-row"><span>مخفي للزبائن</span><label class="switch"><input type="checkbox" id="productHidden"></label></div>
-                    <div class="toggle-row"><span>كمية محدودة</span><label class="switch"><input type="checkbox" id="productLimitedQty"></label></div>
-                    <div class="toggle-row"><span>تفعيل الخصم</span><label class="switch"><input type="checkbox" id="productDiscountEnabled"></label></div>
-                    <div class="form-group" id="discountValueGroup" style="display:none">
-                        <label>قيمة الخصم (%)</label>
-                        <div class="input-wrapper"><input type="number" id="productDiscountValue" step="0.1" min="0" max="100"></div>
-                    </div>
-                    <div class="toggle-row"><span>إظهار السعر للزبائن</span><label class="switch"><input type="checkbox" id="productShowPrice"></label></div>
-                    <div class="form-group">
-                        <label>رابط الصورة</label>
-                        <div class="input-wrapper"><input type="url" id="productImageUrl" placeholder="https://..."></div>
-                    </div>
-                </div>
-                <div style="display:flex;gap:10px;margin-top:15px"><button type="button" id="cancelBtn">إلغاء</button><button type="submit" class="save-btn">حفظ</button></div>
-            </form>
-        </div>
-    </div>
+    <!-- نافذة الفئات مطورة -->
+    <div class="modal" id="categoriesModal"><div class="modal-content"><h2>إدارة الفئات</h2><div style="margin-bottom:16px"><input type="text" id="newCategoryName" placeholder="اسم الفئة الجديدة" style="padding:6px;width:70%"><button id="createCategoryBtn" class="action-btn">إنشاء</button></div><div id="categoriesList"></div><div class="group-assign-section"><h3>تعيين منتجات لفئة (جماعي)</h3><div class="form-group"><label>اختر الفئة:</label><select id="assignCategorySelect" style="width:100%;padding:6px"></select></div><div class="form-group"><label>بحث في المنتجات:</label><input type="text" id="assignProductSearch" placeholder="بحث..." class="search-small"></div><div class="products-checklist" id="productsChecklist"></div><button id="assignProductsBtn" class="save-btn">حفظ التعيينات</button></div><div style="margin-top:15px"><button type="button" id="closeCategoriesBtn">إغلاق</button></div></div></div>
 
-    <div class="modal" id="storeInfoModal">
-        <div class="modal-content">
-            <h2>معلومات المتجر للزبائن</h2>
-            <form id="storeInfoForm">
-                <div class="form-group"><label>اسم المتجر</label><div class="input-wrapper"><input type="text" id="storeName"></div></div>
-                <div class="form-group"><label>العنوان</label><div class="input-wrapper"><input type="text" id="storeAddress"></div></div>
-                <div class="form-group"><label>رقم التواصل</label><div class="input-wrapper"><input type="text" id="storePhone"></div></div>
-                <div class="form-group"><label>رابط Google Maps</label><div class="input-wrapper"><input type="url" id="storeMapLink"></div></div>
-                <div class="form-group"><label>رابط صورة المحل</label><div class="input-wrapper"><input type="url" id="storeImageUrl"></div></div>
-                <div style="display:flex;gap:10px;margin-top:15px"><button type="button" id="cancelStoreInfoBtn">إلغاء</button><button type="submit" class="save-btn">حفظ</button></div>
-            </form>
-        </div>
-    </div>
+    <!-- نافذة معلومات المتجر (مطورة) -->
+    <div class="modal" id="storeInfoModal"><div class="modal-content"><h2>معلومات المتجر للزبائن</h2><form id="storeInfoForm"><div class="form-group"><label>اسم المتجر</label><div class="input-wrapper"><input type="text" id="storeName"></div></div><div class="form-group"><label>العنوان</label><div class="input-wrapper"><input type="text" id="storeAddress"></div></div><div class="form-group"><label>رقم التواصل</label><div class="input-wrapper"><input type="text" id="storePhone"></div></div><div class="form-group"><label>رابط Google Maps</label><div class="input-wrapper"><input type="url" id="storeMapLink"></div></div><div class="form-group"><label>رابط صورة المحل</label><div class="input-wrapper"><input type="url" id="storeImageUrl"></div></div><div class="form-group"><label>رابط فيديو المحل (يوتيوب)</label><div class="input-wrapper"><input type="url" id="storeVideoUrl" placeholder="https://youtube.com/..."></div></div><div class="form-group"><label>روابط التواصل الاجتماعي</label><div id="socialLinksContainer"></div><button type="button" id="addSocialBtn" class="action-btn">+ إضافة رابط</button></div><div style="display:flex;gap:10px;margin-top:15px"><button type="button" id="cancelStoreInfoBtn">إلغاء</button><button type="submit" class="save-btn">حفظ</button></div></form></div></div>
 
-    <div class="modal" id="sellModal">
-        <div class="modal-content">
-            <h2>بيع</h2>
-            <form id="sellForm">
-                <div class="form-group"><label>المنتج: <span id="sellProductName"></span></label></div>
-                <div class="form-group"><label>الكمية</label><div class="input-wrapper"><input type="number" id="sellQuantity" min="1" required></div></div>
-                <div class="form-group"><label id="sellPriceLabel">السعر ($)</label><div class="input-wrapper"><input type="number" id="sellPrice" step="0.01" required><button type="button" class="currency-switch" id="switchSellCurrency">تبديل</button></div><div id="sellPriceSecondaryInfo"></div></div>
-                <div style="display:flex;gap:10px;margin-top:15px"><button type="button" id="cancelSellBtn">إلغاء</button><button type="submit" class="save-btn">تأكيد</button></div>
-            </form>
-        </div>
-    </div>
-
-    <div class="modal" id="editSaleModal">
-        <div class="modal-content">
-            <h2>تعديل بيع</h2>
-            <form id="editSaleForm">
-                <input type="hidden" id="editSaleId"><input type="hidden" id="editOriginalItemId"><input type="hidden" id="editOriginalQuantity"><input type="hidden" id="editSaleCurrency">
-                <div class="form-group"><label>المنتج: <span id="editProductName"></span></label></div>
-                <div class="form-group"><label>الكمية</label><div class="input-wrapper"><input type="number" id="editQuantity" min="1" required></div></div>
-                <div class="form-group"><label id="editPriceLabel">السعر</label><div class="input-wrapper"><input type="number" id="editPrice" step="0.01" required><button type="button" class="currency-switch" id="switchEditCurrency">تبديل</button></div><div id="editPriceSecondaryInfo"></div></div>
-                <div style="display:flex;gap:10px;margin-top:15px"><button type="button" id="cancelEditSaleBtn">إلغاء</button><button type="submit" class="save-btn">حفظ</button></div>
-            </form>
-        </div>
-    </div>
-
-    <div class="modal" id="historyModal">
-        <div class="modal-content">
-            <h2>التقارير</h2>
-            <div class="report-tabs">
-                <button class="report-tab active" data-section="profits">أرباح</button>
-                <button class="report-tab" data-section="inventory">مخزون</button>
-                <button class="report-tab" data-section="sales">مبيعات</button>
-                <button class="report-tab" data-section="activities">عمليات</button>
-            </div>
-            <div class="report-section active" id="profitsSection">
-                <div><strong>اليوم:</strong> <span id="profitDayDetail">$0.00</span></div>
-                <div><strong>الأسبوع:</strong> <span id="profitWeekDetail">$0.00</span></div>
-                <div><strong>الشهر:</strong> <span id="profitMonthDetail">$0.00</span></div>
-                <div><strong>السنة:</strong> <span id="profitYearDetail">$0.00</span></div>
-                <div><strong>الكلي:</strong> <span id="profitAllTime">$0.00</span></div>
-            </div>
-            <div class="report-section" id="inventorySection">
-                <div><strong>إجمالي المنتجات:</strong> <span id="invTotalQty">0</span></div>
-                <div><strong>عدد الأصناف:</strong> <span id="invCategories">0</span></div>
-                <div><strong>رأس المال:</strong> <span id="invCapital">$0</span></div>
-                <div><strong>الربح المحتمل:</strong> <span id="invProfit">$0</span></div>
-            </div>
-            <div class="report-section" id="salesLogSection">
-                <div class="table-wrapper">
-                    <table>
-                        <thead><tr><th>المنتج</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th><th>الربح</th><th>التاريخ</th><th>إجراءات</th></tr></thead>
-                        <tbody id="salesLogBody"></tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="report-section" id="activityLogSection">
-                <button id="clearHistoryBtn">مسح السجل</button>
-                <div class="table-wrapper">
-                    <table>
-                        <thead><tr><th>#</th><th>التاريخ</th><th>النوع</th><th>التفاصيل</th></tr></thead>
-                        <tbody id="historyTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal" id="settingsModal">
-        <div class="modal-content">
-            <h2>إعدادات العملة</h2>
-            <form id="settingsForm">
-                <div class="form-group"><label>اسم العملة الثانوية</label><div class="input-wrapper"><input type="text" id="secondaryCurrencyName" value="ريال سعودي"></div></div>
-                <div class="form-group"><label>الرمز</label><div class="input-wrapper"><input type="text" id="secondaryCurrencySymbol" value="﷼"></div></div>
-                <div class="form-group"><label>سعر الصرف (1$ =)</label><div class="input-wrapper"><input type="number" id="exchangeRate" step="0.01" value="3.75"></div></div>
-                <div class="form-group"><label>عملة الشراء الافتراضية</label>
-                    <label><input type="radio" name="defaultInputCurrency" value="primary" checked> دولار</label>
-                    <label><input type="radio" name="defaultInputCurrency" value="secondary"> ثانوية</label>
-                </div>
-                <div class="form-group"><label>عملة البيع الافتراضية</label>
-                    <label><input type="radio" name="defaultSellCurrency" value="primary" checked> دولار</label>
-                    <label><input type="radio" name="defaultSellCurrency" value="secondary"> ثانوية</label>
-                </div>
-                <div style="display:flex;gap:10px;margin-top:15px"><button type="button" id="cancelSettingsBtn">إلغاء</button><button type="submit" class="save-btn">حفظ</button></div>
-            </form>
-        </div>
-    </div>
+    <!-- باقي النوافذ (sell, editSale, history, settings) -->
+    <div class="modal" id="sellModal"><div class="modal-content"><h2>بيع</h2><form id="sellForm"><div class="form-group"><label>المنتج: <span id="sellProductName"></span></label></div><div class="form-group"><label>الكمية</label><div class="input-wrapper"><input type="number" id="sellQuantity" min="1" required></div></div><div class="form-group"><label id="sellPriceLabel">السعر ($)</label><div class="input-wrapper"><input type="number" id="sellPrice" step="0.01" required><button type="button" class="currency-switch" id="switchSellCurrency">تبديل</button></div><div id="sellPriceSecondaryInfo"></div></div><div style="display:flex;gap:10px;margin-top:15px"><button type="button" id="cancelSellBtn">إلغاء</button><button type="submit" class="save-btn">تأكيد</button></div></form></div></div>
+    <div class="modal" id="editSaleModal"><div class="modal-content"><h2>تعديل بيع</h2><form id="editSaleForm"><input type="hidden" id="editSaleId"><input type="hidden" id="editOriginalItemId"><input type="hidden" id="editOriginalQuantity"><input type="hidden" id="editSaleCurrency"><div class="form-group"><label>المنتج: <span id="editProductName"></span></label></div><div class="form-group"><label>الكمية</label><div class="input-wrapper"><input type="number" id="editQuantity" min="1" required></div></div><div class="form-group"><label id="editPriceLabel">السعر</label><div class="input-wrapper"><input type="number" id="editPrice" step="0.01" required><button type="button" class="currency-switch" id="switchEditCurrency">تبديل</button></div><div id="editPriceSecondaryInfo"></div></div><div style="display:flex;gap:10px;margin-top:15px"><button type="button" id="cancelEditSaleBtn">إلغاء</button><button type="submit" class="save-btn">حفظ</button></div></form></div></div>
+    <div class="modal" id="historyModal"><div class="modal-content"><h2>التقارير</h2><div class="report-tabs"><button class="report-tab active" data-section="profits">أرباح</button><button class="report-tab" data-section="inventory">مخزون</button><button class="report-tab" data-section="sales">مبيعات</button><button class="report-tab" data-section="activities">عمليات</button></div><div class="report-section active" id="profitsSection"><div><strong>اليوم:</strong> <span id="profitDayDetail">$0.00</span></div><div><strong>الأسبوع:</strong> <span id="profitWeekDetail">$0.00</span></div><div><strong>الشهر:</strong> <span id="profitMonthDetail">$0.00</span></div><div><strong>السنة:</strong> <span id="profitYearDetail">$0.00</span></div><div><strong>الكلي:</strong> <span id="profitAllTime">$0.00</span></div></div><div class="report-section" id="inventorySection"><div><strong>إجمالي المنتجات:</strong> <span id="invTotalQty">0</span></div><div><strong>عدد الأصناف:</strong> <span id="invCategories">0</span></div><div><strong>رأس المال:</strong> <span id="invCapital">$0</span></div><div><strong>الربح المحتمل:</strong> <span id="invProfit">$0</span></div></div><div class="report-section" id="salesLogSection"><div class="table-wrapper"><table><thead><tr><th>المنتج</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th><th>الربح</th><th>التاريخ</th><th>إجراءات</th></tr></thead><tbody id="salesLogBody"></tbody></table></div></div><div class="report-section" id="activityLogSection"><button id="clearHistoryBtn">مسح السجل</button><div class="table-wrapper"><table><thead><tr><th>#</th><th>التاريخ</th><th>النوع</th><th>التفاصيل</th></tr></thead><tbody id="historyTableBody"></tbody></table></div></div></div></div>
+    <div class="modal" id="settingsModal"><div class="modal-content"><h2>إعدادات العملة</h2><form id="settingsForm"><div class="form-group"><label>اسم العملة الثانوية</label><div class="input-wrapper"><input type="text" id="secondaryCurrencyName" value="ريال سعودي"></div></div><div class="form-group"><label>الرمز</label><div class="input-wrapper"><input type="text" id="secondaryCurrencySymbol" value="﷼"></div></div><div class="form-group"><label>سعر الصرف (1$ =)</label><div class="input-wrapper"><input type="number" id="exchangeRate" step="0.01" value="3.75"></div></div><div class="form-group"><label>عملة الشراء الافتراضية</label><label><input type="radio" name="defaultInputCurrency" value="primary" checked> دولار</label><label><input type="radio" name="defaultInputCurrency" value="secondary"> ثانوية</label></div><div class="form-group"><label>عملة البيع الافتراضية</label><label><input type="radio" name="defaultSellCurrency" value="primary" checked> دولار</label><label><input type="radio" name="defaultSellCurrency" value="secondary"> ثانوية</label></div><div style="display:flex;gap:10px;margin-top:15px"><button type="button" id="cancelSettingsBtn">إلغاء</button><button type="submit" class="save-btn">حفظ</button></div></form></div></div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <script>
+    // Firebase Configuration
     const firebaseConfig = {
         apiKey: "AIzaSyBeJ0sbdCqz60a-yqzuZSt6QstDhR3TRtM",
         authDomain: "profit-zone-e03c6.firebaseapp.com",
@@ -232,336 +110,858 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-    db.enablePersistence().catch(() => {});
+    db.enablePersistence().catch(() => console.warn("Persistence failed"));
 
-    let items = [], sales = [], activityLog = [], currencySettings = {
-        secondaryCurrencyName: "ريال سعودي", secondaryCurrencySymbol: "﷼", exchangeRate: 3.75,
-        defaultInputCurrency: "primary", defaultSellCurrency: "primary"
+    // Global Data
+    let items = [], sales = [], activityLog = [], categories = [];
+    let currencySettings = {
+        secondaryCurrencyName: "ريال سعودي",
+        secondaryCurrencySymbol: "﷼",
+        exchangeRate: 3.75,
+        defaultInputCurrency: "primary",
+        defaultSellCurrency: "primary"
     };
-    let currentItemId = null, isEditing = false, tempPurchaseCurrency = false, tempSaleCurrency = false, tempSellCurrency = false, tempEditCurrency = false;
+    let currentItemId = null, isEditing = false;
+    let tempPurchaseCurrency = false, tempSaleCurrency = false, tempSellCurrency = false, tempEditCurrency = false;
     let itemVisibility = {};
+    let socialLinks = []; // for store info
 
-    const appMain = document.getElementById('appMain'), loginContainer = document.getElementById('loginContainer'),
-        loginEmail = document.getElementById('loginEmail'), loginPassword = document.getElementById('loginPassword'),
-        doLoginBtn = document.getElementById('doLoginBtn'), loginErrorMsg = document.getElementById('loginErrorMsg'),
-        logoutBtn = document.getElementById('logoutBtn'), itemsList = document.getElementById('itemsList'),
-        searchInputElem = document.getElementById('searchInput'), addItemBtn = document.getElementById('addItemBtn'),
-        settingsBtn = document.getElementById('settingsBtn'), historyBtn = document.getElementById('historyBtn'),
-        itemModal = document.getElementById('itemModal'), sellModal = document.getElementById('sellModal'),
-        editSaleModal = document.getElementById('editSaleModal'), historyModal = document.getElementById('historyModal'),
-        settingsModal = document.getElementById('settingsModal'), itemForm = document.getElementById('itemForm'),
-        sellForm = document.getElementById('sellForm'), editSaleForm = document.getElementById('editSaleForm'),
-        settingsFormElem = document.getElementById('settingsForm'), modalTitle = document.getElementById('modalTitle'),
-        itemName = document.getElementById('itemName'), purchasePrice = document.getElementById('purchasePrice'),
-        salePrice = document.getElementById('salePrice'), quantity = document.getElementById('quantity'),
-        purchasePriceLabel = document.getElementById('purchasePriceLabel'), salePriceLabel = document.getElementById('salePriceLabel'),
-        purchasePriceSecondary = document.getElementById('purchasePriceSecondary'), salePriceSecondary = document.getElementById('salePriceSecondary'),
-        sellProductName = document.getElementById('sellProductName'), sellQuantity = document.getElementById('sellQuantity'),
-        sellPriceInput = document.getElementById('sellPrice'), sellPriceLabelSpan = document.getElementById('sellPriceLabel'),
-        sellPriceSecondaryInfo = document.getElementById('sellPriceSecondaryInfo'),
-        editSaleId = document.getElementById('editSaleId'), editOriginalItemId = document.getElementById('editOriginalItemId'),
-        editOriginalQuantity = document.getElementById('editOriginalQuantity'), editSaleCurrency = document.getElementById('editSaleCurrency'),
-        editProductNameSpan = document.getElementById('editProductName'), editQuantityInput = document.getElementById('editQuantity'),
-        editPriceInput = document.getElementById('editPrice'), editPriceLabelSpan = document.getElementById('editPriceLabel'),
-        editPriceSecondaryInfo = document.getElementById('editPriceSecondaryInfo'),
-        salesLogBody = document.getElementById('salesLogBody'), historyTableBody = document.getElementById('historyTableBody'),
-        switchPurchaseCurrencyBtn = document.getElementById('switchPurchaseCurrency'), switchSaleCurrencyBtn = document.getElementById('switchSaleCurrency'),
-        switchSellCurrencyBtn = document.getElementById('switchSellCurrency'), switchEditCurrencyBtn = document.getElementById('switchEditCurrency'),
-        clearHistoryBtnElem = document.getElementById('clearHistoryBtn'),
-        productHiddenCheck = document.getElementById('productHidden'), productLimitedQtyCheck = document.getElementById('productLimitedQty'),
-        productDiscountEnabledCheck = document.getElementById('productDiscountEnabled'), productDiscountValue = document.getElementById('productDiscountValue'),
-        discountValueGroup = document.getElementById('discountValueGroup'), productShowPriceCheck = document.getElementById('productShowPrice'),
-        productImageUrl = document.getElementById('productImageUrl'),
-        storeInfoModal = document.getElementById('storeInfoModal'), storeInfoForm = document.getElementById('storeInfoForm'),
-        storeNameInput = document.getElementById('storeName'), storeAddressInput = document.getElementById('storeAddress'),
-        storePhoneInput = document.getElementById('storePhone'), storeMapLinkInput = document.getElementById('storeMapLink'),
-        storeImageUrlInput = document.getElementById('storeImageUrl'),
-        connectionStatus = document.getElementById('connectionStatus');
-
-    productDiscountEnabledCheck.addEventListener('change', () => { discountValueGroup.style.display = productDiscountEnabledCheck.checked ? 'block' : 'none'; });
-
-    function getStartOfDayGMT3(d = new Date()) { let utc = d.getTime(), off = 3*3600000, g = utc+off; let y=new Date(g).getUTCFullYear(),m=new Date(g).getUTCMonth(),day=new Date(g).getUTCDate(); return Date.UTC(y,m,day,0,0,0)-off; }
-    function getStartOfWeekGMT3(d = new Date()) { let s=getStartOfDayGMT3(d), off=3*3600000; let g=new Date(s+off); return s - (g.getUTCDay()*86400000); }
-    function getStartOfMonthGMT3(d = new Date()) { let s=getStartOfDayGMT3(d), off=3*3600000; let g=new Date(s+off); return Date.UTC(g.getUTCFullYear(),g.getUTCMonth(),1,0,0,0)-off; }
-    function getStartOfYearGMT3(d = new Date()) { let s=getStartOfDayGMT3(d), off=3*3600000; let g=new Date(s+off); return Date.UTC(g.getUTCFullYear(),0,1,0,0,0)-off; }
+    // Helper Functions (time, format, etc.)
+    function getStartOfDayGMT3(d = new Date()) { let off = 3 * 3600000, g = d.getTime() + off; let y = new Date(g).getUTCFullYear(), m = new Date(g).getUTCMonth(), day = new Date(g).getUTCDate(); return Date.UTC(y, m, day, 0, 0, 0) - off; }
+    function getStartOfWeekGMT3(d = new Date()) { let s = getStartOfDayGMT3(d), off = 3 * 3600000, g = new Date(s + off); return s - (g.getUTCDay() * 86400000); }
+    function getStartOfMonthGMT3(d = new Date()) { let s = getStartOfDayGMT3(d), off = 3 * 3600000, g = new Date(s + off); return Date.UTC(g.getUTCFullYear(), g.getUTCMonth(), 1, 0, 0, 0) - off; }
+    function getStartOfYearGMT3(d = new Date()) { let s = getStartOfDayGMT3(d), off = 3 * 3600000, g = new Date(s + off); return Date.UTC(g.getUTCFullYear(), 0, 1, 0, 0, 0) - off; }
     function formatPrimary(a) { return a.toFixed(2); }
-    function formatSecondary(a) { return Number.isInteger(a)?a:a.toFixed(2).replace(/\.0+$/,''); }
-    function convertToSecondary(a) { return a*currencySettings.exchangeRate; }
-    function convertToPrimary(a) { return a/currencySettings.exchangeRate; }
-    function calculateProfitPercent(p,s) { if(p===0) return s>0?100:0; return ((s-p)/p*100).toFixed(2); }
+    function formatSecondary(a) { return Number.isInteger(a) ? a : a.toFixed(2).replace(/\.0+$/, ''); }
+    function convertToSecondary(a) { return a * currencySettings.exchangeRate; }
+    function convertToPrimary(a) { return a / currencySettings.exchangeRate; }
 
+    // Update Statistics & Reports
     function updateStats() {
-        let cap=0, pot=0, tot=0;
-        items.forEach(i=>{ cap+=i.purchasePrice*i.quantity; pot+=(i.salePrice-i.purchasePrice)*i.quantity; tot+=i.quantity; });
-        document.getElementById('invTotalQty').innerText=tot;
-        document.getElementById('invCategories').innerText=items.length;
-        document.getElementById('invCapital').innerText='$'+formatPrimary(cap);
-        document.getElementById('invProfit').innerText='$'+formatPrimary(pot);
-        let now=Date.now(), ds=getStartOfDayGMT3(), ws=getStartOfWeekGMT3(), ms=getStartOfMonthGMT3(), ys=getStartOfYearGMT3();
-        let pd=0,pw=0,pm=0,py=0,pa=0;
-        sales.forEach(s=>{ pa+=s.profit||0; if(s.timestamp>=ds) pd+=s.profit; if(s.timestamp>=ws) pw+=s.profit; if(s.timestamp>=ms) pm+=s.profit; if(s.timestamp>=ys) py+=s.profit; });
-        document.getElementById('profitDayDetail').innerText='$'+formatPrimary(pd);
-        document.getElementById('profitWeekDetail').innerText='$'+formatPrimary(pw);
-        document.getElementById('profitMonthDetail').innerText='$'+formatPrimary(pm);
-        document.getElementById('profitYearDetail').innerText='$'+formatPrimary(py);
-        document.getElementById('profitAllTime').innerText='$'+formatPrimary(pa);
+        let cap = 0, pot = 0, tot = 0;
+        items.forEach(i => { cap += i.purchasePrice * i.quantity; pot += (i.salePrice - i.purchasePrice) * i.quantity; tot += i.quantity; });
+        document.getElementById('invTotalQty').innerText = tot;
+        document.getElementById('invCategories').innerText = items.length;
+        document.getElementById('invCapital').innerText = '$' + formatPrimary(cap);
+        document.getElementById('invProfit').innerText = '$' + formatPrimary(pot);
+        let now = Date.now(), ds = getStartOfDayGMT3(), ws = getStartOfWeekGMT3(), ms = getStartOfMonthGMT3(), ys = getStartOfYearGMT3();
+        let pd = 0, pw = 0, pm = 0, py = 0, pa = 0;
+        sales.forEach(s => { pa += s.profit || 0; if (s.timestamp >= ds) pd += s.profit; if (s.timestamp >= ws) pw += s.profit; if (s.timestamp >= ms) pm += s.profit; if (s.timestamp >= ys) py += s.profit; });
+        document.getElementById('profitDayDetail').innerText = '$' + formatPrimary(pd);
+        document.getElementById('profitWeekDetail').innerText = '$' + formatPrimary(pw);
+        document.getElementById('profitMonthDetail').innerText = '$' + formatPrimary(pm);
+        document.getElementById('profitYearDetail').innerText = '$' + formatPrimary(py);
+        document.getElementById('profitAllTime').innerText = '$' + formatPrimary(pa);
     }
 
+    // Currency UI Updates
     function updateSecondaryPrices() {
-        let p=parseFloat(purchasePrice.value)||0, s=parseFloat(salePrice.value)||0;
-        if(tempPurchaseCurrency) purchasePriceSecondary.innerText=formatSecondary(p)+' '+currencySettings.secondaryCurrencySymbol+' (≈ $'+convertToPrimary(p).toFixed(2)+')';
-        else purchasePriceSecondary.innerText=formatSecondary(convertToSecondary(p))+' '+currencySettings.secondaryCurrencySymbol;
-        if(tempSaleCurrency) salePriceSecondary.innerText=formatSecondary(s)+' '+currencySettings.secondaryCurrencySymbol+' (≈ $'+convertToPrimary(s).toFixed(2)+')';
-        else salePriceSecondary.innerText=formatSecondary(convertToSecondary(s))+' '+currencySettings.secondaryCurrencySymbol;
+        let p = parseFloat(document.getElementById('purchasePrice')?.value) || 0;
+        let s = parseFloat(document.getElementById('salePrice')?.value) || 0;
+        const secSym = currencySettings.secondaryCurrencySymbol;
+        if (tempPurchaseCurrency) {
+            document.getElementById('purchasePriceSecondary').innerText = formatSecondary(p) + ' ' + secSym + ' (≈ $' + convertToPrimary(p).toFixed(2) + ')';
+        } else {
+            document.getElementById('purchasePriceSecondary').innerText = formatSecondary(convertToSecondary(p)) + ' ' + secSym;
+        }
+        if (tempSaleCurrency) {
+            document.getElementById('salePriceSecondary').innerText = formatSecondary(s) + ' ' + secSym + ' (≈ $' + convertToPrimary(s).toFixed(2) + ')';
+        } else {
+            document.getElementById('salePriceSecondary').innerText = formatSecondary(convertToSecondary(s)) + ' ' + secSym;
+        }
     }
-
     function updatePriceLabels() {
-        purchasePriceLabel.innerHTML='سعر الشراء ('+(tempPurchaseCurrency?currencySettings.secondaryCurrencySymbol:'$')+')';
-        salePriceLabel.innerHTML='سعر البيع ('+(tempSaleCurrency?currencySettings.secondaryCurrencySymbol:'$')+')';
+        document.getElementById('purchasePriceLabel').innerHTML = 'سعر الشراء (' + (tempPurchaseCurrency ? currencySettings.secondaryCurrencySymbol : '$') + ')';
+        document.getElementById('salePriceLabel').innerHTML = 'سعر البيع (' + (tempSaleCurrency ? currencySettings.secondaryCurrencySymbol : '$') + ')';
     }
 
+    // Local Storage
     async function saveAllToLocalStorage() {
-        try { localStorage.setItem('items',JSON.stringify(items)); localStorage.setItem('sales',JSON.stringify(sales)); localStorage.setItem('activityLog',JSON.stringify(activityLog)); localStorage.setItem('currencySettings',JSON.stringify(currencySettings)); localStorage.setItem('itemVisibility',JSON.stringify(itemVisibility)); } catch(e) {}
+        try {
+            localStorage.setItem('items', JSON.stringify(items));
+            localStorage.setItem('sales', JSON.stringify(sales));
+            localStorage.setItem('activityLog', JSON.stringify(activityLog));
+            localStorage.setItem('currencySettings', JSON.stringify(currencySettings));
+            localStorage.setItem('itemVisibility', JSON.stringify(itemVisibility));
+            localStorage.setItem('categories', JSON.stringify(categories));
+        } catch (e) { console.warn(e); }
     }
     function loadAllFromLocalStorage() {
-        try { if(localStorage.getItem('items')) items=JSON.parse(localStorage.getItem('items')); if(localStorage.getItem('sales')) sales=JSON.parse(localStorage.getItem('sales')); if(localStorage.getItem('activityLog')) activityLog=JSON.parse(localStorage.getItem('activityLog')); if(localStorage.getItem('currencySettings')) currencySettings=JSON.parse(localStorage.getItem('currencySettings')); if(localStorage.getItem('itemVisibility')) itemVisibility=JSON.parse(localStorage.getItem('itemVisibility')); displayItems(); updateStats(); } catch(e) {}
+        try {
+            if (localStorage.getItem('items')) items = JSON.parse(localStorage.getItem('items'));
+            if (localStorage.getItem('sales')) sales = JSON.parse(localStorage.getItem('sales'));
+            if (localStorage.getItem('activityLog')) activityLog = JSON.parse(localStorage.getItem('activityLog'));
+            if (localStorage.getItem('currencySettings')) currencySettings = JSON.parse(localStorage.getItem('currencySettings'));
+            if (localStorage.getItem('itemVisibility')) itemVisibility = JSON.parse(localStorage.getItem('itemVisibility'));
+            if (localStorage.getItem('categories')) categories = JSON.parse(localStorage.getItem('categories'));
+            displayItems();
+            updateStats();
+        } catch (e) { console.warn(e); }
     }
 
-    async function fetchItems() {
-        try { const snap = await db.collection('items').get(); items = snap.docs.map(d=>({id:d.id,...d.data()})); saveAllToLocalStorage(); displayItems(); } catch(e) { loadAllFromLocalStorage(); connectionStatus.innerText='استخدام محلي'; connectionStatus.style.display='block'; }
+    // Categories Logic (improved)
+    async function fetchCategories() {
+        try {
+            const snap = await db.collection('categories').get();
+            categories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            saveAllToLocalStorage();
+            renderCategoriesUI();
+            populateCategorySelect();
+        } catch (e) { loadAllFromLocalStorage(); }
     }
-    async function fetchSales() {
-        try { const snap = await db.collection('sales').orderBy('timestamp','desc').get(); sales = snap.docs.map(d=>({saleId:d.id,...d.data()})); saveAllToLocalStorage(); updateStats(); } catch(e) {}
+    async function addCategory(name) {
+        if (!name.trim()) return;
+        const newCat = { name: name.trim(), createdAt: Date.now() };
+        const ref = await db.collection('categories').add(newCat);
+        categories.push({ id: ref.id, ...newCat });
+        saveAllToLocalStorage();
+        renderCategoriesUI();
+        populateCategorySelect();
+        addToActivityLog('category', 'إضافة فئة: ' + name);
     }
-    async function fetchActivityLog() {
-        try { const snap = await db.collection('activityLog').orderBy('timestamp','desc').get(); activityLog = snap.docs.map(d=>({activityId:d.id,...d.data()})); saveAllToLocalStorage(); } catch(e) {}
+    async function updateCategory(catId, newName) {
+        await db.collection('categories').doc(catId).update({ name: newName });
+        let cat = categories.find(c => c.id === catId);
+        if (cat) cat.name = newName;
+        saveAllToLocalStorage();
+        renderCategoriesUI();
+        populateCategorySelect();
+        addToActivityLog('category', 'تعديل فئة');
     }
-    async function fetchCurrencySettings() {
-        try { const d = await db.collection('currencySettings').doc('settings').get(); if(d.exists) currencySettings = {...currencySettings,...d.data()}; saveAllToLocalStorage(); document.getElementById('secondaryCurrencyName').value=currencySettings.secondaryCurrencyName; document.getElementById('secondaryCurrencySymbol').value=currencySettings.secondaryCurrencySymbol; document.getElementById('exchangeRate').value=currencySettings.exchangeRate; document.querySelector(`input[name="defaultInputCurrency"][value="${currencySettings.defaultInputCurrency}"]`).checked=true; document.querySelector(`input[name="defaultSellCurrency"][value="${currencySettings.defaultSellCurrency}"]`).checked=true; tempPurchaseCurrency=(currencySettings.defaultInputCurrency==='secondary'); tempSaleCurrency=(currencySettings.defaultInputCurrency==='secondary'); tempSellCurrency=(currencySettings.defaultSellCurrency==='secondary'); updatePriceLabels(); updateSecondaryPrices(); } catch(e) {}
+    async function deleteCategory(catId) {
+        const cat = categories.find(c => c.id === catId);
+        if (!cat) return;
+        if (!confirm(`حذف فئة "${cat.name}"؟ سيتم إلغاء ربط المنتجات التابعة لها`)) return;
+        await db.collection('categories').doc(catId).delete();
+        categories = categories.filter(c => c.id !== catId);
+        for (let p of items) {
+            if (p.categoryId === catId) {
+                p.categoryId = null;
+                p.categoryName = '';
+                await db.collection('items').doc(p.id).update({ categoryId: null, categoryName: '' });
+            }
+        }
+        saveAllToLocalStorage();
+        renderCategoriesUI();
+        populateCategorySelect();
+        displayItems();
+        addToActivityLog('category', 'حذف فئة');
+    }
+    function renderCategoriesUI() {
+        const container = document.getElementById('categoriesList');
+        if (!container) return;
+        if (categories.length === 0) { container.innerHTML = '<div>لا توجد فئات</div>'; return; }
+        let html = '';
+        categories.forEach(cat => {
+            const count = items.filter(i => i.categoryId === cat.id).length;
+            html += `<div class="cat-list-item"><span><strong>${escapeHtml(cat.name)}</strong> (${count} منتج)</span><div class="cat-actions"><button class="action-btn edit-cat" data-id="${cat.id}" data-name="${escapeHtml(cat.name)}">تعديل</button><button class="action-btn delete-cat" data-id="${cat.id}">حذف</button></div></div>`;
+        });
+        container.innerHTML = html;
+        document.querySelectorAll('.edit-cat').forEach(btn => {
+            btn.addEventListener('click', () => {
+                let newName = prompt('اسم الفئة الجديد', btn.dataset.name);
+                if (newName) updateCategory(btn.dataset.id, newName);
+            });
+        });
+        document.querySelectorAll('.delete-cat').forEach(btn => {
+            btn.addEventListener('click', () => deleteCategory(btn.dataset.id));
+        });
+    }
+    function populateCategorySelect() {
+        const select = document.getElementById('productCategoryId');
+        if (select) {
+            select.innerHTML = '<option value="">-- بدون فئة --</option>';
+            categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.id;
+                opt.textContent = cat.name;
+                select.appendChild(opt);
+            });
+        }
+        const assignSel = document.getElementById('assignCategorySelect');
+        if (assignSel) {
+            assignSel.innerHTML = '<option value="">-- اختر فئة --</option>';
+            categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat.id;
+                opt.textContent = cat.name;
+                assignSel.appendChild(opt);
+            });
+        }
+    }
+    async function assignProductsToCategory(categoryId, productIds) {
+        if (!categoryId) return;
+        const cat = categories.find(c => c.id === categoryId);
+        if (!cat) return;
+        const batch = db.batch();
+        for (let pid of productIds) {
+            const product = items.find(i => i.id === pid);
+            if (product) {
+                product.categoryId = categoryId;
+                product.categoryName = cat.name;
+                const itemRef = db.collection('items').doc(pid);
+                batch.update(itemRef, { categoryId, categoryName: cat.name });
+            }
+        }
+        await batch.commit();
+        items = items.map(i => productIds.includes(i.id) ? { ...i, categoryId, categoryName: cat.name } : i);
+        displayItems();
+        addToActivityLog('category', 'تعيين منتجات لفئة');
+        renderCategoriesUI();
+        // Refresh checklist after assign
+        renderProductsChecklistForCategory(document.getElementById('assignCategorySelect').value);
+    }
+    // Improved checklist with alphabetical order, search, and pre-checked for selected category
+    function renderProductsChecklistForCategory(categoryId) {
+        const container = document.getElementById('productsChecklist');
+        if (!container) return;
+        let filtered = [...items];
+        // Alphabetical order by name
+        filtered.sort((a,b) => a.name.localeCompare(b.name, 'ar'));
+        const searchTerm = document.getElementById('assignProductSearch')?.value.toLowerCase() || '';
+        if (searchTerm) filtered = filtered.filter(p => p.name.toLowerCase().includes(searchTerm));
+        if (filtered.length === 0) { container.innerHTML = 'لا توجد منتجات'; return; }
+        let html = '';
+        filtered.forEach(prod => {
+            const isChecked = (categoryId && prod.categoryId === categoryId);
+            html += `<div class="product-check"><input type="checkbox" value="${prod.id}" id="prod_${prod.id}" ${isChecked ? 'checked' : ''}> <label for="prod_${prod.id}">${escapeHtml(prod.name)}</label></div>`;
+        });
+        container.innerHTML = html;
+    }
+    // Initial checklist (no category selected)
+    function renderProductsChecklist() { renderProductsChecklistForCategory(''); }
+
+    // Social Links for Store Info
+    function addSocialRow(network = '', url = '', icon = '') {
+        const div = document.createElement('div');
+        div.className = 'social-row';
+        div.innerHTML = `<input type="text" placeholder="اسم الشبكة (مثل فيسبوك)" value="${escapeHtml(network)}" style="flex:1"><input type="url" placeholder="الرابط" value="${escapeHtml(url)}" style="flex:2"><input type="text" placeholder="أيقونة (مثل fab fa-facebook)" value="${escapeHtml(icon)}" style="flex:1"><button type="button" class="remove-social">✖</button>`;
+        div.querySelector('.remove-social').addEventListener('click', () => div.remove());
+        document.getElementById('socialLinksContainer').appendChild(div);
+    }
+    function collectSocialLinks() {
+        const rows = document.querySelectorAll('#socialLinksContainer .social-row');
+        const links = [];
+        rows.forEach(row => {
+            const inputs = row.querySelectorAll('input');
+            if (inputs[0] && inputs[1] && inputs[0].value.trim() && inputs[1].value.trim()) {
+                links.push({ network: inputs[0].value.trim(), url: inputs[1].value.trim(), icon: inputs[2].value.trim() });
+            }
+        });
+        return links;
+    }
+    function loadSocialLinks(links) {
+        const container = document.getElementById('socialLinksContainer');
+        container.innerHTML = '';
+        if (links && links.length) {
+            links.forEach(link => addSocialRow(link.network, link.url, link.icon || ''));
+        } else {
+            addSocialRow('', '', '');
+        }
     }
 
+    // Store Info with social and video
     async function fetchStoreInfo() {
-        try { const d = await db.collection('storeInfo').doc('info').get(); if(d.exists){ const data=d.data(); storeNameInput.value=data.name||''; storeAddressInput.value=data.address||''; storePhoneInput.value=data.phone||''; storeMapLinkInput.value=data.googleMapsLink||''; storeImageUrlInput.value=data.imageUrl||''; } } catch(e) {}
+        try {
+            const d = await db.collection('storeInfo').doc('info').get();
+            if (d.exists) {
+                const data = d.data();
+                document.getElementById('storeName').value = data.name || '';
+                document.getElementById('storeAddress').value = data.address || '';
+                document.getElementById('storePhone').value = data.phone || '';
+                document.getElementById('storeMapLink').value = data.googleMapsLink || '';
+                document.getElementById('storeImageUrl').value = data.imageUrl || '';
+                document.getElementById('storeVideoUrl').value = data.videoUrl || '';
+                if (data.socialLinks && Array.isArray(data.socialLinks)) loadSocialLinks(data.socialLinks);
+                else loadSocialLinks([]);
+            } else {
+                loadSocialLinks([]);
+            }
+        } catch (e) { }
     }
     async function saveStoreInfoToFirebase(info) { await db.collection('storeInfo').doc('info').set(info); }
 
-    function getProductFormData() {
-        return { hidden:productHiddenCheck.checked, limitedQuantity:productLimitedQtyCheck.checked, discountEnabled:productDiscountEnabledCheck.checked,
-            discountValue:productDiscountEnabledCheck.checked?parseFloat(productDiscountValue.value)||0:0, showPrice:productShowPriceCheck.checked,
-            imageUrl:productImageUrl.value.trim()||'' };
+    // Dynamic Specifications & Images (unchanged logic)
+    function addSpecificationRow(key = '', val = '') {
+        const div = document.createElement('div');
+        div.className = 'spec-row';
+        div.innerHTML = `<input type="text" placeholder="اسم الخاصية" value="${escapeHtml(key)}" style="flex:1"><input type="text" placeholder="القيمة" value="${escapeHtml(val)}" style="flex:1"><button type="button" class="remove-spec">✖</button>`;
+        div.querySelector('.remove-spec').addEventListener('click', () => div.remove());
+        document.getElementById('specificationsContainer').appendChild(div);
     }
-    function setProductFormData(item) {
-        productHiddenCheck.checked=item.hidden||false; productLimitedQtyCheck.checked=item.limitedQuantity||false;
-        productDiscountEnabledCheck.checked=item.discountEnabled||false; productDiscountValue.value=item.discountValue||0;
-        discountValueGroup.style.display=item.discountEnabled?'block':'none'; productShowPriceCheck.checked=item.showPrice||false;
-        productImageUrl.value=item.imageUrl||'';
-    }
-    function resetProductFormData() {
-        productHiddenCheck.checked=false; productLimitedQtyCheck.checked=false; productDiscountEnabledCheck.checked=false;
-        productDiscountValue.value=0; discountValueGroup.style.display='none'; productShowPriceCheck.checked=false; productImageUrl.value='';
-    }
-
-    function displayItems(filtered=items) {
-        const term=searchInputElem.value.trim().toLowerCase();
-        let sorted=term?[...filtered].sort((a,b)=>a.name.startsWith(term)?-1:b.name.startsWith(term)?1:a.name.localeCompare(b.name,'ar')):[...filtered].sort((a,b)=>a.name.localeCompare(b.name,'ar'));
-        if(!sorted.length){ itemsList.innerHTML='<div>لا توجد منتجات</div>'; updateStats(); return; }
-        let html='';
-        sorted.forEach((item,idx)=>{
-            const prof=calculateProfitPercent(item.purchasePrice,item.salePrice);
-            const pSec=formatSecondary(convertToSecondary(item.purchasePrice)), sSec=formatSecondary(convertToSecondary(item.salePrice));
-            const vis=itemVisibility[item.id]||false;
-            html+=`<div class="product-card" data-id="${item.id}">
-                <div><strong>${idx+1}. ${item.name}</strong> (${item.quantity})</div>
-                <div>شراء: $${formatPrimary(item.purchasePrice)} / ${pSec} ${currencySettings.secondaryCurrencySymbol}</div>
-                <div>بيع: $${formatPrimary(item.salePrice)} / ${sSec} ${currencySettings.secondaryCurrencySymbol}</div>
-                <div>الربح: ${prof}%</div>
-                <div><button class="action-btn sell" data-id="${item.id}" ${item.quantity===0?'disabled':''}>بيع</button>
-                <button class="action-btn edit" data-id="${item.id}">تعديل</button>
-                <button class="action-btn delete" data-id="${item.id}">حذف</button>
-                <button class="eye-btn" data-id="${item.id}">${vis?'إخفاء':'إظهار'}</button></div>
-            </div>`;
+    function addImageRow(url = '', isPrimary = false) {
+        const div = document.createElement('div');
+        div.className = 'image-row';
+        div.innerHTML = `<input type="url" placeholder="رابط الصورة" value="${escapeHtml(url)}" style="flex:2"><button type="button" class="set-primary-btn" style="${isPrimary ? 'background:#4caf50;color:#fff' : ''}">${isPrimary ? 'رئيسي' : 'تعيين رئيسي'}</button><button type="button" class="remove-image">✖</button>`;
+        const primaryBtn = div.querySelector('.set-primary-btn');
+        primaryBtn.addEventListener('click', () => {
+            document.querySelectorAll('.image-row .set-primary-btn').forEach(btn => {
+                btn.style.background = '';
+                btn.style.color = '';
+                btn.innerText = 'تعيين رئيسي';
+            });
+            primaryBtn.style.background = '#4caf50';
+            primaryBtn.style.color = '#fff';
+            primaryBtn.innerText = 'رئيسي';
         });
-        itemsList.innerHTML=html;
+        div.querySelector('.remove-image').addEventListener('click', () => div.remove());
+        document.getElementById('imagesContainer').appendChild(div);
+    }
+    function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function (m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
+    function collectSpecifications() {
+        const rows = document.querySelectorAll('#specificationsContainer .spec-row');
+        const specs = [];
+        rows.forEach(row => {
+            const inputs = row.querySelectorAll('input');
+            if (inputs[0] && inputs[1] && inputs[0].value.trim())
+                specs.push({ key: inputs[0].value.trim(), value: inputs[1].value.trim() });
+        });
+        return specs;
+    }
+    function collectImages() {
+        const rows = document.querySelectorAll('#imagesContainer .image-row');
+        const images = [];
+        rows.forEach(row => {
+            const urlInput = row.querySelector('input');
+            const isPrimaryBtn = row.querySelector('.set-primary-btn');
+            if (urlInput && urlInput.value.trim()) {
+                images.push({
+                    url: urlInput.value.trim(),
+                    isPrimary: isPrimaryBtn && isPrimaryBtn.innerText.includes('رئيسي') && isPrimaryBtn.style.background !== ''
+                });
+            }
+        });
+        if (images.length && !images.some(img => img.isPrimary)) images[0].isPrimary = true;
+        return images;
+    }
+    function loadSpecificationsAndImages(product) {
+        const specContainer = document.getElementById('specificationsContainer');
+        const imgContainer = document.getElementById('imagesContainer');
+        specContainer.innerHTML = '';
+        imgContainer.innerHTML = '';
+        if (product.specifications && Array.isArray(product.specifications))
+            product.specifications.forEach(spec => addSpecificationRow(spec.key, spec.value));
+        else addSpecificationRow('', '');
+        if (product.images && Array.isArray(product.images))
+            product.images.forEach(img => addImageRow(img.url, img.isPrimary));
+        else addImageRow('', true);
+    }
+
+    // Items CRUD (unchanged but with category select)
+    async function fetchItems() {
+        try {
+            const snap = await db.collection('items').get();
+            items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            saveAllToLocalStorage();
+            displayItems();
+        } catch (e) {
+            loadAllFromLocalStorage();
+            document.getElementById('connectionStatus').innerText = 'استخدام محلي';
+            document.getElementById('connectionStatus').style.display = 'block';
+        }
+    }
+    async function fetchSales() {
+        try {
+            const snap = await db.collection('sales').orderBy('timestamp', 'desc').get();
+            sales = snap.docs.map(d => ({ saleId: d.id, ...d.data() }));
+            saveAllToLocalStorage();
+            updateStats();
+        } catch (e) { }
+    }
+    async function fetchActivityLog() {
+        try {
+            const snap = await db.collection('activityLog').orderBy('timestamp', 'desc').get();
+            activityLog = snap.docs.map(d => ({ activityId: d.id, ...d.data() }));
+            saveAllToLocalStorage();
+        } catch (e) { }
+    }
+    async function fetchCurrencySettings() {
+        try {
+            const d = await db.collection('currencySettings').doc('settings').get();
+            if (d.exists) currencySettings = { ...currencySettings, ...d.data() };
+            saveAllToLocalStorage();
+            document.getElementById('secondaryCurrencyName').value = currencySettings.secondaryCurrencyName;
+            document.getElementById('secondaryCurrencySymbol').value = currencySettings.secondaryCurrencySymbol;
+            document.getElementById('exchangeRate').value = currencySettings.exchangeRate;
+            document.querySelector(`input[name="defaultInputCurrency"][value="${currencySettings.defaultInputCurrency}"]`).checked = true;
+            document.querySelector(`input[name="defaultSellCurrency"][value="${currencySettings.defaultSellCurrency}"]`).checked = true;
+            tempPurchaseCurrency = (currencySettings.defaultInputCurrency === 'secondary');
+            tempSaleCurrency = (currencySettings.defaultInputCurrency === 'secondary');
+            tempSellCurrency = (currencySettings.defaultSellCurrency === 'secondary');
+            updatePriceLabels();
+            updateSecondaryPrices();
+        } catch (e) { }
+    }
+    function displayItems(filtered = items) {
+        const term = document.getElementById('searchInput').value.trim().toLowerCase();
+        let sorted = term ? [...filtered].sort((a, b) => a.name.startsWith(term) ? -1 : b.name.startsWith(term) ? 1 : a.name.localeCompare(b.name, 'ar')) : [...filtered].sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+        if (!sorted.length) {
+            document.getElementById('itemsList').innerHTML = '<div>لا توجد منتجات</div>';
+            updateStats();
+            return;
+        }
+        let html = '';
+        sorted.forEach((item, idx) => {
+            const prof = ((item.salePrice - item.purchasePrice) / item.purchasePrice * 100).toFixed(2);
+            const pSec = formatSecondary(convertToSecondary(item.purchasePrice));
+            const sSec = formatSecondary(convertToSecondary(item.salePrice));
+            const vis = itemVisibility[item.id] || false;
+            const catName = item.categoryName ? ` (${item.categoryName})` : '';
+            html += `<div class="product-card" data-id="${item.id}"><div><strong>${idx + 1}. ${escapeHtml(item.name)}${catName}</strong> (${item.quantity})</div><div>شراء: $${formatPrimary(item.purchasePrice)} / ${pSec} ${currencySettings.secondaryCurrencySymbol}</div><div>بيع: $${formatPrimary(item.salePrice)} / ${sSec} ${currencySettings.secondaryCurrencySymbol}</div><div>الربح: ${prof}%</div><div><button class="action-btn sell" data-id="${item.id}" ${item.quantity === 0 ? 'disabled' : ''}>بيع</button><button class="action-btn edit" data-id="${item.id}">تعديل</button><button class="action-btn delete" data-id="${item.id}">حذف</button><button class="eye-btn" data-id="${item.id}">${vis ? 'إخفاء' : 'إظهار'}</button></div></div>`;
+        });
+        document.getElementById('itemsList').innerHTML = html;
         updateStats();
-        document.querySelectorAll('.sell').forEach(b=>b.addEventListener('click',e=>openSellModal(e.currentTarget.dataset.id)));
-        document.querySelectorAll('.edit').forEach(b=>b.addEventListener('click',e=>editItem(e.currentTarget.dataset.id)));
-        document.querySelectorAll('.delete').forEach(b=>b.addEventListener('click',e=>{ if(confirm('حذف؟')) performDelete(e.currentTarget.dataset.id); }));
-        document.querySelectorAll('.eye-btn').forEach(b=>b.addEventListener('click',e=>{ const id=b.dataset.id; itemVisibility[id]=!itemVisibility[id]; displayItems(); }));
+        document.querySelectorAll('.sell').forEach(b => b.addEventListener('click', e => openSellModal(e.currentTarget.dataset.id)));
+        document.querySelectorAll('.edit').forEach(b => b.addEventListener('click', e => editItem(e.currentTarget.dataset.id)));
+        document.querySelectorAll('.delete').forEach(b => b.addEventListener('click', e => { if (confirm('حذف؟')) performDelete(e.currentTarget.dataset.id); }));
+        document.querySelectorAll('.eye-btn').forEach(b => b.addEventListener('click', e => { const id = b.dataset.id; itemVisibility[id] = !itemVisibility[id]; displayItems(); }));
     }
-
     async function performDelete(itemId) {
-        const item=items.find(i=>i.id===itemId); if(!item)return;
-        try { await db.collection('items').doc(itemId).delete(); items=items.filter(i=>i.id!==itemId); await addToActivityLog('delete',`حذف "${item.name}"`,item); displayItems(); connectionStatus.innerText='تم الحذف'; connectionStatus.style.display='block'; } catch(e) { alert('فشل'); }
+        const item = items.find(i => i.id === itemId);
+        if (!item) return;
+        try {
+            await db.collection('items').doc(itemId).delete();
+            items = items.filter(i => i.id !== itemId);
+            await addToActivityLog('delete', 'حذف "' + item.name + '"', item);
+            displayItems();
+        } catch (e) { alert('فشل الحذف'); }
     }
-
     function addItem() {
-        currentItemId=null; isEditing=false; itemForm.reset(); resetProductFormData();
-        tempPurchaseCurrency=(currencySettings.defaultInputCurrency==='secondary'); tempSaleCurrency=(currencySettings.defaultInputCurrency==='secondary');
-        modalTitle.innerText='إضافة قطعة'; updatePriceLabels(); updateSecondaryPrices(); itemModal.style.display='flex';
+        currentItemId = null; isEditing = false;
+        document.getElementById('itemForm').reset();
+        document.getElementById('productHidden').checked = false;
+        document.getElementById('productLimitedQty').checked = false;
+        document.getElementById('productDiscountEnabled').checked = false;
+        document.getElementById('productDiscountValue').value = 0;
+        document.getElementById('discountValueGroup').style.display = 'none';
+        document.getElementById('productShowPrice').checked = false;
+        document.getElementById('productDescription').value = '';
+        document.getElementById('productYoutubeUrl').value = '';
+        document.getElementById('specificationsContainer').innerHTML = '';
+        document.getElementById('imagesContainer').innerHTML = '';
+        addSpecificationRow('', '');
+        addImageRow('', true);
+        tempPurchaseCurrency = (currencySettings.defaultInputCurrency === 'secondary');
+        tempSaleCurrency = (currencySettings.defaultInputCurrency === 'secondary');
+        document.getElementById('modalTitle').innerText = 'إضافة قطعة';
+        updatePriceLabels();
+        updateSecondaryPrices();
+        populateCategorySelect();
+        document.getElementById('productCategoryId').value = '';
+        document.getElementById('itemModal').style.display = 'flex';
     }
     function editItem(id) {
-        const item=items.find(i=>i.id===id); if(!item)return;
-        currentItemId=id; isEditing=true; itemName.value=item.name;
-        tempPurchaseCurrency=(currencySettings.defaultInputCurrency==='secondary'); tempSaleCurrency=(currencySettings.defaultInputCurrency==='secondary');
-        purchasePrice.value=tempPurchaseCurrency?Math.round(convertToSecondary(item.purchasePrice)):item.purchasePrice;
-        salePrice.value=tempSaleCurrency?Math.round(convertToSecondary(item.salePrice)):item.salePrice;
-        quantity.value=item.quantity; setProductFormData(item); modalTitle.innerText='تعديل القطعة';
-        updatePriceLabels(); updateSecondaryPrices(); itemModal.style.display='flex';
+        const item = items.find(i => i.id === id);
+        if (!item) return;
+        currentItemId = id; isEditing = true;
+        document.getElementById('itemName').value = item.name;
+        tempPurchaseCurrency = (currencySettings.defaultInputCurrency === 'secondary');
+        tempSaleCurrency = (currencySettings.defaultInputCurrency === 'secondary');
+        document.getElementById('purchasePrice').value = tempPurchaseCurrency ? Math.round(convertToSecondary(item.purchasePrice)) : item.purchasePrice;
+        document.getElementById('salePrice').value = tempSaleCurrency ? Math.round(convertToSecondary(item.salePrice)) : item.salePrice;
+        document.getElementById('quantity').value = item.quantity;
+        document.getElementById('productHidden').checked = item.hidden || false;
+        document.getElementById('productLimitedQty').checked = item.limitedQuantity || false;
+        document.getElementById('productDiscountEnabled').checked = item.discountEnabled || false;
+        document.getElementById('productDiscountValue').value = item.discountValue || 0;
+        document.getElementById('discountValueGroup').style.display = item.discountEnabled ? 'block' : 'none';
+        document.getElementById('productShowPrice').checked = item.showPrice || false;
+        document.getElementById('productDescription').value = item.description || '';
+        document.getElementById('productYoutubeUrl').value = item.youtubeUrl || '';
+        document.getElementById('productCategoryId').value = item.categoryId || '';
+        loadSpecificationsAndImages(item);
+        document.getElementById('modalTitle').innerText = 'تعديل القطعة';
+        updatePriceLabels();
+        updateSecondaryPrices();
+        document.getElementById('itemModal').style.display = 'flex';
     }
-
-    itemForm.addEventListener('submit', async(e)=>{
+    document.getElementById('itemForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const name=itemName.value.trim();
-        let purchase=tempPurchaseCurrency?convertToPrimary(parseFloat(purchasePrice.value)||0):parseFloat(purchasePrice.value)||0;
-        let sale=tempSaleCurrency?convertToPrimary(parseFloat(salePrice.value)||0):parseFloat(salePrice.value)||0;
-        const qty=parseInt(quantity.value)||0;
-        if(!name||purchase<0||sale<0||qty<0) return alert('خطأ');
-        const extra=getProductFormData();
+        const name = document.getElementById('itemName').value.trim();
+        let purchase = tempPurchaseCurrency ? convertToPrimary(parseFloat(document.getElementById('purchasePrice').value) || 0) : parseFloat(document.getElementById('purchasePrice').value) || 0;
+        let sale = tempSaleCurrency ? convertToPrimary(parseFloat(document.getElementById('salePrice').value) || 0) : parseFloat(document.getElementById('salePrice').value) || 0;
+        const qty = parseInt(document.getElementById('quantity').value) || 0;
+        if (!name || purchase < 0 || sale < 0 || qty < 0) return alert('بيانات غير صالحة');
+        const catId = document.getElementById('productCategoryId').value;
+        const cat = categories.find(c => c.id === catId);
+        const categoryName = cat ? cat.name : '';
+        const specs = collectSpecifications();
+        const images = collectImages();
+        const extra = {
+            hidden: document.getElementById('productHidden').checked,
+            limitedQuantity: document.getElementById('productLimitedQty').checked,
+            discountEnabled: document.getElementById('productDiscountEnabled').checked,
+            discountValue: document.getElementById('productDiscountEnabled').checked ? parseFloat(document.getElementById('productDiscountValue').value) || 0 : 0,
+            showPrice: document.getElementById('productShowPrice').checked,
+            description: document.getElementById('productDescription').value,
+            youtubeUrl: document.getElementById('productYoutubeUrl').value,
+            specifications: specs,
+            images: images,
+            categoryId: catId || null,
+            categoryName
+        };
         try {
-            if(isEditing){
-                const item=items.find(i=>i.id===currentItemId); if(!item)return;
-                Object.assign(item,{name,purchasePrice:purchase,salePrice:sale,quantity:qty,...extra,updatedAt:Date.now()});
+            if (isEditing) {
+                const item = items.find(i => i.id === currentItemId);
+                if (!item) return;
+                Object.assign(item, { name, purchasePrice: purchase, salePrice: sale, quantity: qty, ...extra, updatedAt: Date.now() });
                 await db.collection('items').doc(item.id).set(item);
-                await addToActivityLog('update',`تعديل "${name}"`,item);
+                await addToActivityLog('update', `تعديل "${name}"`, item);
             } else {
-                const newId='item_'+Date.now()+'_'+Math.random().toString(36).substr(2,9);
-                const newItem={id:newId,name,purchasePrice:purchase,salePrice:sale,quantity:qty,...extra,createdAt:Date.now(),updatedAt:Date.now()};
-                await db.collection('items').doc(newId).set(newItem); items.push(newItem);
-                await addToActivityLog('add',`إضافة "${name}"`,newItem);
+                const newId = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                const newItem = { id: newId, name, purchasePrice: purchase, salePrice: sale, quantity: qty, ...extra, createdAt: Date.now(), updatedAt: Date.now() };
+                await db.collection('items').doc(newId).set(newItem);
+                items.push(newItem);
+                await addToActivityLog('add', `إضافة "${name}"`, newItem);
             }
-            displayItems(); itemModal.style.display='none'; connectionStatus.innerText='تم'; connectionStatus.style.display='block';
-        } catch(e) { alert('فشل'); }
+            displayItems();
+            document.getElementById('itemModal').style.display = 'none';
+            document.getElementById('connectionStatus').innerText = 'تم الحفظ';
+            document.getElementById('connectionStatus').style.display = 'block';
+            setTimeout(() => document.getElementById('connectionStatus').style.display = 'none', 2000);
+        } catch (err) { alert('فشل الحفظ: ' + err.message); }
     });
 
-    function openSellModal(itemId) {
-        const item=items.find(i=>i.id===itemId); if(!item)return;
-        sellProductName.innerText=item.name; sellQuantity.value=1; sellQuantity.max=item.quantity;
-        tempSellCurrency=(currencySettings.defaultSellCurrency==='secondary');
-        sellPriceLabelSpan.innerHTML='السعر ('+(tempSellCurrency?currencySettings.secondaryCurrencySymbol:'$')+')';
-        sellPriceInput.value=tempSellCurrency?Math.round(convertToSecondary(item.salePrice)):item.salePrice;
-        updateSecondarySellPrice(); sellForm.dataset.itemId=itemId; sellModal.style.display='flex';
+    // Sales Logic (unchanged)
+    function openSellModal(itemId) { /* same as before but keep */ 
+        const item = items.find(i => i.id === itemId);
+        if (!item) return;
+        document.getElementById('sellProductName').innerText = item.name;
+        document.getElementById('sellQuantity').value = 1;
+        document.getElementById('sellQuantity').max = item.quantity;
+        tempSellCurrency = (currencySettings.defaultSellCurrency === 'secondary');
+        document.getElementById('sellPriceLabel').innerHTML = 'السعر (' + (tempSellCurrency ? currencySettings.secondaryCurrencySymbol : '$') + ')';
+        document.getElementById('sellPrice').value = tempSellCurrency ? Math.round(convertToSecondary(item.salePrice)) : item.salePrice;
+        const update = () => {
+            const v = parseFloat(document.getElementById('sellPrice').value) || 0;
+            const info = tempSellCurrency ? 'تعادل $' + formatPrimary(convertToPrimary(v)) : 'تعادل ' + formatSecondary(convertToSecondary(v)) + ' ' + currencySettings.secondaryCurrencySymbol;
+            document.getElementById('sellPriceSecondaryInfo').innerText = info;
+        };
+        update();
+        document.getElementById('sellPrice').oninput = update;
+        document.getElementById('sellForm').dataset.itemId = itemId;
+        document.getElementById('sellModal').style.display = 'flex';
     }
-    function updateSecondarySellPrice() {
-        const v=parseFloat(sellPriceInput.value)||0;
-        if(tempSellCurrency) sellPriceSecondaryInfo.innerText='تعادل $'+formatPrimary(convertToPrimary(v));
-        else sellPriceSecondaryInfo.innerText='تعادل '+formatSecondary(convertToSecondary(v))+' '+currencySettings.secondaryCurrencySymbol;
-    }
-    switchSellCurrencyBtn.addEventListener('click',()=>{
-        tempSellCurrency=!tempSellCurrency;
-        const cur=parseFloat(sellPriceInput.value)||0;
-        sellPriceInput.value=tempSellCurrency?Math.round(convertToSecondary(cur)):convertToPrimary(cur).toFixed(2);
-        sellPriceLabelSpan.innerHTML='السعر ('+(tempSellCurrency?currencySettings.secondaryCurrencySymbol:'$')+')';
-        updateSecondarySellPrice();
-    });
-    sellForm.addEventListener('submit',async(e)=>{
+    document.getElementById('sellForm').onsubmit = async (e) => {
         e.preventDefault();
-        const itemId=sellForm.dataset.itemId; const item=items.find(i=>i.id===itemId); if(!item)return;
-        const qty=parseInt(sellQuantity.value); if(qty<=0||qty>item.quantity) return alert('كمية غير صالحة');
-        let price=tempSellCurrency?convertToPrimary(parseFloat(sellPriceInput.value)||0):parseFloat(sellPriceInput.value)||0;
-        if(price<0)return;
-        const profit=(price-item.purchasePrice)*qty;
-        const saleObj={itemId:item.id,itemName:item.name,quantity:qty,unitPrice:price,totalAmount:price*qty,profit,purchasePriceAtTime:item.purchasePrice,timestamp:Date.now(),saleCurrency:tempSellCurrency?'secondary':'primary'};
+        const itemId = document.getElementById('sellForm').dataset.itemId;
+        const item = items.find(i => i.id === itemId);
+        if (!item) return;
+        const qty = parseInt(document.getElementById('sellQuantity').value);
+        if (qty <= 0 || qty > item.quantity) return alert('كمية غير صالحة');
+        let price = tempSellCurrency ? convertToPrimary(parseFloat(document.getElementById('sellPrice').value) || 0) : parseFloat(document.getElementById('sellPrice').value) || 0;
+        if (price < 0) return;
+        const profit = (price - item.purchasePrice) * qty;
+        const saleObj = {
+            itemId: item.id, itemName: item.name, quantity: qty, unitPrice: price, totalAmount: price * qty, profit,
+            purchasePriceAtTime: item.purchasePrice, timestamp: Date.now(), saleCurrency: tempSellCurrency ? 'secondary' : 'primary'
+        };
         try {
-            item.quantity-=qty; await db.collection('items').doc(item.id).update({quantity:item.quantity,updatedAt:Date.now()});
-            const ref=await db.collection('sales').add(saleObj); saleObj.saleId=ref.id; items=items.map(i=>i.id===item.id?item:i); sales.unshift(saleObj);
-            displayItems(); updateStats(); saveAllToLocalStorage(); sellModal.style.display='none'; connectionStatus.innerText='تم البيع'; connectionStatus.style.display='block';
-            if(historyModal.style.display==='flex' && document.getElementById('salesLogSection').style.display!=='none') displaySalesLog();
-        } catch(e) { alert('فشل'); }
-    });
-
-    window.editSale = (saleId)=>{
-        historyModal.style.display='none';
-        const sale=sales.find(s=>s.saleId===saleId); if(!sale)return;
-        const prod=items.find(i=>i.id===sale.itemId); if(!prod)return alert('المنتج غير موجود');
-        editSaleId.value=sale.saleId; editOriginalItemId.value=sale.itemId; editOriginalQuantity.value=sale.quantity;
-        editSaleCurrency.value=sale.saleCurrency||'primary'; editProductNameSpan.innerText=sale.itemName;
-        editQuantityInput.value=sale.quantity; editQuantityInput.max=prod.quantity+sale.quantity;
-        tempEditCurrency=(sale.saleCurrency==='secondary');
-        editPriceLabelSpan.innerHTML='السعر ('+(tempEditCurrency?currencySettings.secondaryCurrencySymbol:'$')+')';
-        editPriceInput.value=tempEditCurrency?formatSecondary(convertToSecondary(sale.unitPrice)):sale.unitPrice;
-        updateSecondaryEditPrice(); editSaleModal.style.display='flex';
+            item.quantity -= qty;
+            await db.collection('items').doc(item.id).update({ quantity: item.quantity, updatedAt: Date.now() });
+            const ref = await db.collection('sales').add(saleObj);
+            saleObj.saleId = ref.id;
+            items = items.map(i => i.id === item.id ? item : i);
+            sales.unshift(saleObj);
+            displayItems();
+            updateStats();
+            saveAllToLocalStorage();
+            document.getElementById('sellModal').style.display = 'none';
+            document.getElementById('connectionStatus').innerText = 'تم البيع';
+            document.getElementById('connectionStatus').style.display = 'block';
+            setTimeout(() => document.getElementById('connectionStatus').style.display = 'none', 2000);
+            if (document.getElementById('historyModal').style.display === 'flex' && document.getElementById('salesLogSection').style.display !== 'none') displaySalesLog();
+        } catch (err) { alert('فشل البيع'); }
     };
-    function updateSecondaryEditPrice() {
-        const v=parseFloat(editPriceInput.value)||0;
-        if(tempEditCurrency) editPriceSecondaryInfo.innerText='تعادل $'+formatPrimary(convertToPrimary(v));
-        else editPriceSecondaryInfo.innerText='تعادل '+formatSecondary(convertToSecondary(v))+' '+currencySettings.secondaryCurrencySymbol;
-    }
-    switchEditCurrencyBtn.addEventListener('click',()=>{
-        tempEditCurrency=!tempEditCurrency;
-        const cur=parseFloat(editPriceInput.value)||0;
-        editPriceInput.value=tempEditCurrency?Math.round(convertToSecondary(cur)):convertToPrimary(cur).toFixed(2);
-        editPriceLabelSpan.innerHTML='السعر ('+(tempEditCurrency?currencySettings.secondaryCurrencySymbol:'$')+')';
-        updateSecondaryEditPrice();
-    });
-    editSaleForm.addEventListener('submit',async(e)=>{
-        e.preventDefault();
-        const saleId=editSaleId.value, itemId=editOriginalItemId.value, oldQty=parseInt(editOriginalQuantity.value), newQty=parseInt(editQuantityInput.value);
-        let price=tempEditCurrency?convertToPrimary(parseFloat(editPriceInput.value)||0):parseFloat(editPriceInput.value)||0;
-        if(newQty<=0||price<0)return alert('قيم غير صالحة');
-        const sale=sales.find(s=>s.saleId===saleId), prod=items.find(i=>i.id===itemId); if(!sale||!prod)return;
-        const diff=newQty-oldQty; if(diff>0&&prod.quantity<diff)return alert('الكمية غير متوفرة');
-        try {
-            prod.quantity-=diff; await db.collection('items').doc(prod.id).update({quantity:prod.quantity,updatedAt:Date.now()});
-            const newTotal=newQty*price, newProfit=(price-prod.purchasePrice)*newQty;
-            const upd={...sale,quantity:newQty,unitPrice:price,totalAmount:newTotal,profit:newProfit,saleCurrency:tempEditCurrency?'secondary':'primary'};
-            await db.collection('sales').doc(saleId).set(upd); items=items.map(i=>i.id===prod.id?prod:i); Object.assign(sale,upd);
-            displayItems(); updateStats(); saveAllToLocalStorage(); editSaleModal.style.display='none'; connectionStatus.innerText='تم التعديل'; connectionStatus.style.display='block';
-            if(historyModal.style.display==='flex' && document.getElementById('salesLogSection').style.display!=='none') displaySalesLog();
-        } catch(e) { alert('فشل'); }
-    });
 
+    // Sales Log & Activity Log (unchanged)
     function displaySalesLog() {
-        if(!sales.length){ salesLogBody.innerHTML='<tr><td colspan="7">لا توجد مبيعات</td></tr>'; return; }
-        const grouped={};
-        sales.forEach(s=>{ const d=new Date(s.timestamp); const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; if(!grouped[ds])grouped[ds]=[]; grouped[ds].push(s); });
-        let html='';
-        Object.keys(grouped).sort((a,b)=>b.localeCompare(a)).forEach(ds=>{
-            const day=new Date(ds+'T12:00:00').toLocaleDateString('ar-EG',{weekday:'long'});
-            html+=`<tr class="date-group-header"><td colspan="7">${day} ${ds}</td></tr>`;
-            grouped[ds].forEach(s=>html+=`<tr><td>${s.itemName}</td><td>${s.quantity}</td><td>$${formatPrimary(s.unitPrice)}</td><td>$${formatPrimary(s.totalAmount)}</td><td>$${formatPrimary(s.profit)}</td><td>${new Date(s.timestamp).toLocaleString('ar-EG')}</td><td><button onclick="editSale('${s.saleId}')">تعديل</button> <button onclick="cancelSale('${s.saleId}')">إلغاء</button></td></tr>`);
+        if (!sales.length) { document.getElementById('salesLogBody').innerHTML = '<tr><td colspan="7">لا توجد مبيعات</td></tr>'; return; }
+        const grouped = {};
+        sales.forEach(s => {
+            const d = new Date(s.timestamp);
+            const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            if (!grouped[ds]) grouped[ds] = [];
+            grouped[ds].push(s);
         });
-        salesLogBody.innerHTML=html;
+        let html = '';
+        Object.keys(grouped).sort((a, b) => b.localeCompare(a)).forEach(ds => {
+            const day = new Date(ds + 'T12:00:00').toLocaleDateString('ar-EG', { weekday: 'long' });
+            html += `<tr class="date-group-header"><td colspan="7">${day} ${ds}</td></tr>`;
+            grouped[ds].forEach(s => {
+                html += `<tr><td>${escapeHtml(s.itemName)}</td><td>${s.quantity}</td><td>$${formatPrimary(s.unitPrice)}</td><td>$${formatPrimary(s.totalAmount)}</td><td>$${formatPrimary(s.profit)}</td><td>${new Date(s.timestamp).toLocaleString('ar-EG')}</td><td><button onclick="editSale('${s.saleId}')">تعديل</button> <button onclick="cancelSale('${s.saleId}')">إلغاء</button></td></tr>`;
+            });
+        });
+        document.getElementById('salesLogBody').innerHTML = html;
     }
-    window.cancelSale = async(saleId)=>{
-        if(!confirm('إلغاء البيع؟'))return;
-        const sale=sales.find(s=>s.saleId===saleId), prod=items.find(i=>i.id===sale.itemId); if(!sale||!prod)return;
-        try {
-            prod.quantity+=sale.quantity; await db.collection('items').doc(prod.id).update({quantity:prod.quantity,updatedAt:Date.now()});
-            await db.collection('sales').doc(saleId).delete(); items=items.map(i=>i.id===prod.id?prod:i); sales=sales.filter(s=>s.saleId!==saleId);
-            displayItems(); updateStats(); saveAllToLocalStorage(); if(historyModal.style.display==='flex') displaySalesLog();
-            connectionStatus.innerText='تم الإلغاء'; connectionStatus.style.display='block';
-        } catch(e) { alert('فشل'); }
+    window.editSale = (saleId) => {
+        document.getElementById('historyModal').style.display = 'none';
+        const sale = sales.find(s => s.saleId === saleId);
+        if (!sale) return;
+        const prod = items.find(i => i.id === sale.itemId);
+        if (!prod) return alert('المنتج غير موجود');
+        document.getElementById('editSaleId').value = sale.saleId;
+        document.getElementById('editOriginalItemId').value = sale.itemId;
+        document.getElementById('editOriginalQuantity').value = sale.quantity;
+        document.getElementById('editSaleCurrency').value = sale.saleCurrency || 'primary';
+        document.getElementById('editProductName').innerText = sale.itemName;
+        document.getElementById('editQuantity').value = sale.quantity;
+        document.getElementById('editQuantity').max = prod.quantity + sale.quantity;
+        tempEditCurrency = (sale.saleCurrency === 'secondary');
+        document.getElementById('editPriceLabel').innerHTML = 'السعر (' + (tempEditCurrency ? currencySettings.secondaryCurrencySymbol : '$') + ')';
+        document.getElementById('editPrice').value = tempEditCurrency ? formatSecondary(convertToSecondary(sale.unitPrice)) : sale.unitPrice;
+        const update = () => {
+            const v = parseFloat(document.getElementById('editPrice').value) || 0;
+            const info = tempEditCurrency ? 'تعادل $' + formatPrimary(convertToPrimary(v)) : 'تعادل ' + formatSecondary(convertToSecondary(v)) + ' ' + currencySettings.secondaryCurrencySymbol;
+            document.getElementById('editPriceSecondaryInfo').innerText = info;
+        };
+        update();
+        document.getElementById('editPrice').oninput = update;
+        document.getElementById('editSaleModal').style.display = 'flex';
     };
-
+    document.getElementById('editSaleForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const saleId = document.getElementById('editSaleId').value;
+        const itemId = document.getElementById('editOriginalItemId').value;
+        const oldQty = parseInt(document.getElementById('editOriginalQuantity').value);
+        const newQty = parseInt(document.getElementById('editQuantity').value);
+        let price = tempEditCurrency ? convertToPrimary(parseFloat(document.getElementById('editPrice').value) || 0) : parseFloat(document.getElementById('editPrice').value) || 0;
+        if (newQty <= 0 || price < 0) return alert('قيم غير صالحة');
+        const sale = sales.find(s => s.saleId === saleId);
+        const prod = items.find(i => i.id === itemId);
+        if (!sale || !prod) return;
+        const diff = newQty - oldQty;
+        if (diff > 0 && prod.quantity < diff) return alert('الكمية غير متوفرة');
+        try {
+            prod.quantity -= diff;
+            await db.collection('items').doc(prod.id).update({ quantity: prod.quantity, updatedAt: Date.now() });
+            const newTotal = newQty * price;
+            const newProfit = (price - prod.purchasePrice) * newQty;
+            const upd = { ...sale, quantity: newQty, unitPrice: price, totalAmount: newTotal, profit: newProfit, saleCurrency: tempEditCurrency ? 'secondary' : 'primary' };
+            await db.collection('sales').doc(saleId).set(upd);
+            items = items.map(i => i.id === prod.id ? prod : i);
+            Object.assign(sale, upd);
+            displayItems();
+            updateStats();
+            saveAllToLocalStorage();
+            document.getElementById('editSaleModal').style.display = 'none';
+            if (document.getElementById('historyModal').style.display === 'flex' && document.getElementById('salesLogSection').style.display !== 'none') displaySalesLog();
+        } catch (err) { alert('فشل التعديل'); }
+    };
+    window.cancelSale = async (saleId) => {
+        if (!confirm('إلغاء البيع؟')) return;
+        const sale = sales.find(s => s.saleId === saleId);
+        const prod = items.find(i => i.id === sale.itemId);
+        if (!sale || !prod) return;
+        try {
+            prod.quantity += sale.quantity;
+            await db.collection('items').doc(prod.id).update({ quantity: prod.quantity, updatedAt: Date.now() });
+            await db.collection('sales').doc(saleId).delete();
+            items = items.map(i => i.id === prod.id ? prod : i);
+            sales = sales.filter(s => s.saleId !== saleId);
+            displayItems();
+            updateStats();
+            saveAllToLocalStorage();
+            if (document.getElementById('historyModal').style.display === 'flex') displaySalesLog();
+        } catch (err) { alert('فشل الإلغاء'); }
+    };
     function displayActivityLog() {
-        if(!activityLog.length){ historyTableBody.innerHTML='<tr><td colspan="4">لا توجد عمليات</td></tr>'; return; }
-        let html='';
-        activityLog.forEach((a,i)=>html+=`<tr><td>${i+1}</td><td>${a.dateTime||''}</td><td>${a.actionType}</td><td>${a.details}</td></tr>`);
-        historyTableBody.innerHTML=html;
+        if (!activityLog.length) { document.getElementById('historyTableBody').innerHTML = '<tr><td colspan="4">لا توجد عمليات</td></tr>'; return; }
+        let html = '';
+        activityLog.forEach((a, i) => html += `<tr><td>${i + 1}</td><td>${a.dateTime || ''}</td><td>${a.actionType}</td><td>${a.details}</td></tr>`);
+        document.getElementById('historyTableBody').innerHTML = html;
     }
-    async function addToActivityLog(type,details,extra){
-        const entry={actionType:type,details,dateTime:new Date().toLocaleString('ar-EG'),timestamp:Date.now()};
-        try { await db.collection('activityLog').add(entry); activityLog.unshift(entry); saveAllToLocalStorage(); } catch(e){}
+    async function addToActivityLog(type, details, extra) {
+        const entry = { actionType: type, details, dateTime: new Date().toLocaleString('ar-EG'), timestamp: Date.now() };
+        try {
+            await db.collection('activityLog').add(entry);
+            activityLog.unshift(entry);
+            saveAllToLocalStorage();
+        } catch (e) { }
     }
 
-    addItemBtn.addEventListener('click',addItem);
-    settingsBtn.addEventListener('click',()=>settingsModal.style.display='flex');
-    historyBtn.addEventListener('click',()=>{ historyModal.style.display='flex'; updateStats(); displaySalesLog(); displayActivityLog(); });
-    document.querySelectorAll('.modal .close-modal, #cancelBtn, #cancelSellBtn, #cancelEditSaleBtn, #cancelSettingsBtn, #cancelStoreInfoBtn').forEach(b=>b.addEventListener('click',()=>document.querySelectorAll('.modal').forEach(m=>m.style.display='none')));
-    switchPurchaseCurrencyBtn.addEventListener('click',()=>{ tempPurchaseCurrency=!tempPurchaseCurrency; const v=parseFloat(purchasePrice.value)||0; purchasePrice.value=tempPurchaseCurrency?Math.round(convertToSecondary(v)):convertToPrimary(v).toFixed(2); updatePriceLabels(); updateSecondaryPrices(); });
-    switchSaleCurrencyBtn.addEventListener('click',()=>{ tempSaleCurrency=!tempSaleCurrency; const v=parseFloat(salePrice.value)||0; salePrice.value=tempSaleCurrency?Math.round(convertToSecondary(v)):convertToPrimary(v).toFixed(2); updatePriceLabels(); updateSecondaryPrices(); });
-    purchasePrice.addEventListener('input',updateSecondaryPrices); salePrice.addEventListener('input',updateSecondaryPrices);
-    sellPriceInput.addEventListener('input',updateSecondarySellPrice); editPriceInput.addEventListener('input',updateSecondaryEditPrice);
-    searchInputElem.addEventListener('input',()=>{ const t=searchInputElem.value.toLowerCase(); displayItems(items.filter(i=>i.name.toLowerCase().includes(t))); });
-    document.querySelectorAll('.report-tab').forEach(tab=>{ tab.addEventListener('click',()=>{ document.querySelectorAll('.report-tab').forEach(t=>t.classList.remove('active')); tab.classList.add('active'); const sec=tab.dataset.section; document.querySelectorAll('.report-section').forEach(s=>s.classList.remove('active')); if(sec==='profits') document.getElementById('profitsSection').classList.add('active'); else if(sec==='inventory') document.getElementById('inventorySection').classList.add('active'); else if(sec==='sales') document.getElementById('salesLogSection').classList.add('active'); else if(sec==='activities') document.getElementById('activityLogSection').classList.add('active'); if(sec==='sales') displaySalesLog(); if(sec==='activities') displayActivityLog(); if(sec==='profits'||sec==='inventory') updateStats(); }); });
-    clearHistoryBtnElem.addEventListener('click',async()=>{ if(confirm('مسح السجل؟')){ try { const snap=await db.collection('activityLog').get(); const batch=db.batch(); snap.docs.forEach(d=>batch.delete(d.ref)); await batch.commit(); activityLog=[]; saveAllToLocalStorage(); displayActivityLog(); } catch(e) { alert('فشل'); } } });
-    settingsFormElem.addEventListener('submit',async(e)=>{ e.preventDefault(); const ns={ secondaryCurrencyName:document.getElementById('secondaryCurrencyName').value.trim(), secondaryCurrencySymbol:document.getElementById('secondaryCurrencySymbol').value.trim(), exchangeRate:parseFloat(document.getElementById('exchangeRate').value), defaultInputCurrency:document.querySelector('input[name="defaultInputCurrency"]:checked').value, defaultSellCurrency:document.querySelector('input[name="defaultSellCurrency"]:checked').value }; if(!ns.secondaryCurrencyName||!ns.secondaryCurrencySymbol||isNaN(ns.exchangeRate)||ns.exchangeRate<=0)return alert('خطأ'); try { await db.collection('currencySettings').doc('settings').set(ns); currencySettings=ns; await addToActivityLog('settings','تغيير إعدادات العملة'); tempPurchaseCurrency=(ns.defaultInputCurrency==='secondary'); tempSaleCurrency=(ns.defaultInputCurrency==='secondary'); tempSellCurrency=(ns.defaultSellCurrency==='secondary'); updatePriceLabels(); updateSecondaryPrices(); displayItems(); settingsModal.style.display='none'; connectionStatus.innerText='تم الحفظ'; connectionStatus.style.display='block'; } catch(e) { alert('فشل'); } });
-    window.addEventListener('click',(e)=>{ if(e.target.classList.contains('modal')) e.target.style.display='none'; });
-    document.getElementById('storeInfoBtn').addEventListener('click',()=>{ storeInfoModal.style.display='flex'; fetchStoreInfo(); });
-    storeInfoForm.addEventListener('submit',async(e)=>{ e.preventDefault(); const info={ name:storeNameInput.value.trim(), address:storeAddressInput.value.trim(), phone:storePhoneInput.value.trim(), googleMapsLink:storeMapLinkInput.value.trim(), imageUrl:storeImageUrlInput.value.trim() }; try { await saveStoreInfoToFirebase(info); await addToActivityLog('settings','تحديث معلومات المتجر'); storeInfoModal.style.display='none'; connectionStatus.innerText='تم'; connectionStatus.style.display='block'; } catch(e) { alert('فشل'); } });
-    doLoginBtn.addEventListener('click',async()=>{ const e=loginEmail.value.trim(), p=loginPassword.value.trim(); if(!e||!p){ loginErrorMsg.innerText='مطلوب'; loginErrorMsg.style.display='block'; return; } loginErrorMsg.style.display='none'; try { await auth.signInWithEmailAndPassword(e,p); } catch(err) { loginErrorMsg.innerText='فشل الدخول'; loginErrorMsg.style.display='block'; } });
-    logoutBtn.addEventListener('click',async()=>{ await auth.signOut(); });
-    auth.onAuthStateChanged(async(user)=>{ if(user){ loginContainer.style.display='none'; appMain.style.display='flex'; connectionStatus.innerText='جار التحميل...'; connectionStatus.style.display='block'; await fetchCurrencySettings(); await fetchItems(); await fetchSales(); await fetchActivityLog(); connectionStatus.innerText='تم'; setTimeout(()=>connectionStatus.style.display='none',2000); } else { loginContainer.style.display='flex'; appMain.style.display='none'; } });
+    // Event Listeners
+    document.getElementById('addItemBtn').addEventListener('click', addItem);
+    document.getElementById('settingsBtn').addEventListener('click', () => document.getElementById('settingsModal').style.display = 'flex');
+    document.getElementById('historyBtn').addEventListener('click', () => { document.getElementById('historyModal').style.display = 'flex'; updateStats(); displaySalesLog(); displayActivityLog(); });
+    document.getElementById('categoriesBtn').addEventListener('click', () => { populateCategorySelect(); renderCategoriesUI(); renderProductsChecklist(); document.getElementById('categoriesModal').style.display = 'flex'; });
+    document.getElementById('createCategoryBtn').addEventListener('click', async () => { const name = document.getElementById('newCategoryName').value.trim(); if (name) await addCategory(name); document.getElementById('newCategoryName').value = ''; });
+    document.getElementById('assignProductsBtn').addEventListener('click', async () => {
+        const catId = document.getElementById('assignCategorySelect').value;
+        if (!catId) return alert('اختر فئة أولاً');
+        const checks = document.querySelectorAll('#productsChecklist input:checked');
+        const productIds = Array.from(checks).map(ch => ch.value);
+        if (productIds.length === 0) return alert('اختر منتجات');
+        await assignProductsToCategory(catId, productIds);
+        alert('تم التحديث');
+        document.getElementById('categoriesModal').style.display = 'none';
+    });
+    document.getElementById('assignCategorySelect').addEventListener('change', (e) => {
+        renderProductsChecklistForCategory(e.target.value);
+    });
+    document.getElementById('assignProductSearch').addEventListener('input', () => {
+        const catId = document.getElementById('assignCategorySelect').value;
+        renderProductsChecklistForCategory(catId);
+    });
+    document.getElementById('addSpecBtn').addEventListener('click', () => addSpecificationRow('', ''));
+    document.getElementById('addImageBtn').addEventListener('click', () => addImageRow('', false));
+    document.getElementById('addSocialBtn').addEventListener('click', () => addSocialRow('', '', ''));
+    document.getElementById('switchPurchaseCurrency').addEventListener('click', () => {
+        tempPurchaseCurrency = !tempPurchaseCurrency;
+        const v = parseFloat(document.getElementById('purchasePrice').value) || 0;
+        document.getElementById('purchasePrice').value = tempPurchaseCurrency ? Math.round(convertToSecondary(v)) : convertToPrimary(v).toFixed(2);
+        updatePriceLabels();
+        updateSecondaryPrices();
+    });
+    document.getElementById('switchSaleCurrency').addEventListener('click', () => {
+        tempSaleCurrency = !tempSaleCurrency;
+        const v = parseFloat(document.getElementById('salePrice').value) || 0;
+        document.getElementById('salePrice').value = tempSaleCurrency ? Math.round(convertToSecondary(v)) : convertToPrimary(v).toFixed(2);
+        updatePriceLabels();
+        updateSecondaryPrices();
+    });
+    document.getElementById('switchSellCurrency').addEventListener('click', () => {
+        tempSellCurrency = !tempSellCurrency;
+        const v = parseFloat(document.getElementById('sellPrice').value) || 0;
+        document.getElementById('sellPrice').value = tempSellCurrency ? Math.round(convertToSecondary(v)) : convertToPrimary(v).toFixed(2);
+        document.getElementById('sellPriceLabel').innerHTML = 'السعر (' + (tempSellCurrency ? currencySettings.secondaryCurrencySymbol : '$') + ')';
+        const ev = new Event('input');
+        document.getElementById('sellPrice').dispatchEvent(ev);
+    });
+    document.getElementById('switchEditCurrency').addEventListener('click', () => {
+        tempEditCurrency = !tempEditCurrency;
+        const v = parseFloat(document.getElementById('editPrice').value) || 0;
+        document.getElementById('editPrice').value = tempEditCurrency ? Math.round(convertToSecondary(v)) : convertToPrimary(v).toFixed(2);
+        document.getElementById('editPriceLabel').innerHTML = 'السعر (' + (tempEditCurrency ? currencySettings.secondaryCurrencySymbol : '$') + ')';
+        const ev = new Event('input');
+        document.getElementById('editPrice').dispatchEvent(ev);
+    });
+    document.getElementById('searchInput').addEventListener('input', () => {
+        const t = document.getElementById('searchInput').value.toLowerCase();
+        displayItems(items.filter(i => i.name.toLowerCase().includes(t)));
+    });
+    document.getElementById('clearHistoryBtn').addEventListener('click', async () => {
+        if (confirm('مسح السجل؟')) {
+            try {
+                const snap = await db.collection('activityLog').get();
+                const batch = db.batch();
+                snap.docs.forEach(d => batch.delete(d.ref));
+                await batch.commit();
+                activityLog = [];
+                saveAllToLocalStorage();
+                displayActivityLog();
+            } catch (e) { alert('فشل المسح'); }
+        }
+    });
+    document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const ns = {
+            secondaryCurrencyName: document.getElementById('secondaryCurrencyName').value.trim(),
+            secondaryCurrencySymbol: document.getElementById('secondaryCurrencySymbol').value.trim(),
+            exchangeRate: parseFloat(document.getElementById('exchangeRate').value),
+            defaultInputCurrency: document.querySelector('input[name="defaultInputCurrency"]:checked').value,
+            defaultSellCurrency: document.querySelector('input[name="defaultSellCurrency"]:checked').value
+        };
+        if (!ns.secondaryCurrencyName || !ns.secondaryCurrencySymbol || isNaN(ns.exchangeRate) || ns.exchangeRate <= 0) return alert('بيانات غير صالحة');
+        try {
+            await db.collection('currencySettings').doc('settings').set(ns);
+            currencySettings = ns;
+            await addToActivityLog('settings', 'تغيير إعدادات العملة');
+            tempPurchaseCurrency = (ns.defaultInputCurrency === 'secondary');
+            tempSaleCurrency = (ns.defaultInputCurrency === 'secondary');
+            tempSellCurrency = (ns.defaultSellCurrency === 'secondary');
+            updatePriceLabels();
+            updateSecondaryPrices();
+            displayItems();
+            document.getElementById('settingsModal').style.display = 'none';
+        } catch (err) { alert('فشل الحفظ'); }
+    });
+    document.getElementById('storeInfoBtn').addEventListener('click', () => { document.getElementById('storeInfoModal').style.display = 'flex'; fetchStoreInfo(); });
+    document.getElementById('storeInfoForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const info = {
+            name: document.getElementById('storeName').value.trim(),
+            address: document.getElementById('storeAddress').value.trim(),
+            phone: document.getElementById('storePhone').value.trim(),
+            googleMapsLink: document.getElementById('storeMapLink').value.trim(),
+            imageUrl: document.getElementById('storeImageUrl').value.trim(),
+            videoUrl: document.getElementById('storeVideoUrl').value.trim(),
+            socialLinks: collectSocialLinks()
+        };
+        try {
+            await saveStoreInfoToFirebase(info);
+            await addToActivityLog('settings', 'تحديث معلومات المتجر');
+            document.getElementById('storeInfoModal').style.display = 'none';
+            document.getElementById('connectionStatus').innerText = 'تم';
+            document.getElementById('connectionStatus').style.display = 'block';
+            setTimeout(() => document.getElementById('connectionStatus').style.display = 'none', 2000);
+        } catch (err) { alert('فشل الحفظ'); }
+    });
+    document.getElementById('productDiscountEnabled').addEventListener('change', () => {
+        document.getElementById('discountValueGroup').style.display = document.getElementById('productDiscountEnabled').checked ? 'block' : 'none';
+    });
+    const closeButtons = ['cancelBtn', 'cancelSellBtn', 'cancelEditSaleBtn', 'cancelSettingsBtn', 'cancelStoreInfoBtn', 'closeCategoriesBtn'];
+    closeButtons.forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) btn.addEventListener('click', () => document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'));
+    });
+    window.addEventListener('click', (e) => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; });
+
+    // Fix report tabs (make sure they work)
+    function initReportTabs() {
+        document.querySelectorAll('.report-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.report-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                const sec = tab.dataset.section;
+                document.querySelectorAll('.report-section').forEach(s => s.classList.remove('active'));
+                const sectionId = sec + 'Section';
+                const section = document.getElementById(sectionId);
+                if (section) section.classList.add('active');
+                if (sec === 'sales') displaySalesLog();
+                if (sec === 'activities') displayActivityLog();
+                if (sec === 'profits' || sec === 'inventory') updateStats();
+            });
+        });
+    }
+    initReportTabs();
+
+    // Auth
+    document.getElementById('doLoginBtn').addEventListener('click', async () => {
+        const email = document.getElementById('loginEmail').value.trim();
+        const pass = document.getElementById('loginPassword').value.trim();
+        if (!email || !pass) {
+            document.getElementById('loginErrorMsg').innerText = 'مطلوب';
+            document.getElementById('loginErrorMsg').style.display = 'block';
+            return;
+        }
+        document.getElementById('loginErrorMsg').style.display = 'none';
+        try {
+            await auth.signInWithEmailAndPassword(email, pass);
+        } catch (err) {
+            document.getElementById('loginErrorMsg').innerText = 'فشل الدخول';
+            document.getElementById('loginErrorMsg').style.display = 'block';
+        }
+    });
+    document.getElementById('logoutBtn').addEventListener('click', async () => { await auth.signOut(); });
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('appMain').style.display = 'flex';
+            document.getElementById('connectionStatus').innerText = 'جار التحميل...';
+            document.getElementById('connectionStatus').style.display = 'block';
+            await fetchCurrencySettings();
+            await fetchCategories();
+            await fetchItems();
+            await fetchSales();
+            await fetchActivityLog();
+            document.getElementById('connectionStatus').innerText = 'تم';
+            setTimeout(() => document.getElementById('connectionStatus').style.display = 'none', 2000);
+        } else {
+            document.getElementById('loginContainer').style.display = 'flex';
+            document.getElementById('appMain').style.display = 'none';
+        }
+    });
 </script>
 </body>
 </html>
