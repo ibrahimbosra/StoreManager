@@ -180,6 +180,7 @@
             scrollbar-width: thin;
             -webkit-overflow-scrolling: touch;
             direction: ltr;
+            scroll-behavior: smooth;
         }
         .categories-filter {
             display: inline-flex;
@@ -203,8 +204,8 @@
             white-space: nowrap;
         }
         .category-chip i {
-            margin-left: 6px;
-            font-size: 0.8rem;
+            margin-left: 8px;
+            font-size: 0.9rem;
         }
         .category-chip.active {
             background: #f97316;
@@ -549,7 +550,7 @@
 
     // متغيرات عامة
     let items = [];
-    let categories = [];      // قائمة الفئات من Firestore
+    let categories = [];      // قائمة الفئات من Firestore (id, name, icon)
     let currencySettings = { secondaryCurrencyName: "", secondaryCurrencySymbol: "", exchangeRate: 1, defaultInputCurrency: "primary", defaultSellCurrency: "primary" };
     let storeInfo = { name: "", address: "", phone: "", googleMapsLink: "", imageUrl: "", videoUrl: "", socialLinks: [] };
     let isSearching = false;
@@ -567,6 +568,7 @@
     const searchResultsTitle = document.getElementById('search-results-title');
     const searchResultsText = document.getElementById('search-results-text');
     const categoriesFilterContainer = document.getElementById('categoriesFilterContainer');
+    const categoriesFilterWrapper = document.getElementById('categoriesFilterWrapper');
 
     // ----- صورة احترافية: إنشاء رابط ثامبنيل ذكي (يدعم Cloudinary وتحويل تلقائي) -----
     function getOptimizedThumbnailUrl(originalUrl, width = 200) {
@@ -663,17 +665,20 @@
         return `<strong>${primaryHtml}</strong> ${secondaryHtml}`;
     }
     
-    // دالة التصفية الأساسية: تجمع بين الفئة والبحث
+    // دالة التصفية الأساسية: إذا كان هناك بحث نشط يتم تجاهل الفئة الحالية (البحث أولوية)
     function getFilteredProducts() {
         let filtered = items.filter(i => !i.hidden);
-        // فلترة حسب الفئة
-        if (currentCategoryId !== null) {
-            filtered = filtered.filter(p => p.categoryId === currentCategoryId);
-        }
-        // فلترة حسب البحث
+        
+        // أولوية البحث: إذا كان هناك نص بحث، نعرض جميع المنتجات المطابقة بغض النظر عن الفئة
         if (currentSearchQuery && currentSearchQuery.trim() !== '') {
             const lowerQuery = currentSearchQuery.toLowerCase();
-            filtered = filtered.filter(p => p.name.toLowerCase().includes(lowerQuery) || (p.description && p.description.toLowerCase().includes(lowerQuery)));
+            filtered = filtered.filter(p => p.name.toLowerCase().includes(lowerQuery) || 
+                                        (p.description && p.description.toLowerCase().includes(lowerQuery)));
+        } else {
+            // فقط عند عدم وجود بحث، يتم تطبيق فلتر الفئة
+            if (currentCategoryId !== null) {
+                filtered = filtered.filter(p => p.categoryId === currentCategoryId);
+            }
         }
         return filtered;
     }
@@ -690,15 +695,18 @@
         sorted.forEach(item => productsContainer.appendChild(createProductCard(item)));
     }
     
-    // بناء شريط الفئات
+    // بناء شريط الفئات مع أيقونات مخصصة من قاعدة البيانات
     function renderCategoriesFilter() {
         if (!categoriesFilterContainer) return;
         let html = `<button class="category-chip ${currentCategoryId === null ? 'active' : ''}" data-cat-id="all"><i class="fas fa-th-large"></i> الكل</button>`;
         categories.forEach(cat => {
             const isActive = (currentCategoryId === cat.id);
-            html += `<button class="category-chip ${isActive ? 'active' : ''}" data-cat-id="${cat.id}" data-cat-name="${escapeHtml(cat.name)}"><i class="fas fa-tag"></i> ${escapeHtml(cat.name)}</button>`;
+            // دعم أيقونة مخصصة من قاعدة البيانات (حقل icon) افتراضياً fa-tag
+            let iconClass = (cat.icon && cat.icon.trim()) ? cat.icon.trim() : 'fas fa-tag';
+            html += `<button class="category-chip ${isActive ? 'active' : ''}" data-cat-id="${cat.id}" data-cat-name="${escapeHtml(cat.name)}"><i class="${iconClass}"></i> ${escapeHtml(cat.name)}</button>`;
         });
         categoriesFilterContainer.innerHTML = html;
+        
         // إضافة حدث النقر لكل زر
         document.querySelectorAll('.category-chip').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -715,7 +723,6 @@
                 // تحديث عرض المنتجات (مع الحفاظ على حالة البحث)
                 if (document.getElementById('products-page').classList.contains('active')) {
                     if (isSearching && currentSearchQuery) {
-                        // نضمن أن searchResultsTitle يظهر بشكل صحيح
                         searchResultsTitle.style.display = 'flex';
                         searchResultsText.textContent = `نتائج البحث عن "${currentSearchQuery}"`;
                     } else {
@@ -725,16 +732,26 @@
                 }
             });
         });
+        
+        // إصلاح مشكلة التمرير: التأكد من أن فئة "الكل" مرئية في بداية الشريط
+        setTimeout(() => {
+            if (categoriesFilterWrapper) {
+                // نمرر الشريط إلى البداية (أقصى اليسار) بما أن الاتجاه ltr والكل في البداية
+                categoriesFilterWrapper.scrollLeft = 0;
+            }
+        }, 50);
     }
     
-    // تحديث الفئات من Firestore مع real-time
+    // تحديث الفئات من Firestore مع real-time ودعم أيقونات
     function loadCategoriesRealtime() {
         db.collection('categories').onSnapshot(snapshot => {
             categories = [];
             snapshot.forEach(doc => {
+                const data = doc.data();
                 categories.push({
                     id: doc.id,
-                    name: doc.data().name || 'بدون اسم'
+                    name: data.name || 'بدون اسم',
+                    icon: data.icon || 'fas fa-tag'   // حقل icon لتخزين أيقونة Font Awesome
                 });
             });
             // ترتيب الفئات أبجدياً
@@ -748,13 +765,12 @@
         });
     }
     
-    // عرض المنتجات (وظيفة للتوافق مع الكود القديم ولكن نستخدم الجديدة)
+    // عرض المنتجات (وظيفة للتوافق مع الكود القديم)
     function displayItems() {
-        // هذه الدالة أصبحت بديلاً: نعرض المنتجات المفلترة حسب الفئة والبحث
         displayFilteredProducts();
     }
     
-    // عرض نتائج البحث (نستخدم نفس منطق التصفية)
+    // عرض نتائج البحث (تحديث currentSearchQuery ثم عرض)
     function displaySearchResults(query) {
         currentSearchQuery = query;
         isSearching = (query && query.trim() !== '');
@@ -770,7 +786,7 @@
     }
     
     let currentDetailsItem = null;
-    // عرض تفاصيل المنتج (نفس الكود السابق مع صور عالية الجودة)
+    // عرض تفاصيل المنتج
     function showItemDetails(itemId) {
         const item = items.find(i => i.id === itemId);
         if (!item) return;
@@ -1017,8 +1033,6 @@
             displayFilteredProducts();
         } else if (pageId === 'contact') {
             renderContactPage();
-        } else if (pageId === 'home') {
-            // لا حاجة لشيء
         }
     }
     
@@ -1028,7 +1042,7 @@
     loadItemsRealtime();
     loadStoreInfoRealtime();
     loadCurrencySettingsRealtime();
-    loadCategoriesRealtime();   // جلب الفئات وإنشاء شريط التصفية
+    loadCategoriesRealtime();   // جلب الفئات وإنشاء شريط التصفية مع الأيقونات
     showPage('home');
 </script>
 </body>
