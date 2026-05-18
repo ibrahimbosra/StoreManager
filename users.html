@@ -166,6 +166,67 @@
             background: #f97316;
             border-radius: 2px;
         }
+        /* شريط الفئات الأفقي */
+        .categories-filter-wrapper {
+            background: white;
+            border-radius: 60px;
+            margin: 10px 0 15px;
+            padding: 6px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border: 1px solid #edf2f9;
+            overflow-x: auto;
+            overflow-y: hidden;
+            white-space: nowrap;
+            scrollbar-width: thin;
+            -webkit-overflow-scrolling: touch;
+            direction: ltr;
+        }
+        .categories-filter {
+            display: inline-flex;
+            gap: 8px;
+            padding: 4px 12px;
+            direction: rtl;
+        }
+        .category-chip {
+            display: inline-flex;
+            align-items: center;
+            background: #f1f5f9;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #334155;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .category-chip i {
+            margin-left: 6px;
+            font-size: 0.8rem;
+        }
+        .category-chip.active {
+            background: #f97316;
+            color: white;
+            box-shadow: 0 4px 10px rgba(249,115,22,0.3);
+        }
+        .category-chip:hover:not(.active) {
+            background: #e2e8f0;
+            transform: translateY(-2px);
+        }
+        /* تخصيص شريط التمرير */
+        .categories-filter-wrapper::-webkit-scrollbar {
+            height: 4px;
+        }
+        .categories-filter-wrapper::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+        .categories-filter-wrapper::-webkit-scrollbar-thumb {
+            background: #f97316;
+            border-radius: 10px;
+        }
         .search-results-title {
             text-align: center;
             margin: 15px 0;
@@ -446,6 +507,10 @@
 
     <div id="products-page" class="page">
         <h2 class="section-title">المنتجات المتوفرة</h2>
+        <!-- شريط تصفية الفئات الأفقي -->
+        <div class="categories-filter-wrapper" id="categoriesFilterWrapper">
+            <div class="categories-filter" id="categoriesFilterContainer"></div>
+        </div>
         <div id="search-results-title" class="search-results-title" style="display: none;">
             <button class="back-to-products-btn" id="back-from-search"><i class="fas fa-arrow-right"></i></button>
             <span id="search-results-text"></span>
@@ -484,10 +549,12 @@
 
     // متغيرات عامة
     let items = [];
+    let categories = [];      // قائمة الفئات من Firestore
     let currencySettings = { secondaryCurrencyName: "", secondaryCurrencySymbol: "", exchangeRate: 1, defaultInputCurrency: "primary", defaultSellCurrency: "primary" };
     let storeInfo = { name: "", address: "", phone: "", googleMapsLink: "", imageUrl: "", videoUrl: "", socialLinks: [] };
     let isSearching = false;
     let currentSearchQuery = '';
+    let currentCategoryId = null;   // null = الكل، string = categoryId
 
     // عناصر DOM
     const storeNameHeader = document.getElementById('storeNameHeader');
@@ -499,34 +566,25 @@
     const contactContainer = document.getElementById('contact-container');
     const searchResultsTitle = document.getElementById('search-results-title');
     const searchResultsText = document.getElementById('search-results-text');
+    const categoriesFilterContainer = document.getElementById('categoriesFilterContainer');
 
     // ----- صورة احترافية: إنشاء رابط ثامبنيل ذكي (يدعم Cloudinary وتحويل تلقائي) -----
     function getOptimizedThumbnailUrl(originalUrl, width = 200) {
         if (!originalUrl) return null;
-        // 1) دعم حقل imageThumb إن وجد في قاعدة البيانات (مرونة كاملة)
-        // لكن الدالة تستقبل رابط أصلي، سنتعامل معه. سيتم استدعاؤها بعد أخذ primary
-        
-        // إذا كان الرابط من Cloudinary => تحويل مباشر w_200 q_auto f_auto
         if (originalUrl.includes('cloudinary.com') || originalUrl.includes('res.cloudinary.com')) {
-            // محاولة إدراج تحويل الصورة: النمط الشائع .../upload/ ... نضيف قبل اسم الملف
-            // نبحث عن "/upload/" ونضيف المعامل بعدها
             const uploadMarker = '/upload/';
             const idx = originalUrl.indexOf(uploadMarker);
             if (idx !== -1) {
                 const before = originalUrl.substring(0, idx + uploadMarker.length);
                 let after = originalUrl.substring(idx + uploadMarker.length);
-                // تجنب تكرار التحويل إذا وجد مسبقاً
                 if (!after.includes('w_') && !after.includes('c_scale')) {
-                    // نضيف التحويل: c_scale,w_200,q_auto,f_auto
                     const transformation = `c_scale,w_${width},q_auto,f_auto/`;
                     return before + transformation + after;
                 } else {
-                    // إذا كان هناك تحويل قديم نستبدل العرض المناسب
                     return originalUrl.replace(/(w_)\d+/, `$1${width}`).replace(/q_\w+/, 'q_auto');
                 }
             }
         }
-        // دعم URLs عادية: نعيدها كما هي (على الأقل lazy loading سيحسن التجربة)
         return originalUrl;
     }
 
@@ -538,20 +596,18 @@
         return imagesArr[0].url;
     }
 
-    // placeholder SVG بسيط جداً خفيف
+    // placeholder SVG
     const PLACEHOLDER_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 24 24' fill='%23cbd5e1'%3E%3Cpath d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 8h-4v4h-4v-4H6V9h4V5h4v4h4v2z'/%3E%3C/svg%3E";
     
-    // إنشاء بطاقة المنتج مع صورة مصغرة (Thumbnail) عالية الأداء و Lazy loading
+    // إنشاء بطاقة المنتج مع صورة مصغرة
     function createProductCard(item) {
         const card = document.createElement('div');
         card.className = 'product-card';
         if (item.limitedQuantity && item.quantity > 0) card.classList.add('limited-stock');
         card.dataset.id = item.id;
         
-        // الحصول على رابط الصورة الأصلية الكاملة
         const fullPrimaryUrl = getPrimaryImage(item.images);
         let thumbUrl = null;
-        // الأولوية: 1- حقل imageThumb إن وجد (للتوسع المستقبلي) 2- تحويل تلقائي من الرابط الأصلي
         if (item.imageThumb) {
             thumbUrl = item.imageThumb;
         } else if (fullPrimaryUrl) {
@@ -588,7 +644,7 @@
         return card;
     }
     
-    // دالة تنسيق السعر كما هي
+    // تنسيق السعر
     function formatPriceHTML(priceUSD, discountPercent = 0) {
         let finalPrice = priceUSD;
         let hasDiscount = discountPercent > 0 && discountPercent <= 100;
@@ -607,39 +663,114 @@
         return `<strong>${primaryHtml}</strong> ${secondaryHtml}`;
     }
     
-    // عرض المنتجات (مع استبعاد المخفي)
-    function displayItems() {
+    // دالة التصفية الأساسية: تجمع بين الفئة والبحث
+    function getFilteredProducts() {
+        let filtered = items.filter(i => !i.hidden);
+        // فلترة حسب الفئة
+        if (currentCategoryId !== null) {
+            filtered = filtered.filter(p => p.categoryId === currentCategoryId);
+        }
+        // فلترة حسب البحث
+        if (currentSearchQuery && currentSearchQuery.trim() !== '') {
+            const lowerQuery = currentSearchQuery.toLowerCase();
+            filtered = filtered.filter(p => p.name.toLowerCase().includes(lowerQuery) || (p.description && p.description.toLowerCase().includes(lowerQuery)));
+        }
+        return filtered;
+    }
+    
+    // عرض المنتجات بناءً على الفئة والبحث
+    function displayFilteredProducts() {
+        const filtered = getFilteredProducts();
         productsContainer.innerHTML = '';
-        const visible = items.filter(i => !i.hidden);
-        if (visible.length === 0) {
-            productsContainer.innerHTML = `<div class="empty-products"><i class="fas fa-box-open fa-3x"></i><h3>لا توجد منتجات حالياً</h3><p>سيتم إضافة المنتجات قريباً</p></div>`;
+        if (filtered.length === 0) {
+            productsContainer.innerHTML = `<div class="empty-products"><i class="fas fa-box-open fa-3x"></i><h3>لا توجد منتجات</h3><p>حاول تغيير الفئة أو البحث</p></div>`;
             return;
         }
-        const sorted = [...visible].sort((a,b) => a.name.localeCompare(b.name, 'ar'));
+        const sorted = [...filtered].sort((a,b) => a.name.localeCompare(b.name, 'ar'));
         sorted.forEach(item => productsContainer.appendChild(createProductCard(item)));
     }
     
-    // عرض نتائج البحث
-    function displaySearchResults(query) {
-        const lowerQuery = query.toLowerCase();
-        const filtered = items.filter(i => !i.hidden && (i.name.toLowerCase().includes(lowerQuery) || (i.description && i.description.toLowerCase().includes(lowerQuery))));
-        productsContainer.innerHTML = '';
-        if (filtered.length === 0) {
-            productsContainer.innerHTML = `<div class="empty-products"><i class="fas fa-search fa-3x"></i><h3>لم يتم العثور على منتجات</h3><p>لا توجد نتائج مطابقة لـ "${escapeHtml(query)}"</p><button class="btn" onclick="isSearching=false; currentSearchQuery=''; showPage('products')" style="margin-top:20px;">عرض جميع المنتجات</button></div>`;
-            return;
-        }
-        const sorted = filtered.sort((a,b) => {
-            const aStarts = a.name.toLowerCase().startsWith(lowerQuery);
-            const bStarts = b.name.toLowerCase().startsWith(lowerQuery);
-            if (aStarts && !bStarts) return -1;
-            if (!aStarts && bStarts) return 1;
-            return a.name.localeCompare(b.name, 'ar');
+    // بناء شريط الفئات
+    function renderCategoriesFilter() {
+        if (!categoriesFilterContainer) return;
+        let html = `<button class="category-chip ${currentCategoryId === null ? 'active' : ''}" data-cat-id="all"><i class="fas fa-th-large"></i> الكل</button>`;
+        categories.forEach(cat => {
+            const isActive = (currentCategoryId === cat.id);
+            html += `<button class="category-chip ${isActive ? 'active' : ''}" data-cat-id="${cat.id}" data-cat-name="${escapeHtml(cat.name)}"><i class="fas fa-tag"></i> ${escapeHtml(cat.name)}</button>`;
         });
-        sorted.forEach(item => productsContainer.appendChild(createProductCard(item)));
+        categoriesFilterContainer.innerHTML = html;
+        // إضافة حدث النقر لكل زر
+        document.querySelectorAll('.category-chip').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const catId = btn.dataset.catId;
+                if (catId === 'all') {
+                    currentCategoryId = null;
+                } else {
+                    currentCategoryId = catId;
+                }
+                // إعادة تفعيل التصنيف النشط
+                document.querySelectorAll('.category-chip').forEach(ch => ch.classList.remove('active'));
+                btn.classList.add('active');
+                // تحديث عرض المنتجات (مع الحفاظ على حالة البحث)
+                if (document.getElementById('products-page').classList.contains('active')) {
+                    if (isSearching && currentSearchQuery) {
+                        // نضمن أن searchResultsTitle يظهر بشكل صحيح
+                        searchResultsTitle.style.display = 'flex';
+                        searchResultsText.textContent = `نتائج البحث عن "${currentSearchQuery}"`;
+                    } else {
+                        searchResultsTitle.style.display = 'none';
+                    }
+                    displayFilteredProducts();
+                }
+            });
+        });
+    }
+    
+    // تحديث الفئات من Firestore مع real-time
+    function loadCategoriesRealtime() {
+        db.collection('categories').onSnapshot(snapshot => {
+            categories = [];
+            snapshot.forEach(doc => {
+                categories.push({
+                    id: doc.id,
+                    name: doc.data().name || 'بدون اسم'
+                });
+            });
+            // ترتيب الفئات أبجدياً
+            categories.sort((a,b) => a.name.localeCompare(b.name, 'ar'));
+            // إعادة بناء شريط الفئات
+            renderCategoriesFilter();
+            // إعادة عرض المنتجات بعد تحديث الفئات (لتحديث الأسماء الظاهرة)
+            if (document.getElementById('products-page').classList.contains('active')) {
+                displayFilteredProducts();
+            }
+        });
+    }
+    
+    // عرض المنتجات (وظيفة للتوافق مع الكود القديم ولكن نستخدم الجديدة)
+    function displayItems() {
+        // هذه الدالة أصبحت بديلاً: نعرض المنتجات المفلترة حسب الفئة والبحث
+        displayFilteredProducts();
+    }
+    
+    // عرض نتائج البحث (نستخدم نفس منطق التصفية)
+    function displaySearchResults(query) {
+        currentSearchQuery = query;
+        isSearching = (query && query.trim() !== '');
+        if (document.getElementById('products-page').classList.contains('active')) {
+            if (isSearching) {
+                searchResultsTitle.style.display = 'flex';
+                searchResultsText.textContent = `نتائج البحث عن "${escapeHtml(query)}"`;
+            } else {
+                searchResultsTitle.style.display = 'none';
+            }
+            displayFilteredProducts();
+        }
     }
     
     let currentDetailsItem = null;
-    // عرض تفاصيل المنتج مع صور أصلية عالية الجودة + thumbnails محسنة
+    // عرض تفاصيل المنتج (نفس الكود السابق مع صور عالية الجودة)
     function showItemDetails(itemId) {
         const item = items.find(i => i.id === itemId);
         if (!item) return;
@@ -647,14 +778,12 @@
         const allImages = item.images || [];
         const fullPrimaryUrl = getPrimaryImage(allImages) || '';
         
-        // صورة رئيسية كاملة الجودة (full resolution)
         let imagesGalleryHtml = `<div class="main-img" id="detailMainImage"><img src="${fullPrimaryUrl}" alt="${escapeHtml(item.name)}" style="max-width:100%; max-height:100%; object-fit:contain;"></div>`;
         
         if (allImages.length > 1) {
             let thumbsHtml = '<div class="thumbnails">';
             allImages.forEach((img, idx) => {
                 const fullUrl = img.url;
-                // تصغير الصورة المصغرة باستخدام نفس دالة الـ thumbnail بعرض 100 بكسل
                 const thumbUrl = getOptimizedThumbnailUrl(fullUrl, 100);
                 thumbsHtml += `<img src="${thumbUrl}" class="thumb" data-img="${fullUrl.replace(/'/g, "\\'")}" loading="lazy" onerror="this.onerror=null;this.src='${PLACEHOLDER_SVG}';" alt="صورة مصغرة">`;
             });
@@ -664,7 +793,6 @@
             imagesGalleryHtml = `<div class="main-img"><i class="fas fa-cog fa-4x" style="color:#cbd5e1;"></i></div>`;
         }
         
-        // فيديو
         let videoHtml = '';
         if (item.youtubeUrl && item.youtubeUrl.trim()) {
             let embedUrl = item.youtubeUrl;
@@ -673,14 +801,13 @@
             videoHtml = `<div class="video-wrapper"><iframe src="${embedUrl}" frameborder="0" allowfullscreen loading="lazy"></iframe></div>`;
         }
         
-        // مواصفات
         let specsHtml = '';
         if (item.specifications && Array.isArray(item.specifications) && item.specifications.length) {
             specsHtml = '<table class="specs-table">';
             item.specifications.forEach(spec => {
-                if (spec.key && spec.value) specsHtml += `<tr><th>${escapeHtml(spec.key)}</th><td>${escapeHtml(spec.value)}</td><tr>`;
+                if (spec.key && spec.value) specsHtml += `<tr><th>${escapeHtml(spec.key)}</th><td>${escapeHtml(spec.value)}</td></tr>`;
             });
-            specsHtml += '</tr>';
+            specsHtml += '</table>';
         }
         
         let categoryInfo = item.categoryName ? `<div style="background:#eef2ff; display:inline-block; padding:4px 16px; border-radius:40px; margin-bottom:15px;">${escapeHtml(item.categoryName)}</div>` : '';
@@ -712,7 +839,6 @@
             </div>
         `;
         
-        // إعادة ربط أحداث النقر للصور المصغرة (لتغيير الصورة الرئيسية إلى الأصلية)
         document.querySelectorAll('.thumb').forEach(thumb => {
             thumb.addEventListener('click', (e) => {
                 const fullImgUrl = thumb.getAttribute('data-img');
@@ -724,7 +850,6 @@
                 }
             });
         });
-        // تحديد أول صورة مصغرة كنشطة إذا وجدت أكثر من صورة
         const firstThumb = document.querySelector('.thumb');
         if (firstThumb) firstThumb.classList.add('active');
         
@@ -782,12 +907,11 @@
                     discountEnabled: data.discountEnabled === true,
                     discountValue: data.discountValue || 0,
                     showPrice: data.showPrice === true,
-                    imageThumb: data.imageThumb || null   // دعم حقل إضافي اختياري للمستقبل
+                    imageThumb: data.imageThumb || null
                 });
             });
             if (document.getElementById('products-page').classList.contains('active')) {
-                if (isSearching) displaySearchResults(currentSearchQuery);
-                else displayItems();
+                displayFilteredProducts();
             }
             if (document.getElementById('product-details-page').classList.contains('active') && currentDetailsItem) {
                 const stillExists = items.find(i => i.id === currentDetailsItem.id);
@@ -832,8 +956,7 @@
                 currencySettings = { secondaryCurrencyName: '', secondaryCurrencySymbol: '', exchangeRate: 1, defaultInputCurrency: 'primary', defaultSellCurrency: 'primary' };
             }
             if (document.getElementById('products-page').classList.contains('active')) {
-                if (isSearching) displaySearchResults(currentSearchQuery);
-                else displayItems();
+                displayFilteredProducts();
             }
             if (document.getElementById('product-details-page').classList.contains('active') && currentDetailsItem) showItemDetails(currentDetailsItem.id);
             if (document.getElementById('contact-page').classList.contains('active')) renderContactPage();
@@ -846,12 +969,17 @@
         currentSearchQuery = query;
         if (!query) {
             isSearching = false;
-            showPage('products');
+            if (document.getElementById('products-page').classList.contains('active')) {
+                searchResultsTitle.style.display = 'none';
+                displayFilteredProducts();
+            }
             return;
         }
         isSearching = true;
         if (document.getElementById('products-page').classList.contains('active')) {
-            displaySearchResults(query);
+            searchResultsTitle.style.display = 'flex';
+            searchResultsText.textContent = `نتائج البحث عن "${escapeHtml(query)}"`;
+            displayFilteredProducts();
         } else {
             showPage('products');
         }
@@ -861,10 +989,13 @@
     
     backFromSearch.addEventListener('click', () => {
         searchInput.value = '';
-        isSearching = false;
         currentSearchQuery = '';
+        isSearching = false;
+        currentCategoryId = null;  // إعادة تعيين الفئة إلى الكل
+        renderCategoriesFilter();   // تحديث واجهة الأزرار
         showPage('products');
     });
+    
     searchBtn.addEventListener('click', performSearch);
     searchInput.addEventListener('input', performInstantSearch);
     searchInput.addEventListener('keypress', e => { if (e.key === 'Enter') performSearch(); });
@@ -877,16 +1008,17 @@
         if (activeBtn) activeBtn.classList.add('active');
         
         if (pageId === 'products') {
-            if (isSearching) {
+            if (isSearching && currentSearchQuery) {
                 searchResultsTitle.style.display = 'flex';
                 searchResultsText.textContent = `نتائج البحث عن "${currentSearchQuery}"`;
-                displaySearchResults(currentSearchQuery);
             } else {
                 searchResultsTitle.style.display = 'none';
-                displayItems();
             }
+            displayFilteredProducts();
         } else if (pageId === 'contact') {
             renderContactPage();
+        } else if (pageId === 'home') {
+            // لا حاجة لشيء
         }
     }
     
@@ -896,6 +1028,7 @@
     loadItemsRealtime();
     loadStoreInfoRealtime();
     loadCurrencySettingsRealtime();
+    loadCategoriesRealtime();   // جلب الفئات وإنشاء شريط التصفية
     showPage('home');
 </script>
 </body>
