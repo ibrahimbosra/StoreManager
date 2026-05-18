@@ -179,7 +179,7 @@
             background: #f97316;
             border-radius: 2px;
         }
-        /* شريط الفئات الأفقي - محسّن لـ RTL */
+        /* شريط الفئات الأفقي */
         .categories-filter-wrapper {
             position: relative;
             background: white;
@@ -412,7 +412,6 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             text-align: center;
         }
-        /* تحسين عنوان المتجر ليلتف تلقائياً */
         .store-name-title {
             font-size: 1.6rem;
             font-weight: 800;
@@ -508,7 +507,6 @@
         .nav-btn i { display: block; font-size: 1.3rem; margin-bottom: 4px; }
         .nav-btn.active, .nav-btn:hover { color: #f97316; }
         .empty-products { text-align: center; padding: 40px; background: white; border-radius: 28px; }
-        /* التذييل الجديد */
         .footer-credit {
             text-align: center;
             font-size: 0.7rem;
@@ -557,7 +555,6 @@
             <p>جودة عالية وأسعار تنافسية</p>
             <button class="btn" onclick="showPage('products')">تصفح المنتجات الآن</button>
         </div>
-        <!-- صورة المحل من قاعدة البيانات -->
         <div id="storeImageContainer" class="store-image-section"></div>
     </div>
 
@@ -582,7 +579,6 @@
         <div class="contact-container" id="contact-container"></div>
     </div>
     
-    <!-- تذييل موحد يظهر في كل الصفحات -->
     <div class="footer-credit">
         تم التطوير بواسطة <a href="tel:+963937708649">Ibrahim Almuqdad - +963937708649</a>
     </div>
@@ -630,7 +626,6 @@
     const categoriesFilterWrapper = document.getElementById('categoriesFilterWrapper');
     const storeImageContainer = document.getElementById('storeImageContainer');
 
-    // Helper: صورة مصغرة
     function getOptimizedThumbnailUrl(originalUrl, width = 200) {
         if (!originalUrl) return null;
         if (originalUrl.includes('cloudinary.com') || originalUrl.includes('res.cloudinary.com')) {
@@ -833,7 +828,7 @@
         showPage('product-details');
     }
     
-    // صفحة التواصل المحسنة: عنوان قابل للالتفاف، فيديو تحت الخريطة
+    // صفحة التواصل - لا نعرض خريطة أو فيديو إلا إذا كان الرابط موجوداً
     function renderContactPage() {
         let phoneHtml = storeInfo.phone ? `<div class="phone-container"><a href="tel:${encodeURIComponent(storeInfo.phone)}" class="phone-number"><i class="fas fa-phone-alt"></i> ${escapeHtml(storeInfo.phone)}</a></div>` : '';
         let socialHtml = '';
@@ -845,39 +840,43 @@
             });
             socialHtml += '</div>';
         }
-        // الخريطة والفيديو
-        let mapHtml = '';
-        let videoHtml = '';
-        if (storeInfo.googleMapsLink) {
+        
+        // بناء محتوى الخريطة فقط إذا كان الرابط موجوداً وصالحاً
+        let mapContent = '';
+        if (storeInfo.googleMapsLink && storeInfo.googleMapsLink.trim()) {
             let mapSrc = storeInfo.googleMapsLink;
             if (!mapSrc.includes('embed')) mapSrc = mapSrc.replace('maps?q=', 'maps/embed?q=').replace('place/', 'embed?place=');
-            mapHtml = `<div class="map-wrapper"><div class="contact-address">${escapeHtml(storeInfo.address || '')}</div><iframe src="${mapSrc}" class="map-frame" allowfullscreen loading="lazy"></iframe></div>`;
-        } else if (storeInfo.address) {
-            mapHtml = `<div class="map-wrapper"><div class="contact-address">${escapeHtml(storeInfo.address)}</div><div style="height:360px; background:#f1f5f9; display:flex; align-items:center; justify-content:center;"><i class="fas fa-map-marker-alt fa-3x"></i><p style="margin-right:10px;">لا يوجد رابط خريطة</p></div></div>`;
-        } else {
-            mapHtml = `<div class="map-wrapper"><div style="height:360px; background:#f1f5f9; display:flex; align-items:center; justify-content:center;"><i class="fas fa-info-circle fa-2x"></i><p style="margin-right:10px;">لا توجد معلومات موقع</p></div></div>`;
+            mapContent = `
+                <div class="map-wrapper">
+                    <div class="contact-address">${escapeHtml(storeInfo.address || '')}</div>
+                    <iframe src="${mapSrc}" class="map-frame" allowfullscreen loading="lazy"></iframe>
+                </div>
+            `;
         }
-        // فيديو المتجر من الرابط المخزن (videoUrl)
+        
+        // بناء محتوى الفيديو فقط إذا كان الرابط موجوداً
+        let videoContent = '';
         if (storeInfo.videoUrl && storeInfo.videoUrl.trim()) {
             let embedUrl = storeInfo.videoUrl;
             if (embedUrl.includes('watch?v=')) embedUrl = embedUrl.replace('watch?v=', 'embed/');
             else if (embedUrl.includes('youtu.be/')) embedUrl = embedUrl.replace('youtu.be/', 'www.youtube.com/embed/');
-            videoHtml = `<div class="store-video-wrapper"><iframe src="${embedUrl}" frameborder="0" allowfullscreen loading="lazy" title="فيديو المتجر"></iframe></div>`;
+            videoContent = `<div class="store-video-wrapper"><iframe src="${embedUrl}" frameborder="0" allowfullscreen loading="lazy" title="فيديو المتجر"></iframe></div>`;
         }
+        
+        // إذا لم يوجد لا خريطة ولا فيديو، لا نضيف قسم contact-map أصلاً
+        const hasMapOrVideo = (mapContent !== '' || videoContent !== '');
+        const mapSectionHtml = hasMapOrVideo ? `<div class="contact-map">${mapContent}${videoContent}</div>` : '';
+        
         contactContainer.innerHTML = `
             <div class="contact-info">
                 <div class="store-name-title">${escapeHtml(storeInfo.name || 'متجرنا')}</div>
                 ${phoneHtml}
                 ${socialHtml}
             </div>
-            <div class="contact-map">
-                ${mapHtml}
-                ${videoHtml ? videoHtml : ''}
-            </div>
+            ${mapSectionHtml}
         `;
     }
     
-    // عرض صورة المحل في الصفحة الرئيسية
     function renderStoreImage() {
         if (storeImageContainer) {
             if (storeInfo.imageUrl && storeInfo.imageUrl.trim()) {
@@ -994,7 +993,7 @@
             displayFilteredProducts();
             setTimeout(() => { if (categoriesFilterWrapper) categoriesFilterWrapper.scrollLeft = 0; }, 10);
         } else if (pageId === 'contact') renderContactPage();
-        else if (pageId === 'home') renderStoreImage(); // تحديث الصورة عند العودة للرئيسية
+        else if (pageId === 'home') renderStoreImage();
     }
     
     function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
