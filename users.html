@@ -92,7 +92,6 @@
         }
         .hero h2 { font-size: 2rem; margin-bottom: 15px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
         .hero p { font-size: 1rem; max-width: 600px; margin: 0 auto 25px; }
-        /* صورة المحل تحت الهيرو */
         .store-image-section {
             margin: 20px 0 5px;
             text-align: center;
@@ -179,7 +178,6 @@
             background: #f97316;
             border-radius: 2px;
         }
-        /* شريط الفئات الأفقي */
         .categories-filter-wrapper {
             position: relative;
             background: white;
@@ -591,7 +589,6 @@
 </nav>
 
 <script>
-    // Firebase config
     const firebaseConfig = {
         apiKey: "AIzaSyBeJ0sbdCqz60a-yqzuZSt6QstDhR3TRtM",
         authDomain: "profit-zone-e03c6.firebaseapp.com",
@@ -603,16 +600,14 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // متغيرات عامة
     let items = [];
     let categories = [];
     let currencySettings = { secondaryCurrencyName: "", secondaryCurrencySymbol: "", exchangeRate: 1, defaultInputCurrency: "primary", defaultSellCurrency: "primary" };
-    let storeInfo = { name: "", address: "", phone: "", googleMapsLink: "", imageUrl: "", videoUrl: "", socialLinks: [] };
+    let storeInfo = { name: "", address: "", phone: "", googleMapsLink: "", imageUrl: "", videoUrl: "", socialLinks: [], hideOutOfStock: false };
     let isSearching = false;
     let currentSearchQuery = '';
     let currentCategoryId = null;
 
-    // عناصر DOM
     const storeNameHeader = document.getElementById('storeNameHeader');
     const searchInput = document.getElementById('search-input');
     const searchBtn = document.getElementById('search-button');
@@ -698,6 +693,10 @@
     
     function getFilteredProducts() {
         let filtered = items.filter(i => !i.hidden);
+        // إخفاء المنتجات غير المتوفرة إذا كان الإعداد مفعلاً
+        if (storeInfo.hideOutOfStock === true) {
+            filtered = filtered.filter(i => i.quantity > 0);
+        }
         if (currentSearchQuery && currentSearchQuery.trim() !== '') {
             const lowerQuery = currentSearchQuery.toLowerCase();
             filtered = filtered.filter(p => p.name.toLowerCase().includes(lowerQuery) || (p.description && p.description.toLowerCase().includes(lowerQuery)));
@@ -788,6 +787,7 @@
             thumbsHtml += '</div>';
             imagesGalleryHtml += thumbsHtml;
         } else if (allImages.length === 0) imagesGalleryHtml = `<div class="main-img"><i class="fas fa-cog fa-4x" style="color:#cbd5e1;"></i></div>`;
+        
         let videoHtml = '';
         if (item.youtubeUrl && item.youtubeUrl.trim()) {
             let embedUrl = item.youtubeUrl;
@@ -795,23 +795,37 @@
             else if (embedUrl.includes('youtu.be/')) embedUrl = embedUrl.replace('youtu.be/', 'www.youtube.com/embed/');
             videoHtml = `<div class="video-wrapper"><iframe src="${embedUrl}" frameborder="0" allowfullscreen loading="lazy"></iframe></div>`;
         }
+        
         let specsHtml = '';
         if (item.specifications && item.specifications.length) {
             specsHtml = '<table class="specs-table">';
             item.specifications.forEach(spec => { if (spec.key && spec.value) specsHtml += `<tr><th>${escapeHtml(spec.key)}</th><td>${escapeHtml(spec.value)}</td></tr>`; });
             specsHtml += '</table>';
         }
+        
         let categoryInfo = item.categoryName ? `<div style="background:#eef2ff; display:inline-block; padding:4px 16px; border-radius:40px; margin-bottom:15px;">${escapeHtml(item.categoryName)}</div>` : '';
+        
+        // عرض السعر فقط إذا كان مفعلاً
         let priceHtml = '';
         if (item.showPrice === true) {
             const discount = (item.discountEnabled && item.discountValue > 0) ? item.discountValue : 0;
             priceHtml = `<div style="font-size:1.6rem; margin:15px 0; color:#ea580c;">${formatPriceHTML(item.salePrice, discount)}</div>`;
             if (discount > 0) priceHtml += `<div style="font-size:0.85rem; color:#16a34a;">خصم ${discount}%</div>`;
-        } else priceHtml = `<div style="margin:15px 0; color:#64748b;">السعر غير معروض</div>`;
+        }
+        // لا نعرض أي نص بديل إذا كان السعر غير مفعل
+        
+        // عرض الوصف فقط إذا كان موجوداً
+        let descriptionHtml = '';
+        if (item.description && item.description.trim()) {
+            descriptionHtml = `<p class="description">${escapeHtml(item.description)}</p>`;
+        }
+        
         let stockMessage = '';
         if (item.quantity === 0) stockMessage = '<div style="background:#fee2e2; padding:10px; border-radius:40px; color:#dc2626; margin:10px 0;">❌ المنتج غير متوفر حالياً</div>';
         else if (item.limitedQuantity) stockMessage = '<div style="background:#fff3e3; padding:10px; border-radius:40px; color:#f97316;">⚠️ كمية محدودة، اطلب الآن!</div>';
-        productDetailsContainer.innerHTML = `<div class="product-details-card">${imagesGalleryHtml}<h2 style="font-size:1.8rem;">${escapeHtml(item.name)}</h2>${categoryInfo}<p class="description">${escapeHtml(item.description || 'لا يوجد وصف متاح')}</p>${priceHtml}${stockMessage}${videoHtml}${specsHtml}<button class="back-btn btn" style="background:#e2e8f0; color:#1e293b; margin-top:20px; width:100%;" onclick="if(isSearching){ displaySearchResults(currentSearchQuery); } else { showPage('products'); }">العودة إلى المنتجات</button></div>`;
+        
+        productDetailsContainer.innerHTML = `<div class="product-details-card">${imagesGalleryHtml}<h2 style="font-size:1.8rem;">${escapeHtml(item.name)}</h2>${categoryInfo}${descriptionHtml}${priceHtml}${stockMessage}${videoHtml}${specsHtml}<button class="back-btn btn" style="background:#e2e8f0; color:#1e293b; margin-top:20px; width:100%;" onclick="if(isSearching){ displaySearchResults(currentSearchQuery); } else { showPage('products'); }">العودة إلى المنتجات</button></div>`;
+        
         document.querySelectorAll('.thumb').forEach(thumb => {
             thumb.addEventListener('click', (e) => {
                 const fullImgUrl = thumb.getAttribute('data-img');
@@ -828,7 +842,6 @@
         showPage('product-details');
     }
     
-    // صفحة التواصل - لا نعرض خريطة أو فيديو إلا إذا كان الرابط موجوداً
     function renderContactPage() {
         let phoneHtml = storeInfo.phone ? `<div class="phone-container"><a href="tel:${encodeURIComponent(storeInfo.phone)}" class="phone-number"><i class="fas fa-phone-alt"></i> ${escapeHtml(storeInfo.phone)}</a></div>` : '';
         let socialHtml = '';
@@ -841,20 +854,13 @@
             socialHtml += '</div>';
         }
         
-        // بناء محتوى الخريطة فقط إذا كان الرابط موجوداً وصالحاً
         let mapContent = '';
         if (storeInfo.googleMapsLink && storeInfo.googleMapsLink.trim()) {
             let mapSrc = storeInfo.googleMapsLink;
             if (!mapSrc.includes('embed')) mapSrc = mapSrc.replace('maps?q=', 'maps/embed?q=').replace('place/', 'embed?place=');
-            mapContent = `
-                <div class="map-wrapper">
-                    <div class="contact-address">${escapeHtml(storeInfo.address || '')}</div>
-                    <iframe src="${mapSrc}" class="map-frame" allowfullscreen loading="lazy"></iframe>
-                </div>
-            `;
+            mapContent = `<div class="map-wrapper"><div class="contact-address">${escapeHtml(storeInfo.address || '')}</div><iframe src="${mapSrc}" class="map-frame" allowfullscreen loading="lazy"></iframe></div>`;
         }
         
-        // بناء محتوى الفيديو فقط إذا كان الرابط موجوداً
         let videoContent = '';
         if (storeInfo.videoUrl && storeInfo.videoUrl.trim()) {
             let embedUrl = storeInfo.videoUrl;
@@ -863,18 +869,10 @@
             videoContent = `<div class="store-video-wrapper"><iframe src="${embedUrl}" frameborder="0" allowfullscreen loading="lazy" title="فيديو المتجر"></iframe></div>`;
         }
         
-        // إذا لم يوجد لا خريطة ولا فيديو، لا نضيف قسم contact-map أصلاً
         const hasMapOrVideo = (mapContent !== '' || videoContent !== '');
         const mapSectionHtml = hasMapOrVideo ? `<div class="contact-map">${mapContent}${videoContent}</div>` : '';
         
-        contactContainer.innerHTML = `
-            <div class="contact-info">
-                <div class="store-name-title">${escapeHtml(storeInfo.name || 'متجرنا')}</div>
-                ${phoneHtml}
-                ${socialHtml}
-            </div>
-            ${mapSectionHtml}
-        `;
+        contactContainer.innerHTML = `<div class="contact-info"><div class="store-name-title">${escapeHtml(storeInfo.name || 'متجرنا')}</div>${phoneHtml}${socialHtml}</div>${mapSectionHtml}`;
     }
     
     function renderStoreImage() {
@@ -916,14 +914,16 @@
                 storeInfo = {
                     name: data.name || '', address: data.address || '', phone: data.phone || '',
                     googleMapsLink: data.googleMapsLink || '', imageUrl: data.imageUrl || '',
-                    videoUrl: data.videoUrl || '', socialLinks: data.socialLinks || []
+                    videoUrl: data.videoUrl || '', socialLinks: data.socialLinks || [],
+                    hideOutOfStock: data.hideOutOfStock === true
                 };
             } else {
-                storeInfo = { name: '', address: '', phone: '', googleMapsLink: '', imageUrl: '', videoUrl: '', socialLinks: [] };
+                storeInfo = { name: '', address: '', phone: '', googleMapsLink: '', imageUrl: '', videoUrl: '', socialLinks: [], hideOutOfStock: false };
             }
             storeNameHeader.textContent = storeInfo.name || 'PARTZONE';
             renderStoreImage();
             if (document.getElementById('contact-page').classList.contains('active')) renderContactPage();
+            if (document.getElementById('products-page').classList.contains('active')) displayFilteredProducts();
         });
     }
     
