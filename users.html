@@ -414,10 +414,18 @@
             font-size: 1.6rem;
             font-weight: 800;
             color: #1e293b;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             word-break: break-word;
             white-space: normal;
             line-height: 1.4;
+        }
+        .store-address-text {
+            font-size: 0.9rem;
+            color: #5f6c84;
+            margin-bottom: 16px;
+            word-break: break-word;
+            white-space: normal;
+            line-height: 1.5;
         }
         .contact-map {
             flex: 2;
@@ -693,7 +701,6 @@
     
     function getFilteredProducts() {
         let filtered = items.filter(i => !i.hidden);
-        // إخفاء المنتجات غير المتوفرة إذا كان الإعداد مفعلاً
         if (storeInfo.hideOutOfStock === true) {
             filtered = filtered.filter(i => i.quantity > 0);
         }
@@ -722,8 +729,10 @@
         let html = `<button class="category-chip ${currentCategoryId === null ? 'active' : ''}" data-cat-id="all"><i class="fas fa-th-large"></i> الكل</button>`;
         categories.forEach(cat => {
             const isActive = (currentCategoryId === cat.id);
-            let iconClass = (cat.icon && cat.icon.trim()) ? cat.icon.trim() : 'fas fa-tag';
-            html += `<button class="category-chip ${isActive ? 'active' : ''}" data-cat-id="${cat.id}" data-cat-name="${escapeHtml(cat.name)}"><i class="${iconClass}"></i> ${escapeHtml(cat.name)}</button>`;
+            let iconClass = (cat.icon && cat.icon.trim()) ? cat.icon.trim() : ''; // نستخدم الأيقونة من قاعدة البيانات فقط
+            // إذا لم تكن هناك أيقونة محددة، لا نضيف أيقونة (نعرض النص فقط)
+            const iconHtml = iconClass ? `<i class="${iconClass}"></i>` : '';
+            html += `<button class="category-chip ${isActive ? 'active' : ''}" data-cat-id="${cat.id}" data-cat-name="${escapeHtml(cat.name)}">${iconHtml} ${escapeHtml(cat.name)}</button>`;
         });
         categoriesFilterContainer.innerHTML = html;
         document.querySelectorAll('.category-chip').forEach(btn => {
@@ -750,7 +759,7 @@
             categories = [];
             snapshot.forEach(doc => {
                 const data = doc.data();
-                categories.push({ id: doc.id, name: data.name || 'بدون اسم', icon: data.icon || 'fas fa-tag' });
+                categories.push({ id: doc.id, name: data.name || 'بدون اسم', icon: data.icon || '' });
             });
             categories.sort((a,b) => a.name.localeCompare(b.name, 'ar'));
             renderCategoriesFilter();
@@ -805,16 +814,13 @@
         
         let categoryInfo = item.categoryName ? `<div style="background:#eef2ff; display:inline-block; padding:4px 16px; border-radius:40px; margin-bottom:15px;">${escapeHtml(item.categoryName)}</div>` : '';
         
-        // عرض السعر فقط إذا كان مفعلاً
         let priceHtml = '';
         if (item.showPrice === true) {
             const discount = (item.discountEnabled && item.discountValue > 0) ? item.discountValue : 0;
             priceHtml = `<div style="font-size:1.6rem; margin:15px 0; color:#ea580c;">${formatPriceHTML(item.salePrice, discount)}</div>`;
             if (discount > 0) priceHtml += `<div style="font-size:0.85rem; color:#16a34a;">خصم ${discount}%</div>`;
         }
-        // لا نعرض أي نص بديل إذا كان السعر غير مفعل
         
-        // عرض الوصف فقط إذا كان موجوداً
         let descriptionHtml = '';
         if (item.description && item.description.trim()) {
             descriptionHtml = `<p class="description">${escapeHtml(item.description)}</p>`;
@@ -872,7 +878,18 @@
         const hasMapOrVideo = (mapContent !== '' || videoContent !== '');
         const mapSectionHtml = hasMapOrVideo ? `<div class="contact-map">${mapContent}${videoContent}</div>` : '';
         
-        contactContainer.innerHTML = `<div class="contact-info"><div class="store-name-title">${escapeHtml(storeInfo.name || 'متجرنا')}</div>${phoneHtml}${socialHtml}</div>${mapSectionHtml}`;
+        // عرض اسم المتجر وعنوانه بشكل منفصل
+        const storeAddressHtml = (storeInfo.address && storeInfo.address.trim()) ? `<div class="store-address-text"><i class="fas fa-location-dot"></i> ${escapeHtml(storeInfo.address)}</div>` : '';
+        
+        contactContainer.innerHTML = `
+            <div class="contact-info">
+                <div class="store-name-title">${escapeHtml(storeInfo.name || 'متجرنا')}</div>
+                ${storeAddressHtml}
+                ${phoneHtml}
+                ${socialHtml}
+            </div>
+            ${mapSectionHtml}
+        `;
     }
     
     function renderStoreImage() {
