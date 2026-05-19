@@ -1,0 +1,2021 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>إدارة سلايدر النصائح والإعلانات | لوحة تحكم احترافية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <style>
+        :root {
+            --primary: #f97316;
+            --primary-dark: #ea580c;
+            --primary-light: #fff7ed;
+            --bg: #f1f5f9;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --danger: #ef4444;
+            --danger-bg: #fef2f2;
+            --warning: #f59e0b;
+            --warning-bg: #fffbeb;
+            --success: #10b981;
+            --success-bg: #ecfdf5;
+            --info: #3b82f6;
+            --info-bg: #eff6ff;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow: 0 4px 6px rgba(0,0,0,0.07);
+            --shadow-md: 0 10px 15px rgba(0,0,0,0.1);
+            --shadow-lg: 0 20px 40px rgba(0,0,0,0.15);
+            --radius-sm: 12px;
+            --radius: 16px;
+            --radius-lg: 24px;
+            --radius-xl: 32px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.7;
+            font-size: 14px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ========== شاشة تسجيل الدخول ========== */
+        .login-container {
+            max-width: 440px;
+            margin: 8vh auto;
+            padding: 2.5rem 2rem;
+            background: var(--surface);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg), 0 0 0 1px rgba(0,0,0,0.03);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), #fb923c, var(--primary));
+        }
+        .login-container .login-icon {
+            width: 70px;
+            height: 70px;
+            background: var(--primary-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2rem;
+            color: var(--primary);
+            box-shadow: 0 8px 24px rgba(249,115,22,0.2);
+        }
+        .login-container h2 {
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            font-size: 1.6rem;
+            font-weight: 800;
+        }
+        .login-container .login-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1.8rem;
+        }
+        .login-container input {
+            width: 100%;
+            padding: 14px 18px;
+            margin: 8px 0;
+            border-radius: 50px;
+            border: 2px solid var(--border);
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.95rem;
+            transition: var(--transition);
+            background: #f8fafc;
+            direction: ltr;
+            text-align: left;
+        }
+        .login-container input:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(249,115,22,0.1);
+            background: #fff;
+        }
+        .login-container .login-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            font-weight: 700;
+            font-size: 1.05rem;
+            cursor: pointer;
+            margin-top: 16px;
+            font-family: 'Cairo', sans-serif;
+            transition: var(--transition);
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+        .login-container .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(249,115,22,0.35);
+        }
+        .login-container .login-btn:active {
+            transform: translateY(0);
+        }
+        .error-msg {
+            color: var(--danger);
+            margin-top: 12px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            background: var(--danger-bg);
+            padding: 10px 16px;
+            border-radius: 50px;
+            display: none;
+        }
+        .error-msg.show {
+            display: block;
+        }
+
+        /* ========== لوحة التحكم ========== */
+        .dashboard {
+            display: none;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--surface);
+            padding: 18px 28px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 14px;
+            border: 1px solid var(--border);
+        }
+        .dashboard-header .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .dashboard-header .header-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--primary-light);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 1.3rem;
+        }
+        .dashboard-header h1 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--text);
+        }
+        .dashboard-header .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f8fafc;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+        .user-badge i {
+            color: var(--primary);
+        }
+        .logout-btn {
+            background: var(--danger-bg);
+            color: var(--danger);
+            border: 1px solid #fecaca;
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 600;
+            transition: var(--transition);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .logout-btn:hover {
+            background: #fee2e2;
+            border-color: #fca5a5;
+        }
+
+        /* ========== شريط الأدوات ========== */
+        .toolbar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            align-items: center;
+            background: var(--surface);
+            padding: 14px 20px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+        }
+        .toolbar .search-box {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+        .toolbar .search-box input {
+            width: 100%;
+            padding: 11px 44px 11px 18px;
+            border-radius: 50px;
+            border: 2px solid var(--border);
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.9rem;
+            background: #f8fafc;
+            transition: var(--transition);
+        }
+        .toolbar .search-box input:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(249,115,22,0.08);
+            background: #fff;
+        }
+        .toolbar .search-box i {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+        .btn {
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-family: 'Cairo', sans-serif;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            white-space: nowrap;
+            border: none;
+            letter-spacing: 0.3px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(249,115,22,0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(249,115,22,0.4);
+        }
+        .btn-outline {
+            background: #fff;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+        .btn-outline:hover {
+            background: var(--primary-light);
+        }
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid transparent;
+        }
+        .btn-ghost:hover {
+            background: #f1f5f9;
+            border-color: var(--border);
+        }
+        .btn-sm {
+            padding: 7px 14px;
+            font-size: 0.8rem;
+            border-radius: 40px;
+        }
+        .filter-chips {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .filter-chip {
+            padding: 7px 16px;
+            border-radius: 50px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 2px solid var(--border);
+            background: #fff;
+            color: var(--text-secondary);
+            font-family: 'Cairo', sans-serif;
+            white-space: nowrap;
+        }
+        .filter-chip.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+        .filter-chip:hover:not(.active) {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* ========== قائمة العناصر ========== */
+        .items-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .item-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 18px 20px;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            cursor: grab;
+            transition: var(--transition);
+            border: 2px solid transparent;
+            flex-wrap: wrap;
+            position: relative;
+        }
+        .item-card:active {
+            cursor: grabbing;
+        }
+        .item-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow);
+            transform: translateY(-1px);
+        }
+        .item-card.dragging {
+            opacity: 0.6;
+            border: 2px dashed var(--primary);
+            box-shadow: var(--shadow-md);
+            cursor: grabbing;
+        }
+        .item-card.drag-over {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 6px rgba(249,115,22,0.1);
+        }
+        .drag-handle {
+            font-size: 1.3rem;
+            color: #94a3b8;
+            cursor: grab;
+            padding: 6px;
+            flex-shrink: 0;
+            transition: var(--transition);
+        }
+        .drag-handle:hover {
+            color: var(--primary);
+        }
+        .item-preview-mini {
+            width: 200px;
+            min-height: 70px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            padding: 10px 14px;
+            gap: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .item-preview-mini img {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+        .item-preview-mini .mini-icon {
+            font-size: 1.5rem;
+        }
+        .item-info {
+            flex: 1;
+            min-width: 180px;
+        }
+        .item-info h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 3px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .item-info p {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+        .item-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 4px;
+        }
+        .meta-tag {
+            font-size: 0.7rem;
+            padding: 3px 10px;
+            border-radius: 30px;
+            font-weight: 600;
+            background: #f1f5f9;
+            color: var(--text-secondary);
+        }
+        .meta-tag.status-active {
+            background: var(--success-bg);
+            color: var(--success);
+        }
+        .meta-tag.status-hidden {
+            background: var(--warning-bg);
+            color: var(--warning);
+        }
+        .meta-tag.status-scheduled {
+            background: var(--info-bg);
+            color: var(--info);
+        }
+        .item-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+        }
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .icon-btn.edit-btn {
+            background: var(--info-bg);
+            color: var(--info);
+        }
+        .icon-btn.edit-btn:hover {
+            background: #dbeafe;
+            transform: scale(1.08);
+        }
+        .icon-btn.hide-btn {
+            background: var(--warning-bg);
+            color: var(--warning);
+        }
+        .icon-btn.hide-btn:hover {
+            background: #fef3c7;
+            transform: scale(1.08);
+        }
+        .icon-btn.duplicate-btn {
+            background: #f0fdf4;
+            color: #22c55e;
+        }
+        .icon-btn.duplicate-btn:hover {
+            background: #dcfce7;
+            transform: scale(1.08);
+        }
+        .icon-btn.delete-btn {
+            background: var(--danger-bg);
+            color: var(--danger);
+        }
+        .icon-btn.delete-btn:hover {
+            background: #fee2e2;
+            transform: scale(1.08);
+        }
+        .tooltip {
+            position: absolute;
+            bottom: -28px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            color: #fff;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 10;
+        }
+        .icon-btn:hover .tooltip {
+            opacity: 1;
+        }
+
+        /* ========== مودال التعديل ========== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal {
+            background: var(--surface);
+            border-radius: var(--radius-xl);
+            padding: 28px 24px;
+            width: 100%;
+            max-width: 800px;
+            max-height: 92vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg), 0 0 0 1px rgba(0,0,0,0.05);
+            position: relative;
+            animation: modalIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: translateY(40px) scale(0.96);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-header h3 {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .modal-header h3 i {
+            color: var(--primary);
+        }
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: #f1f5f9;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-close:hover {
+            background: #e2e8f0;
+            color: var(--danger);
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        @media (max-width: 640px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .form-group {
+            margin-bottom: 14px;
+        }
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+            color: var(--text);
+            letter-spacing: 0.2px;
+        }
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 11px 16px;
+            border-radius: 14px;
+            border: 2px solid var(--border);
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            background: #f8fafc;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(249,115,22,0.08);
+            background: #fff;
+        }
+        .form-group textarea {
+            border-radius: 16px;
+            min-height: 80px;
+            resize: vertical;
+        }
+        .color-picker-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .color-picker-row input[type="color"] {
+            width: 44px;
+            height: 38px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            padding: 2px;
+            background: transparent;
+        }
+        .gradient-inputs {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .gradient-inputs input {
+            flex: 1;
+            min-width: 80px;
+        }
+        .icon-picker-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .icon-preview-large {
+            font-size: 2.5rem;
+            min-width: 60px;
+            text-align: center;
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 16px;
+            border: 2px dashed var(--border);
+        }
+        .icon-picker-btn {
+            background: #fff;
+            border: 2px dashed var(--border);
+            padding: 10px 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+        .icon-picker-btn:hover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+        .image-thumbnails-editor {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .image-thumb-item {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+            object-fit: cover;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+        }
+        .image-thumb-item:hover {
+            border-color: var(--primary);
+            transform: scale(1.05);
+        }
+        .image-thumb-item .remove-thumb {
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            width: 20px;
+            height: 20px;
+            background: var(--danger);
+            color: #fff;
+            border-radius: 50%;
+            font-size: 0.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+        }
+        .add-thumb-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            border: 2px dashed var(--border);
+            background: #f8fafc;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            color: var(--text-secondary);
+        }
+        .add-thumb-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .live-preview-card {
+            background: #f8fafc;
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-top: 20px;
+            border: 2px dashed var(--border);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            min-height: 100px;
+            transition: var(--transition);
+            position: relative;
+        }
+        .live-preview-card .preview-label {
+            position: absolute;
+            top: -12px;
+            right: 16px;
+            background: var(--primary);
+            color: #fff;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .live-preview-card img {
+            max-width: 80px;
+            max-height: 80px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+        .live-preview-card .preview-thumbs {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .live-preview-card .preview-thumbs img {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 24px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        /* ========== مودال الأيقونات ========== */
+        .icon-search-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(6px);
+            z-index: 1001;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .icon-search-modal.active {
+            display: flex;
+        }
+        .icon-search-content {
+            background: var(--surface);
+            border-radius: var(--radius-xl);
+            padding: 24px;
+            width: 95%;
+            max-width: 600px;
+            max-height: 85vh;
+            overflow-y: auto;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+            animation: modalIn 0.3s ease;
+        }
+        .icon-search-content input {
+            width: 100%;
+            padding: 13px 20px;
+            border-radius: 50px;
+            border: 2px solid var(--border);
+            font-family: 'Cairo', sans-serif;
+            margin-bottom: 16px;
+            font-size: 0.95rem;
+        }
+        .icons-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+        @media (max-width: 500px) {
+            .icons-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        .icon-option {
+            font-size: 1.8rem;
+            padding: 14px 8px;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 2px solid transparent;
+            background: #f8fafc;
+        }
+        .icon-option:hover {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            transform: scale(1.06);
+        }
+        .icon-option.selected {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        /* ========== حالة فارغة ========== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: var(--surface);
+            border-radius: var(--radius-xl);
+            color: var(--text-secondary);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+        }
+        .empty-state i {
+            font-size: 4rem;
+            color: #cbd5e1;
+            margin-bottom: 16px;
+        }
+        .empty-state h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        /* ========== تنبيه التوست ========== */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
+        .toast {
+            padding: 12px 24px;
+            border-radius: 50px;
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.9rem;
+            animation: toastIn 0.4s ease, toastOut 0.3s ease 2.5s forwards;
+            text-align: center;
+            white-space: nowrap;
+            box-shadow: var(--shadow-md);
+            pointer-events: auto;
+        }
+        .toast.success {
+            background: var(--success);
+        }
+        .toast.error {
+            background: var(--danger);
+        }
+        .toast.info {
+            background: var(--info);
+        }
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes toastOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-15px);
+            }
+        }
+
+        /* ========== تحسينات الـ Scrollbar ========== */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== شاشة تسجيل الدخول ==================== -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-icon"><i class="fas fa-sliders-h"></i></div>
+        <h2>لوحة تحكم السلايدر</h2>
+        <p class="login-subtitle">قم بتسجيل الدخول لإدارة الإعلانات والنصائح</p>
+        <input type="email" id="emailInput" placeholder="البريد الإلكتروني" autocomplete="email" dir="ltr">
+        <input type="password" id="passwordInput" placeholder="كلمة المرور" autocomplete="current-password" dir="ltr">
+        <button class="login-btn" id="loginBtn"><i class="fas fa-arrow-right-to-bracket"></i> تسجيل الدخول</button>
+        <p id="loginError" class="error-msg"></p>
+    </div>
+
+    <!-- ==================== لوحة التحكم ==================== -->
+    <div id="dashboard" class="dashboard">
+        <!-- الهيدر -->
+        <div class="dashboard-header">
+            <div class="header-left">
+                <div class="header-icon"><i class="fas fa-rectangle-ad"></i></div>
+                <h1>إدارة سلايدر النصائح والإعلانات</h1>
+            </div>
+            <div class="header-actions">
+                <div class="user-badge"><i class="fas fa-user-shield"></i> <span id="userEmailDisplay"></span></div>
+                <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> خروج</button>
+            </div>
+        </div>
+
+        <!-- شريط الأدوات -->
+        <div class="toolbar">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchItemsInput" placeholder="ابحث عن عنصر...">
+            </div>
+            <div class="filter-chips" id="filterChips">
+                <button class="filter-chip active" data-filter="all">الكل</button>
+                <button class="filter-chip" data-filter="active">مفعل</button>
+                <button class="filter-chip" data-filter="hidden">مخفي</button>
+                <button class="filter-chip" data-filter="scheduled">مجدول</button>
+            </div>
+            <button class="btn btn-primary" id="addNewBtn"><i class="fas fa-plus-circle"></i> إضافة جديد</button>
+            <div style="display:flex;align-items:center;gap:8px;background:#f8fafc;padding:6px 14px;border-radius:50px;border:1px solid var(--border);">
+                <label style="font-weight:600;font-size:0.8rem;white-space:nowrap;">⏱️ مدة العرض:</label>
+                <input type="number" id="autoSlideDelayInput" value="5000" min="1000" step="500" style="width:80px;padding:6px 10px;border-radius:20px;border:2px solid var(--border);font-family:'Cairo',sans-serif;text-align:center;font-size:0.8rem;">
+                <span style="font-size:0.75rem;color:var(--text-secondary);">مللي ثانية</span>
+                <button class="btn btn-sm btn-outline" id="saveDelayBtn">حفظ</button>
+            </div>
+        </div>
+
+        <!-- قائمة العناصر -->
+        <div id="itemsListContainer" class="items-list"></div>
+    </div>
+
+    <!-- ==================== مودال إضافة/تعديل ==================== -->
+    <div class="modal-overlay" id="editModalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle"><i class="fas fa-pen-to-square"></i> إضافة عنصر جديد</h3>
+                <button class="modal-close" id="cancelEditBtn"><i class="fas fa-xmark"></i></button>
+            </div>
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label>العنوان الرئيسي *</label>
+                    <input type="text" id="editTitle" placeholder="أدخل العنوان الرئيسي للإعلان">
+                </div>
+                <div class="form-group full-width">
+                    <label>النص الفرعي</label>
+                    <textarea id="editSubtitle" placeholder="وصف مختصر أو نص إضافي..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>الأيقونة (Font Awesome)</label>
+                    <div class="icon-picker-row">
+                        <div class="icon-preview-large" id="iconPreviewLarge"><i class="fas fa-icons"></i></div>
+                        <button type="button" class="icon-picker-btn" id="openIconPickerBtn"><i class="fas fa-icons"></i> اختر أيقونة</button>
+                        <input type="hidden" id="editIcon">
+                        <button type="button" class="btn btn-sm btn-ghost" id="clearIconBtn"><i class="fas fa-xmark"></i></button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>محاذاة الأيقونة</label>
+                    <select id="editIconAlign">
+                        <option value="center">وسط</option>
+                        <option value="flex-start">يمين</option>
+                        <option value="flex-end">يسار</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>رابط الصورة الرئيسية</label>
+                    <input type="text" id="editImageUrl" placeholder="https://example.com/image.jpg">
+                </div>
+                <div class="form-group">
+                    <label>محاذاة الصورة الرئيسية</label>
+                    <select id="editImageAlign">
+                        <option value="center">وسط</option>
+                        <option value="flex-start">يمين</option>
+                        <option value="flex-end">يسار</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>شكل الصورة الرئيسية</label>
+                    <select id="editImageShape">
+                        <option value="12px">دائرية ناعمة</option>
+                        <option value="50%">دائرية كاملة</option>
+                        <option value="4px">مربعة بحواف ناعمة</option>
+                        <option value="0px">مربعة</option>
+                    </select>
+                </div>
+                <div class="form-group full-width">
+                    <label>الصور المصغرة (يمكنك إضافة عدة صور)</label>
+                    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                        <input type="text" id="editThumbUrl" placeholder="رابط صورة مصغرة" style="flex:1;min-width:200px;">
+                        <button type="button" class="btn btn-sm btn-outline" id="addThumbBtn"><i class="fas fa-plus"></i> إضافة</button>
+                    </div>
+                    <div class="image-thumbnails-editor" id="thumbnailsEditor"></div>
+                    <input type="hidden" id="editThumbnails">
+                </div>
+                <div class="form-group">
+                    <label>محاذاة الصور المصغرة</label>
+                    <select id="editThumbsAlign">
+                        <option value="center">وسط</option>
+                        <option value="flex-start">يمين</option>
+                        <option value="flex-end">يسار</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>شكل الصور المصغرة</label>
+                    <select id="editThumbsShape">
+                        <option value="8px">دائرية ناعمة</option>
+                        <option value="50%">دائرية</option>
+                        <option value="4px">مربعة ناعمة</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>نص الزر</label>
+                    <input type="text" id="editButtonText" placeholder="مثال: تسوق الآن">
+                </div>
+                <div class="form-group">
+                    <label>رابط الزر</label>
+                    <input type="text" id="editButtonLink" placeholder="https://...">
+                </div>
+                <div class="form-group">
+                    <label>محاذاة النصوص والأزرار</label>
+                    <select id="editTextAlign">
+                        <option value="center">وسط</option>
+                        <option value="flex-start">يمين</option>
+                        <option value="flex-end">يسار</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>لون الخلفية</label>
+                    <div class="color-picker-row">
+                        <input type="color" id="editBgColor" value="#ffffff">
+                        <span style="font-size:0.8rem;color:var(--text-secondary);">ثابت</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>خلفية متدرجة (لونين)</label>
+                    <div class="gradient-inputs">
+                        <input type="color" id="editGradient1" value="#ffffff">
+                        <span style="font-size:0.8rem;">←</span>
+                        <input type="color" id="editGradient2" value="#f8fafc">
+                        <span style="font-size:0.75rem;color:var(--text-secondary);">اتجاه:</span>
+                        <select id="editGradientDir" style="width:auto;padding:6px 10px;">
+                            <option value="to right">أفقي ←</option>
+                            <option value="to bottom">عمودي ↓</option>
+                            <option value="135deg">قطري ↘</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>صورة كخلفية</label>
+                    <input type="text" id="editBgImage" placeholder="رابط صورة الخلفية (اختياري)">
+                </div>
+                <div class="form-group">
+                    <label>لون النص</label>
+                    <div class="color-picker-row">
+                        <input type="color" id="editTextColor" value="#1e293b">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>لون الإطار</label>
+                    <div class="color-picker-row">
+                        <input type="color" id="editBorderColor" value="#e2e8f0">
+                        <span style="font-size:0.8rem;">السماكة:</span>
+                        <input type="range" id="editBorderWidth" min="0" max="8" value="1" step="0.5" style="width:80px;">
+                        <span id="borderWidthVal" style="font-size:0.75rem;">1px</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>زوايا دائرية</label>
+                    <div class="color-picker-row">
+                        <input type="range" id="editBorderRadius" min="0" max="40" value="16" step="2" style="flex:1;">
+                        <span id="borderRadiusVal" style="font-size:0.8rem;min-width:40px;">16px</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>الظل (Shadow)</label>
+                    <select id="editShadow">
+                        <option value="none">بدون ظل</option>
+                        <option value="0 2px 8px rgba(0,0,0,0.08)">خفيف</option>
+                        <option value="0 8px 24px rgba(0,0,0,0.12)" selected>متوسط</option>
+                        <option value="0 16px 40px rgba(0,0,0,0.18)">قوي</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>مدة العرض الخاصة (مللي ثانية) - 0 للإعداد العام</label>
+                    <input type="number" id="editAutoSlideDelay" value="0" min="0" step="500">
+                </div>
+                <div class="form-group">
+                    <label>تاريخ بداية الظهور</label>
+                    <input type="datetime-local" id="editStartDate">
+                </div>
+                <div class="form-group">
+                    <label>تاريخ نهاية الظهور</label>
+                    <input type="datetime-local" id="editEndDate">
+                </div>
+                <div class="form-group">
+                    <label>الأولوية (الأعلى يظهر أولاً)</label>
+                    <input type="number" id="editPriority" value="0" min="0" max="100">
+                </div>
+            </div>
+
+            <!-- معاينة مباشرة -->
+            <div class="live-preview-card" id="livePreviewCard">
+                <span class="preview-label">معاينة مباشرة</span>
+                <div style="font-weight:700;font-size:0.9rem;color:var(--text-secondary);">املأ الحقول للبدء...</div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-ghost" id="cancelEditBtn2">إلغاء</button>
+                <button class="btn btn-primary" id="saveItemBtn"><i class="fas fa-save"></i> حفظ العنصر</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== مودال الأيقونات ==================== -->
+    <div class="icon-search-modal" id="iconPickerModal">
+        <div class="icon-search-content">
+            <h3 style="margin-bottom:12px;font-weight:800;">اختر أيقونة</h3>
+            <input type="text" id="iconSearchInput" placeholder="ابحث عن أيقونة...">
+            <div class="icons-grid" id="iconsGrid"></div>
+            <button class="btn btn-outline" style="margin-top:16px;width:100%;" id="closeIconPickerBtn">إغلاق</button>
+        </div>
+    </div>
+
+    <!-- ==================== التوست ==================== -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBeJ0sbdCqz60a-yqzuZSt6QstDhR3TRtM",
+            authDomain: "profit-zone-e03c6.firebaseapp.com",
+            projectId: "profit-zone-e03c6",
+            storageBucket: "profit-zone-e03c6.firebasestorage.app",
+            messagingSenderId: "306955059136",
+            appId: "1:306955059136:web:a450be9721f4a2db0d1225"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // ==================== مكتبة الأيقونات ====================
+        const popularIcons = [
+            "fa-solid fa-tag", "fa-solid fa-percent", "fa-solid fa-gift", "fa-solid fa-star",
+            "fa-solid fa-fire", "fa-solid fa-bolt", "fa-solid fa-bell", "fa-solid fa-calendar",
+            "fa-solid fa-clock", "fa-solid fa-truck", "fa-solid fa-phone", "fa-solid fa-envelope",
+            "fa-solid fa-location-dot", "fa-solid fa-heart", "fa-solid fa-thumbs-up", "fa-solid fa-share",
+            "fa-solid fa-circle-info", "fa-solid fa-triangle-exclamation", "fa-solid fa-circle-check",
+            "fa-solid fa-circle-xmark", "fa-solid fa-snowflake", "fa-solid fa-sun", "fa-solid fa-moon",
+            "fa-solid fa-crown", "fa-solid fa-medal", "fa-solid fa-trophy", "fa-solid fa-rocket",
+            "fa-solid fa-paper-plane", "fa-solid fa-comment", "fa-solid fa-bullhorn", "fa-solid fa-megaphone",
+            "fa-solid fa-hand-point-right", "fa-solid fa-arrow-right", "fa-solid fa-angles-right",
+            "fa-solid fa-cart-shopping", "fa-solid fa-credit-card", "fa-solid fa-wallet",
+            "fa-solid fa-coins", "fa-solid fa-sack-dollar", "fa-solid fa-hand-holding-dollar",
+            "fa-brands fa-whatsapp", "fa-brands fa-facebook", "fa-brands fa-instagram",
+            "fa-brands fa-tiktok", "fa-brands fa-youtube", "fa-solid fa-motorcycle",
+            "fa-solid fa-burger", "fa-solid fa-pizza-slice", "fa-solid fa-mug-hot",
+            "fa-solid fa-wrench", "fa-solid fa-gear", "fa-solid fa-shield-halved",
+            "fa-solid fa-certificate", "fa-solid fa-award", "fa-solid fa-ranking-star"
+        ];
+
+        // ==================== المتغيرات العامة ====================
+        let allItems = [];
+        let currentEditId = null;
+        let currentThumbnails = [];
+        let activeFilter = 'all';
+        let searchQuery = '';
+
+        // ==================== عناصر DOM ====================
+        const loginScreen = document.getElementById('loginScreen');
+        const dashboard = document.getElementById('dashboard');
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const loginError = document.getElementById('loginError');
+        const userEmailDisplay = document.getElementById('userEmailDisplay');
+        const itemsListContainer = document.getElementById('itemsListContainer');
+        const editModalOverlay = document.getElementById('editModalOverlay');
+        const addNewBtn = document.getElementById('addNewBtn');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+        const cancelEditBtn2 = document.getElementById('cancelEditBtn2');
+        const saveItemBtn = document.getElementById('saveItemBtn');
+        const modalTitle = document.getElementById('modalTitle');
+        const iconPickerModal = document.getElementById('iconPickerModal');
+        const openIconPickerBtn = document.getElementById('openIconPickerBtn');
+        const closeIconPickerBtn = document.getElementById('closeIconPickerBtn');
+        const clearIconBtn = document.getElementById('clearIconBtn');
+        const iconsGrid = document.getElementById('iconsGrid');
+        const iconSearchInput = document.getElementById('iconSearchInput');
+        const autoSlideDelayInput = document.getElementById('autoSlideDelayInput');
+        const saveDelayBtn = document.getElementById('saveDelayBtn');
+        const searchItemsInput = document.getElementById('searchItemsInput');
+        const filterChips = document.getElementById('filterChips');
+        const addThumbBtn = document.getElementById('addThumbBtn');
+        const editThumbUrl = document.getElementById('editThumbUrl');
+        const thumbnailsEditor = document.getElementById('thumbnailsEditor');
+        const editThumbnails = document.getElementById('editThumbnails');
+        const livePreviewCard = document.getElementById('livePreviewCard');
+        const toastContainer = document.getElementById('toastContainer');
+        const editBorderWidth = document.getElementById('editBorderWidth');
+        const borderWidthVal = document.getElementById('borderWidthVal');
+        const editBorderRadius = document.getElementById('editBorderRadius');
+        const borderRadiusVal = document.getElementById('borderRadiusVal');
+
+        // عناصر النموذج الأخرى
+        const editTitle = document.getElementById('editTitle');
+        const editSubtitle = document.getElementById('editSubtitle');
+        const editIcon = document.getElementById('editIcon');
+        const iconPreviewLarge = document.getElementById('iconPreviewLarge');
+        const editIconAlign = document.getElementById('editIconAlign');
+        const editImageUrl = document.getElementById('editImageUrl');
+        const editImageAlign = document.getElementById('editImageAlign');
+        const editImageShape = document.getElementById('editImageShape');
+        const editThumbsAlign = document.getElementById('editThumbsAlign');
+        const editThumbsShape = document.getElementById('editThumbsShape');
+        const editButtonText = document.getElementById('editButtonText');
+        const editButtonLink = document.getElementById('editButtonLink');
+        const editTextAlign = document.getElementById('editTextAlign');
+        const editBgColor = document.getElementById('editBgColor');
+        const editGradient1 = document.getElementById('editGradient1');
+        const editGradient2 = document.getElementById('editGradient2');
+        const editGradientDir = document.getElementById('editGradientDir');
+        const editBgImage = document.getElementById('editBgImage');
+        const editTextColor = document.getElementById('editTextColor');
+        const editBorderColor = document.getElementById('editBorderColor');
+        const editShadow = document.getElementById('editShadow');
+        const editAutoSlideDelay = document.getElementById('editAutoSlideDelay');
+        const editStartDate = document.getElementById('editStartDate');
+        const editEndDate = document.getElementById('editEndDate');
+        const editPriority = document.getElementById('editPriority');
+
+        // ==================== التوست ====================
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            toastContainer.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // ==================== المصادقة ====================
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                loginScreen.style.display = 'none';
+                dashboard.style.display = 'block';
+                userEmailDisplay.textContent = user.email || 'مدير';
+                loadRealtimeData();
+                loadSettings();
+            } else {
+                loginScreen.style.display = 'block';
+                dashboard.style.display = 'none';
+            }
+        });
+
+        loginBtn.addEventListener('click', () => {
+            const email = document.getElementById('emailInput').value.trim();
+            const password = document.getElementById('passwordInput').value;
+            if (!email || !password) {
+                loginError.textContent = 'يرجى إدخال البريد الإلكتروني وكلمة المرور';
+                loginError.classList.add('show');
+                return;
+            }
+            auth.signInWithEmailAndPassword(email, password)
+                .then(() => {
+                    loginError.classList.remove('show');
+                    loginError.textContent = '';
+                })
+                .catch(err => {
+                    loginError.textContent = 'خطأ: ' + err.message;
+                    loginError.classList.add('show');
+                });
+        });
+
+        logoutBtn.addEventListener('click', () => auth.signOut());
+
+        // ==================== تحميل الإعدادات ====================
+        function loadSettings() {
+            db.collection('sliderSettings').doc('settings').onSnapshot(doc => {
+                if (doc.exists) {
+                    autoSlideDelayInput.value = doc.data().autoSlideDelay || 5000;
+                } else {
+                    autoSlideDelayInput.value = 5000;
+                }
+            });
+        }
+
+        saveDelayBtn.addEventListener('click', async () => {
+            const delay = parseInt(autoSlideDelayInput.value) || 5000;
+            try {
+                await db.collection('sliderSettings').doc('settings').set({ autoSlideDelay: delay }, { merge: true });
+                showToast('تم حفظ مدة العرض بنجاح', 'success');
+            } catch (e) {
+                showToast('خطأ في الحفظ', 'error');
+            }
+        });
+
+        // ==================== تحميل العناصر ====================
+        function loadRealtimeData() {
+            db.collection('sliderTips').onSnapshot(snapshot => {
+                allItems = [];
+                snapshot.forEach(doc => {
+                    allItems.push({ id: doc.id, ...doc.data() });
+                });
+                allItems.sort((a, b) => (b.priority || 0) - (a.priority || 0) || (a.order || 0) - (b.order || 0));
+                renderItemsList();
+            }, error => {
+                console.error('خطأ في تحميل البيانات:', error);
+                showToast('خطأ في الاتصال بقاعدة البيانات', 'error');
+            });
+        }
+
+        function getFilteredItems() {
+            let filtered = [...allItems];
+            const now = new Date();
+
+            if (searchQuery) {
+                const q = searchQuery.toLowerCase();
+                filtered = filtered.filter(i =>
+                    (i.title || '').toLowerCase().includes(q) ||
+                    (i.subtitle || '').toLowerCase().includes(q)
+                );
+            }
+
+            if (activeFilter === 'active') {
+                filtered = filtered.filter(i => !i.hidden && isItemActive(i, now));
+            } else if (activeFilter === 'hidden') {
+                filtered = filtered.filter(i => i.hidden);
+            } else if (activeFilter === 'scheduled') {
+                filtered = filtered.filter(i => i.startDate || i.endDate);
+            }
+
+            return filtered;
+        }
+
+        function isItemActive(item, now = new Date()) {
+            if (item.hidden) return false;
+            if (item.startDate && new Date(item.startDate) > now) return false;
+            if (item.endDate && new Date(item.endDate) < now) return false;
+            return true;
+        }
+
+        function getItemStatus(item) {
+            const now = new Date();
+            if (item.hidden) return { label: 'مخفي', class: 'status-hidden', icon: 'fa-eye-slash' };
+            if (item.startDate && new Date(item.startDate) > now) return { label: 'مجدول', class: 'status-scheduled',
+                icon: 'fa-clock' };
+            if (item.endDate && new Date(item.endDate) < now) return { label: 'منتهي', class: 'status-hidden',
+            icon: 'fa-calendar-xmark' };
+            return { label: 'مفعل', class: 'status-active', icon: 'fa-circle-check' };
+        }
+
+        function renderItemsList() {
+            const filtered = getFilteredItems();
+            if (filtered.length === 0) {
+                itemsListContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h3>لا توجد عناصر</h3>
+                        <p>${searchQuery ? 'لا توجد نتائج مطابقة لبحثك' : 'اضغط على "إضافة جديد" للبدء'}</p>
+                    </div>`;
+                return;
+            }
+            itemsListContainer.innerHTML = '';
+            filtered.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                card.draggable = true;
+                card.dataset.id = item.id;
+                card.dataset.order = item.order || 0;
+                card.addEventListener('dragstart', handleDragStart);
+                card.addEventListener('dragover', handleDragOver);
+                card.addEventListener('dragleave', handleDragLeave);
+                card.addEventListener('drop', handleDrop);
+                card.addEventListener('dragend', handleDragEnd);
+
+                const status = getItemStatus(item);
+                const previewStyle = buildPreviewStyle(item);
+                const previewContent = buildMiniPreviewContent(item);
+
+                card.innerHTML = `
+                    <span class="drag-handle" title="اسحب للترتيب"><i class="fas fa-grip-vertical"></i></span>
+                    <div class="item-preview-mini" style="${previewStyle}">${previewContent}</div>
+                    <div class="item-info">
+                        <h3>${escapeHtml(item.title || 'بدون عنوان')} <span class="meta-tag ${status.class}"><i class="fas ${status.icon}"></i> ${status.label}</span></h3>
+                        <p>${escapeHtml((item.subtitle || '').substring(0, 80))}${(item.subtitle || '').length > 80 ? '...' : ''}</p>
+                        <div class="item-meta">
+                            ${item.priority ? `<span class="meta-tag"><i class="fas fa-sort-up"></i> أولوية ${item.priority}</span>` : ''}
+                            ${item.startDate ? `<span class="meta-tag"><i class="fas fa-calendar"></i> ${new Date(item.startDate).toLocaleDateString('ar')}</span>` : ''}
+                            ${item.endDate ? `<span class="meta-tag"><i class="fas fa-calendar-check"></i> ${new Date(item.endDate).toLocaleDateString('ar')}</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="icon-btn edit-btn" data-id="${item.id}" title="تعديل"><i class="fas fa-pen"></i><span class="tooltip">تعديل</span></button>
+                        <button class="icon-btn duplicate-btn" data-id="${item.id}" title="نسخ"><i class="fas fa-copy"></i><span class="tooltip">نسخ</span></button>
+                        <button class="icon-btn hide-btn" data-id="${item.id}" title="${item.hidden ? 'إظهار' : 'إخفاء'}"><i class="fas ${item.hidden ? 'fa-eye-slash' : 'fa-eye'}"></i><span class="tooltip">${item.hidden ? 'إظهار' : 'إخفاء'}</span></button>
+                        <button class="icon-btn delete-btn" data-id="${item.id}" title="حذف"><i class="fas fa-trash"></i><span class="tooltip">حذف</span></button>
+                    </div>
+                `;
+                itemsListContainer.appendChild(card);
+            });
+
+            bindItemActions();
+        }
+
+        function buildPreviewStyle(item) {
+            let bg = item.backgroundColor || '#ffffff';
+            if (item.gradient1 && item.gradient2) {
+                bg = `linear-gradient(${item.gradientDir || 'to right'}, ${item.gradient1}, ${item.gradient2})`;
+            }
+            if (item.bgImage) {
+                bg = `url(${item.bgImage}) center/cover no-repeat`;
+            }
+            const borderW = item.borderWidth || 1;
+            const borderC = item.borderColor || '#e2e8f0';
+            const radius = (item.borderRadius !== undefined) ? item.borderRadius + 'px' : '16px';
+            const shadow = item.shadow || '0 2px 8px rgba(0,0,0,0.08)';
+            return `background:${bg};color:${item.textColor || '#1e293b'};border:${borderW}px solid ${borderC};border-radius:${radius};box-shadow:${shadow};`;
+        }
+
+        function buildMiniPreviewContent(item) {
+            let html = '';
+            if (item.imageUrl) {
+                html +=
+                    `<img src="${item.imageThumb || item.imageUrl}" alt="" loading="lazy" onerror="this.style.display='none';" style="border-radius:${item.imageShape || '8px'};">`;
+            } else if (item.icon) {
+                html += `<span class="mini-icon"><i class="${item.icon}"></i></span>`;
+            }
+            html +=
+                `<span style="font-size:0.75rem;font-weight:700;line-height:1.3;">${escapeHtml((item.title || '').substring(0, 30))}</span>`;
+            return html;
+        }
+
+        function bindItemActions() {
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', () => openEditModal(btn.dataset.id));
+            });
+            document.querySelectorAll('.hide-btn').forEach(btn => {
+                btn.addEventListener('click', () => toggleHide(btn.dataset.id));
+            });
+            document.querySelectorAll('.duplicate-btn').forEach(btn => {
+                btn.addEventListener('click', () => duplicateItem(btn.dataset.id));
+            });
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', () => deleteItem(btn.dataset.id));
+            });
+        }
+
+        // ==================== السحب والإفلات ====================
+        function handleDragStart(e) {
+            e.target.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', e.target.dataset.id);
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            const target = e.target.closest('.item-card');
+            if (target && !target.classList.contains('dragging')) {
+                target.classList.add('drag-over');
+            }
+        }
+
+        function handleDragLeave(e) {
+            const target = e.target.closest('.item-card');
+            if (target) target.classList.remove('drag-over');
+        }
+
+        async function handleDrop(e) {
+            e.preventDefault();
+            const target = e.target.closest('.item-card');
+            if (!target) return;
+            target.classList.remove('drag-over');
+            const draggedId = e.dataTransfer.getData('text/plain');
+            const targetId = target.dataset.id;
+            if (draggedId === targetId) return;
+
+            const draggedItem = allItems.find(i => i.id === draggedId);
+            const targetItem = allItems.find(i => i.id === targetId);
+            if (!draggedItem || !targetItem) return;
+
+            try {
+                await db.collection('sliderTips').doc(draggedId).update({ order: targetItem.order || 0, priority: targetItem
+                        .priority || 0 });
+                await db.collection('sliderTips').doc(targetId).update({ order: draggedItem.order || 0, priority: draggedItem
+                        .priority || 0 });
+                showToast('تم تحديث الترتيب', 'success');
+            } catch (err) {
+                showToast('فشل تحديث الترتيب', 'error');
+            }
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            document.querySelectorAll('.item-card').forEach(c => c.classList.remove('drag-over'));
+        }
+
+        // ==================== المودال ====================
+        function openModal(title) {
+            modalTitle.innerHTML = `<i class="fas fa-pen-to-square"></i> ${title}`;
+            editModalOverlay.classList.add('active');
+            updateLivePreview();
+        }
+
+        function closeModal() {
+            editModalOverlay.classList.remove('active');
+            currentEditId = null;
+            currentThumbnails = [];
+        }
+
+        addNewBtn.addEventListener('click', () => {
+            currentEditId = null;
+            clearForm();
+            openModal('إضافة عنصر جديد');
+        });
+
+        cancelEditBtn.addEventListener('click', closeModal);
+        cancelEditBtn2.addEventListener('click', closeModal);
+
+        editModalOverlay.addEventListener('click', (e) => {
+            if (e.target === editModalOverlay) closeModal();
+        });
+
+        function clearForm() {
+            editTitle.value = '';
+            editSubtitle.value = '';
+            editIcon.value = '';
+            iconPreviewLarge.innerHTML = '<i class="fas fa-icons"></i>';
+            editIconAlign.value = 'center';
+            editImageUrl.value = '';
+            editImageAlign.value = 'center';
+            editImageShape.value = '12px';
+            currentThumbnails = [];
+            editThumbnails.value = '[]';
+            editThumbsAlign.value = 'center';
+            editThumbsShape.value = '8px';
+            editButtonText.value = '';
+            editButtonLink.value = '';
+            editTextAlign.value = 'center';
+            editBgColor.value = '#ffffff';
+            editGradient1.value = '#ffffff';
+            editGradient2.value = '#f8fafc';
+            editGradientDir.value = 'to right';
+            editBgImage.value = '';
+            editTextColor.value = '#1e293b';
+            editBorderColor.value = '#e2e8f0';
+            editBorderWidth.value = 1;
+            borderWidthVal.textContent = '1px';
+            editBorderRadius.value = 16;
+            borderRadiusVal.textContent = '16px';
+            editShadow.value = '0 8px 24px rgba(0,0,0,0.12)';
+            editAutoSlideDelay.value = 0;
+            editStartDate.value = '';
+            editEndDate.value = '';
+            editPriority.value = 0;
+            renderThumbnailsEditor();
+        }
+
+        function openEditModal(id) {
+            const item = allItems.find(i => i.id === id);
+            if (!item) return;
+            currentEditId = id;
+            editTitle.value = item.title || '';
+            editSubtitle.value = item.subtitle || '';
+            editIcon.value = item.icon || '';
+            iconPreviewLarge.innerHTML = item.icon ? `<i class="${item.icon}"></i>` : '<i class="fas fa-icons"></i>';
+            editIconAlign.value = item.iconAlign || 'center';
+            editImageUrl.value = item.imageUrl || '';
+            editImageAlign.value = item.imageAlign || 'center';
+            editImageShape.value = item.imageShape || '12px';
+            currentThumbnails = item.thumbnails || [];
+            editThumbnails.value = JSON.stringify(currentThumbnails);
+            editThumbsAlign.value = item.thumbsAlign || 'center';
+            editThumbsShape.value = item.thumbsShape || '8px';
+            editButtonText.value = item.buttonText || '';
+            editButtonLink.value = item.buttonLink || '';
+            editTextAlign.value = item.textAlign || 'center';
+            editBgColor.value = item.backgroundColor || '#ffffff';
+            editGradient1.value = item.gradient1 || '#ffffff';
+            editGradient2.value = item.gradient2 || '#f8fafc';
+            editGradientDir.value = item.gradientDir || 'to right';
+            editBgImage.value = item.bgImage || '';
+            editTextColor.value = item.textColor || '#1e293b';
+            editBorderColor.value = item.borderColor || '#e2e8f0';
+            editBorderWidth.value = item.borderWidth || 1;
+            borderWidthVal.textContent = (item.borderWidth || 1) + 'px';
+            editBorderRadius.value = (item.borderRadius !== undefined) ? item.borderRadius : 16;
+            borderRadiusVal.textContent = ((item.borderRadius !== undefined) ? item.borderRadius : 16) + 'px';
+            editShadow.value = item.shadow || '0 8px 24px rgba(0,0,0,0.12)';
+            editAutoSlideDelay.value = item.autoSlideDelay || 0;
+            editStartDate.value = item.startDate ? new Date(item.startDate).toISOString().slice(0, 16) : '';
+            editEndDate.value = item.endDate ? new Date(item.endDate).toISOString().slice(0, 16) : '';
+            editPriority.value = item.priority || 0;
+            renderThumbnailsEditor();
+            openModal('تعديل العنصر');
+        }
+
+        // ==================== الصور المصغرة ====================
+        function renderThumbnailsEditor() {
+            thumbnailsEditor.innerHTML = '';
+            currentThumbnails.forEach((url, index) => {
+                const div = document.createElement('div');
+                div.style.position = 'relative';
+                div.innerHTML = `
+                    <img src="${url}" class="image-thumb-item" loading="lazy" onerror="this.parentElement.remove();">
+                    <button class="remove-thumb" data-index="${index}" title="حذف"><i class="fas fa-xmark"></i></button>
+                `;
+                div.querySelector('.remove-thumb').addEventListener('click', () => {
+                    currentThumbnails.splice(index, 1);
+                    editThumbnails.value = JSON.stringify(currentThumbnails);
+                    renderThumbnailsEditor();
+                    updateLivePreview();
+                });
+                thumbnailsEditor.appendChild(div);
+            });
+            const addBtn = document.createElement('button');
+            addBtn.className = 'add-thumb-btn';
+            addBtn.innerHTML = '<i class="fas fa-plus"></i>';
+            addBtn.title = 'إضافة صورة';
+            addBtn.addEventListener('click', () => {
+                const url = editThumbUrl.value.trim();
+                if (url) {
+                    currentThumbnails.push(url);
+                    editThumbnails.value = JSON.stringify(currentThumbnails);
+                    editThumbUrl.value = '';
+                    renderThumbnailsEditor();
+                    updateLivePreview();
+                }
+            });
+            thumbnailsEditor.appendChild(addBtn);
+            editThumbnails.value = JSON.stringify(currentThumbnails);
+        }
+
+        addThumbBtn.addEventListener('click', () => {
+            const url = editThumbUrl.value.trim();
+            if (url) {
+                currentThumbnails.push(url);
+                editThumbnails.value = JSON.stringify(currentThumbnails);
+                editThumbUrl.value = '';
+                renderThumbnailsEditor();
+                updateLivePreview();
+            }
+        });
+
+        // ==================== حفظ العنصر ====================
+        async function saveItem() {
+            const title = editTitle.value.trim();
+            if (!title) {
+                showToast('العنوان الرئيسي مطلوب', 'error');
+                return;
+            }
+
+            const itemData = {
+                title: title,
+                subtitle: editSubtitle.value.trim(),
+                icon: editIcon.value.trim(),
+                iconAlign: editIconAlign.value,
+                imageUrl: editImageUrl.value.trim(),
+                imageThumb: document.getElementById('editImageThumb')?.value?.trim() || '',
+                imageAlign: editImageAlign.value,
+                imageShape: editImageShape.value,
+                thumbnails: currentThumbnails,
+                thumbsAlign: editThumbsAlign.value,
+                thumbsShape: editThumbsShape.value,
+                buttonText: editButtonText.value.trim(),
+                buttonLink: editButtonLink.value.trim(),
+                textAlign: editTextAlign.value,
+                backgroundColor: editBgColor.value,
+                gradient1: editGradient1.value,
+                gradient2: editGradient2.value,
+                gradientDir: editGradientDir.value,
+                bgImage: editBgImage.value.trim(),
+                textColor: editTextColor.value,
+                borderColor: editBorderColor.value,
+                borderWidth: parseFloat(editBorderWidth.value) || 1,
+                borderRadius: parseInt(editBorderRadius.value) || 16,
+                shadow: editShadow.value,
+                autoSlideDelay: parseInt(editAutoSlideDelay.value) || 0,
+                startDate: editStartDate.value || null,
+                endDate: editEndDate.value || null,
+                priority: parseInt(editPriority.value) || 0,
+                hidden: currentEditId ? (allItems.find(i => i.id === currentEditId)?.hidden || false) : false,
+                order: currentEditId ? (allItems.find(i => i.id === currentEditId)?.order || 0) : (allItems.length > 0 ? Math
+                    .max(...allItems.map(i => i.order || 0)) + 1 : 1),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                if (currentEditId) {
+                    await db.collection('sliderTips').doc(currentEditId).update(itemData);
+                    showToast('تم تحديث العنصر بنجاح', 'success');
+                } else {
+                    itemData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                    await db.collection('sliderTips').add(itemData);
+                    showToast('تم إضافة العنصر بنجاح', 'success');
+                }
+                closeModal();
+                clearForm();
+            } catch (err) {
+                showToast('خطأ في الحفظ: ' + err.message, 'error');
+            }
+        }
+
+        saveItemBtn.addEventListener('click', saveItem);
+
+        // ==================== إجراءات العناصر ====================
+        async function toggleHide(id) {
+            const item = allItems.find(i => i.id === id);
+            if (!item) return;
+            try {
+                await db.collection('sliderTips').doc(id).update({ hidden: !item.hidden });
+                showToast(item.hidden ? 'تم إظهار العنصر' : 'تم إخفاء العنصر', 'info');
+            } catch (err) {
+                showToast('خطأ: ' + err.message, 'error');
+            }
+        }
+
+        async function duplicateItem(id) {
+            const item = allItems.find(i => i.id === id);
+            if (!item) return;
+            const { id: _, createdAt, updatedAt, ...itemData } = item;
+            itemData.title = (itemData.title || '') + ' (نسخة)';
+            itemData.order = (allItems.length > 0 ? Math.max(...allItems.map(i => i.order || 0)) + 1 : 1);
+            itemData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+            try {
+                await db.collection('sliderTips').add(itemData);
+                showToast('تم نسخ العنصر بنجاح', 'success');
+            } catch (err) {
+                showToast('خطأ: ' + err.message, 'error');
+            }
+        }
+
+        async function deleteItem(id) {
+            if (!confirm('هل أنت متأكد من حذف هذا العنصر نهائياً؟')) return;
+            try {
+                await db.collection('sliderTips').doc(id).delete();
+                showToast('تم حذف العنصر', 'info');
+            } catch (err) {
+                showToast('خطأ: ' + err.message, 'error');
+            }
+        }
+
+        // ==================== المعاينة المباشرة ====================
+        function updateLivePreview() {
+            const bg = editBgColor.value || '#ffffff';
+            const g1 = editGradient1.value || '#ffffff';
+            const g2 = editGradient2.value || '#f8fafc';
+            const gDir = editGradientDir.value || 'to right';
+            const bgImg = editBgImage.value.trim();
+            const txtColor = editTextColor.value || '#1e293b';
+            const borderW = parseFloat(editBorderWidth.value) || 1;
+            const borderC = editBorderColor.value || '#e2e8f0';
+            const radius = parseInt(editBorderRadius.value) || 16;
+            const shadow = editShadow.value || '0 8px 24px rgba(0,0,0,0.12)';
+            const textAlign = editTextAlign.value || 'center';
+            const iconAlign = editIconAlign.value || 'center';
+            const imageAlign = editImageAlign.value || 'center';
+            const imageShape = editImageShape.value || '12px';
+            const thumbsAlign = editThumbsAlign.value || 'center';
+            const thumbsShape = editThumbsShape.value || '8px';
+
+            let bgStyle = bg;
+            if (g1 !== g2) bgStyle = `linear-gradient(${gDir}, ${g1}, ${g2})`;
+            if (bgImg) bgStyle = `url(${bgImg}) center/cover no-repeat`;
+
+            const title = editTitle.value || 'عنوان تجريبي';
+            const subtitle = editSubtitle.value || 'نص فرعي تجريبي';
+            const iconClass = editIcon.value.trim();
+            const imgUrl = editImageUrl.value.trim();
+            const btnText = editButtonText.value.trim();
+            const btnLink = editButtonLink.value.trim();
+
+            let mediaHtml = '';
+            if (imgUrl) {
+                mediaHtml =
+                    `<img src="${imgUrl}" style="width:60px;height:60px;border-radius:${imageShape};object-fit:cover;flex-shrink:0;" onerror="this.style.display='none';">`;
+            } else if (iconClass) {
+                mediaHtml = `<i class="${iconClass}" style="font-size:2rem;flex-shrink:0;"></i>`;
+            }
+
+            let thumbsHtml = '';
+            if (currentThumbnails.length > 0) {
+                thumbsHtml = '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:' + thumbsAlign +
+                    ';margin-top:6px;">';
+                currentThumbnails.forEach(url => {
+                    thumbsHtml +=
+                        `<img src="${url}" style="width:36px;height:36px;border-radius:${thumbsShape};object-fit:cover;" loading="lazy" onerror="this.style.display='none';">`;
+                });
+                thumbsHtml += '</div>';
+            }
+
+            let buttonHtml = '';
+            if (btnText && btnLink) {
+                buttonHtml =
+                    `<a href="#" style="display:inline-block;background:${txtColor};color:${bg};padding:7px 18px;border-radius:30px;text-decoration:none;font-weight:700;font-size:0.8rem;margin-top:6px;">${escapeHtml(btnText)}</a>`;
+            }
+
+            livePreviewCard.style.background = bgStyle;
+            livePreviewCard.style.color = txtColor;
+            livePreviewCard.style.border = `${borderW}px solid ${borderC}`;
+            livePreviewCard.style.borderRadius = radius + 'px';
+            livePreviewCard.style.boxShadow = shadow;
+            livePreviewCard.style.textAlign = textAlign;
+            livePreviewCard.innerHTML = `
+                <span class="preview-label">معاينة مباشرة</span>
+                <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;width:100%;justify-content:${imageAlign};">
+                    ${mediaHtml}
+                    <div style="flex:1;min-width:140px;text-align:${textAlign};">
+                        <div style="font-weight:800;font-size:1.1rem;">${escapeHtml(title)}</div>
+                        ${subtitle ? `<div style="font-size:0.85rem;opacity:0.85;">${escapeHtml(subtitle)}</div>` : ''}
+                        ${buttonHtml}
+                        ${thumbsHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        // تحديث المعاينة عند أي تغيير
+        const allFormInputs = [
+            editTitle, editSubtitle, editIcon, editIconAlign, editImageUrl, editImageAlign, editImageShape,
+            editThumbsAlign, editThumbsShape, editButtonText, editButtonLink, editTextAlign,
+            editBgColor, editGradient1, editGradient2, editGradientDir, editBgImage, editTextColor,
+            editBorderColor, editShadow, editAutoSlideDelay, editStartDate, editEndDate, editPriority
+        ];
+        allFormInputs.forEach(el => el.addEventListener('input', updateLivePreview));
+        allFormInputs.forEach(el => el.addEventListener('change', updateLivePreview));
+        editBorderWidth.addEventListener('input', () => {
+            borderWidthVal.textContent = editBorderWidth.value + 'px';
+            updateLivePreview();
+        });
+        editBorderRadius.addEventListener('input', () => {
+            borderRadiusVal.textContent = editBorderRadius.value + 'px';
+            updateLivePreview();
+        });
+
+        // ==================== أيقونة picker ====================
+        function renderIconsGrid(filter = '') {
+            const filtered = popularIcons.filter(icon => icon.toLowerCase().includes(filter.toLowerCase()));
+            const currentIcon = editIcon.value.trim();
+            iconsGrid.innerHTML = filtered.map(icon =>
+                `<div class="icon-option ${icon === currentIcon ? 'selected' : ''}" data-icon="${icon}" title="${icon}"><i class="${icon}"></i></div>`
+            ).join('');
+            document.querySelectorAll('.icon-option').forEach(opt => {
+                opt.addEventListener('click', () => {
+                    const selectedIcon = opt.dataset.icon;
+                    editIcon.value = selectedIcon;
+                    iconPreviewLarge.innerHTML = `<i class="${selectedIcon}"></i>`;
+                    iconPickerModal.classList.remove('active');
+                    document.querySelectorAll('.icon-option').forEach(o => o.classList.remove(
+                        'selected'));
+                    opt.classList.add('selected');
+                    updateLivePreview();
+                });
+            });
+        }
+
+        openIconPickerBtn.addEventListener('click', () => {
+            iconPickerModal.classList.add('active');
+            iconSearchInput.value = '';
+            renderIconsGrid();
+        });
+        closeIconPickerBtn.addEventListener('click', () => iconPickerModal.classList.remove('active'));
+        clearIconBtn.addEventListener('click', () => {
+            editIcon.value = '';
+            iconPreviewLarge.innerHTML = '<i class="fas fa-icons"></i>';
+            updateLivePreview();
+        });
+        iconSearchInput.addEventListener('input', () => renderIconsGrid(iconSearchInput.value));
+        iconPickerModal.addEventListener('click', (e) => {
+            if (e.target === iconPickerModal) iconPickerModal.classList.remove('active');
+        });
+
+        // ==================== البحث والفلترة ====================
+        searchItemsInput.addEventListener('input', () => {
+            searchQuery = searchItemsInput.value.trim();
+            renderItemsList();
+        });
+
+        filterChips.addEventListener('click', (e) => {
+            if (e.target.classList.contains('filter-chip')) {
+                document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+                e.target.classList.add('active');
+                activeFilter = e.target.dataset.filter;
+                renderItemsList();
+            }
+        });
+
+        // ==================== وظائف مساعدة ====================
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[m]);
+        }
+
+        // ==================== اختصارات لوحة المفاتيح ====================
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (editModalOverlay.classList.contains('active')) closeModal();
+                if (iconPickerModal.classList.contains('active')) iconPickerModal.classList.remove('active');
+            }
+            if (e.ctrlKey && e.key === 's' && editModalOverlay.classList.contains('active')) {
+                e.preventDefault();
+                saveItem();
+            }
+        });
+
+        // ==================== بدء التشغيل ====================
+        console.log('🚀 نظام إدارة سلايدر النصائح والإعلانات - جاهز للعمل');
+    </script>
+</body>
+</html>
