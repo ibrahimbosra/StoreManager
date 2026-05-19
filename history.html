@@ -1,0 +1,1822 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>X METAL - السجلات والتحليلات المالية</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js">
+    </script>
+    <style>
+        :root {
+            --bg: #f0f4f8;
+            --surface: #ffffff;
+            --surface2: #f8fafc;
+            --text: #1a202c;
+            --text2: #4a5568;
+            --text3: #718096;
+            --border: #e2e8f0;
+            --border2: #edf2f7;
+            --primary: #2b6cb0;
+            --primary-light: #ebf4ff;
+            --accent: #27ae60;
+            --accent2: #e55353;
+            --warning: #f97316;
+            --warning-bg: #fffaf0;
+            --danger: #ef4444;
+            --danger-bg: #fef2f2;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+            --shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.1);
+            --radius: 20px;
+            --radius-sm: 12px;
+            --radius-xs: 8px;
+            --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --sidebar-w: 260px;
+            --header-h: 64px;
+            --chart-grid: #edf2f7;
+            --gradient-1: linear-gradient(135deg, #2b6cb0, #3182ce);
+            --gradient-2: linear-gradient(135deg, #27ae60, #2ecc71);
+            --gradient-3: linear-gradient(135deg, #e55353, #f56565);
+            --gradient-4: linear-gradient(135deg, #f97316, #fb923c);
+            --gradient-5: linear-gradient(135deg, #6b46c1, #805ad5);
+            --gradient-6: linear-gradient(135deg, #0987a0, #00b5d8);
+        }
+        .dark-mode {
+            --bg: #0f1419;
+            --surface: #1a1f2b;
+            --surface2: #212836;
+            --text: #e2e8f0;
+            --text2: #a0aec0;
+            --text3: #718096;
+            --border: #2d3548;
+            --border2: #252d3d;
+            --primary: #63b3ed;
+            --primary-light: #1a2740;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+            --shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
+            --chart-grid: #2d3548;
+            --warning-bg: #1f1a10;
+            --danger-bg: #1f1115;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            transition: background var(--transition), color var(--transition);
+            overflow-x: hidden;
+        }
+        /* LOGIN */
+        .login-overlay {
+            position: fixed;
+            inset: 0;
+            background: #0f1419;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            backdrop-filter: blur(8px);
+        }
+        .login-overlay.hidden {
+            display: none;
+        }
+        .login-box {
+            background: #1a1f2b;
+            max-width: 420px;
+            width: 92%;
+            border-radius: 28px;
+            padding: 36px 28px;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            border: 1px solid #2d3548;
+        }
+        .login-box .logo-icon {
+            font-size: 52px;
+            color: #27ae60;
+            margin-bottom: 8px;
+        }
+        .login-box h2 {
+            color: #e2e8f0;
+            font-size: 1.6rem;
+            margin-bottom: 4px;
+            font-weight: 800;
+        }
+        .login-box .sub {
+            color: #a0aec0;
+            font-size: 0.85rem;
+            margin-bottom: 24px;
+        }
+        .login-box .inp-wrap {
+            position: relative;
+            margin-bottom: 14px;
+        }
+        .login-box .inp-wrap i {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #718096;
+            font-size: 1rem;
+        }
+        .login-box input {
+            width: 100%;
+            padding: 13px 48px 13px 16px;
+            border: 1px solid #2d3548;
+            border-radius: 40px;
+            background: #212836;
+            color: #e2e8f0;
+            font-size: 0.95rem;
+            outline: none;
+            transition: var(--transition);
+        }
+        .login-box input:focus {
+            border-color: #63b3ed;
+            box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.12);
+        }
+        .login-btn {
+            width: 100%;
+            padding: 13px;
+            background: #27ae60;
+            border: none;
+            border-radius: 40px;
+            color: #fff;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 6px;
+        }
+        .login-btn:hover {
+            background: #219a52;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.3);
+        }
+        .login-error {
+            color: #f56565;
+            font-size: 0.8rem;
+            margin-top: 10px;
+            display: none;
+        }
+        /* SIDEBAR */
+        .sidebar {
+            width: var(--sidebar-w);
+            background: var(--surface);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 1000;
+            transition: transform var(--transition), background var(--transition);
+            box-shadow: var(--shadow-lg);
+            overflow-y: auto;
+        }
+        .sidebar-header {
+            padding: 20px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .sidebar-header .s-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: var(--gradient-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+        .sidebar-header .s-title {
+            font-weight: 800;
+            font-size: 1.05rem;
+            color: var(--text);
+            line-height: 1.2;
+        }
+        .sidebar-header .s-sub {
+            font-size: 0.7rem;
+            color: var(--text3);
+        }
+        .sidebar-nav {
+            flex: 1;
+            padding: 12px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .sidebar-nav button {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border: none;
+            border-radius: 14px;
+            background: transparent;
+            color: var(--text2);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: right;
+            width: 100%;
+            white-space: nowrap;
+        }
+        .sidebar-nav button i {
+            width: 22px;
+            font-size: 1.1rem;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .sidebar-nav button:hover {
+            background: var(--surface2);
+            color: var(--text);
+        }
+        .sidebar-nav button.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 700;
+        }
+        .sidebar-nav button.active i {
+            color: var(--primary);
+        }
+        .sidebar-footer {
+            padding: 12px 14px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .sidebar-footer button {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border: none;
+            border-radius: 14px;
+            background: transparent;
+            color: var(--text2);
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%;
+            text-align: right;
+        }
+        .sidebar-footer button:hover {
+            background: var(--surface2);
+        }
+        .sidebar-footer .logout-btn {
+            color: #e55353;
+        }
+        .sidebar-footer .logout-btn:hover {
+            background: #fef2f2;
+        }
+        .dark-mode .sidebar-footer .logout-btn:hover {
+            background: #2d1a1a;
+        }
+        /* MAIN */
+        .main-content {
+            flex: 1;
+            margin-right: var(--sidebar-w);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: margin var(--transition);
+        }
+        .top-bar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+            transition: background var(--transition);
+        }
+        .top-bar h1 {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text);
+            white-space: nowrap;
+        }
+        .top-bar-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .top-bar-actions button {
+            padding: 9px 16px;
+            border-radius: 30px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text2);
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .top-bar-actions button:hover {
+            background: var(--surface2);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .dark-toggle {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            color: var(--text2);
+        }
+        .dark-toggle:hover {
+            background: var(--surface2);
+            color: #f6ad55;
+        }
+        .content-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .section-panel {
+            display: none;
+        }
+        .section-panel.active {
+            display: block;
+            animation: fadeSlideIn 0.35s ease;
+        }
+        @keyframes fadeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        /* STAT CARDS */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 18px 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        .stat-card .stat-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #fff;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+        .stat-card .stat-label {
+            font-size: 0.75rem;
+            color: var(--text3);
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        .stat-card .stat-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text);
+        }
+        .stat-card .stat-sub {
+            font-size: 0.7rem;
+            color: var(--text3);
+            margin-top: 2px;
+        }
+        .stat-card .stat-trend {
+            font-size: 0.72rem;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+        .stat-card .stat-trend.up {
+            color: #27ae60;
+        }
+        .stat-card .stat-trend.down {
+            color: #e55353;
+        }
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            opacity: 0.06;
+            pointer-events: none;
+        }
+        /* CHARTS */
+        .charts-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .chart-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 18px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: var(--transition);
+            position: relative;
+        }
+        .chart-card h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .chart-card .chart-wrap {
+            position: relative;
+            width: 100%;
+            height: 280px;
+        }
+        .chart-card .chart-wrap canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        .chart-card.full-width {
+            grid-column: 1/-1;
+        }
+        /* TABLES */
+        .table-container {
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+        .table-header {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .table-header h3 {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+        .table-scroll {
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.78rem;
+            min-width: 700px;
+        }
+        th,
+        td {
+            padding: 10px 12px;
+            text-align: center;
+            border-bottom: 1px solid var(--border2);
+            white-space: nowrap;
+        }
+        th {
+            background: var(--surface2);
+            font-weight: 700;
+            color: var(--text2);
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            font-size: 0.72rem;
+        }
+        tr:hover td {
+            background: var(--surface2);
+        }
+        .profit-positive {
+            color: #27ae60;
+            font-weight: 700;
+        }
+        .profit-negative {
+            color: #e55353;
+            font-weight: 700;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .badge-success {
+            background: #e6ffed;
+            color: #1e7b4c;
+        }
+        .badge-warning {
+            background: #fffaf0;
+            color: #c05621;
+        }
+        .badge-danger {
+            background: #fef2f2;
+            color: #c53030;
+        }
+        .dark-mode .badge-success {
+            background: #1a3a2a;
+            color: #68d391;
+        }
+        .dark-mode .badge-warning {
+            background: #2d2010;
+            color: #f6ad55;
+        }
+        .dark-mode .badge-danger {
+            background: #2d1a1a;
+            color: #fc8181;
+        }
+        /* PAGINATION */
+        .pagination {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            flex-wrap: wrap;
+        }
+        .pagination button {
+            padding: 7px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-weight: 600;
+            transition: var(--transition);
+            color: var(--text2);
+        }
+        .pagination button.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+        .pagination button:hover {
+            background: var(--primary-light);
+        }
+        /* FILTERS */
+        .filter-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .filter-row select,
+        .filter-row input {
+            padding: 9px 14px;
+            border-radius: 30px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            font-size: 0.8rem;
+            font-family: 'Cairo', sans-serif;
+            outline: none;
+            transition: var(--transition);
+            min-width: 120px;
+        }
+        .filter-row select:focus,
+        .filter-row input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(43, 108, 176, 0.08);
+        }
+        .filter-row .btn-sm {
+            padding: 9px 16px;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-weight: 700;
+            transition: var(--transition);
+            white-space: nowrap;
+            background: var(--primary);
+            color: #fff;
+        }
+        .filter-row .btn-sm.outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text2);
+        }
+        .filter-row .btn-sm.outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        /* INSIGHT CARDS */
+        .insight-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 16px 18px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: var(--transition);
+        }
+        .insight-card i {
+            font-size: 1.4rem;
+            width: 36px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .insight-card .insight-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .insight-card .insight-val {
+            font-size: 1rem;
+            font-weight: 800;
+            margin-right: auto;
+            white-space: nowrap;
+        }
+        /* MODAL */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 5000;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+        }
+        .modal-overlay.show {
+            display: flex;
+        }
+        .modal-dialog {
+            background: var(--surface);
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 700px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 24px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+            position: relative;
+        }
+        .modal-dialog h3 {
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .modal-close {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            background: none;
+            border: none;
+            font-size: 1.6rem;
+            cursor: pointer;
+            color: var(--text3);
+            transition: var(--transition);
+        }
+        .modal-close:hover {
+            color: var(--danger);
+        }
+        /* TOAST */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a202c;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            z-index: 9999;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 2.5s forwards;
+            pointer-events: none;
+        }
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+        @keyframes toastOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+        }
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(100%);
+                width: 280px;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-right: 0;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+                gap: 8px;
+            }
+            .charts-row {
+                grid-template-columns: 1fr;
+            }
+            .stat-card .stat-value {
+                font-size: 1.2rem;
+            }
+            .top-bar h1 {
+                font-size: 1rem;
+            }
+            .mobile-menu-btn {
+                display: flex !important;
+            }
+        }
+        .mobile-menu-btn {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: var(--text2);
+            transition: var(--transition);
+        }
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        .sidebar-backdrop.show {
+            display: block;
+        }
+        .highlight-num {
+            font-weight: 900;
+            font-size: 1.1em;
+        }
+        .text-muted {
+            color: var(--text3);
+            font-size: 0.75rem;
+        }
+        .divider {
+            border-top: 1px solid var(--border);
+            margin: 12px 0;
+        }
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LOGIN OVERLAY -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-box">
+            <div class="logo-icon"><i class="fas fa-chart-pie"></i></div>
+            <h2>X METAL Analytics</h2>
+            <p class="sub">تسجيل الدخول للوصول إلى السجلات والتحليلات</p>
+            <div class="inp-wrap"><i class="fas fa-envelope"></i><input type="email" id="loginEmail" placeholder="البريد الإلكتروني"></div>
+            <div class="inp-wrap"><i class="fas fa-lock"></i><input type="password" id="loginPassword" placeholder="كلمة المرور"></div>
+            <button class="login-btn" id="doLoginBtn">دخول <i class="fas fa-arrow-left"></i></button>
+            <div class="login-error" id="loginErrorMsg">بيانات غير صحيحة</div>
+        </div>
+    </div>
+
+    <!-- SIDEBAR BACKDROP -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="s-logo"><i class="fas fa-motorcycle"></i></div>
+            <div><div class="s-title">X METAL</div><div class="s-sub">لوحة التحليلات</div></div>
+        </div>
+        <nav class="sidebar-nav">
+            <button class="active" data-section="dashboard"><i class="fas fa-th-large"></i> لوحة المعلومات</button>
+            <button data-section="salesLog"><i class="fas fa-receipt"></i> سجل المبيعات</button>
+            <button data-section="productAnalytics"><i class="fas fa-boxes"></i> تحليل المنتجات</button>
+            <button data-section="profitAnalysis"><i class="fas fa-chart-line"></i> تحليل الأرباح</button>
+            <button data-section="comparison"><i class="fas fa-balance-scale"></i> مقارنة الفترات</button>
+            <button data-section="insights"><i class="fas fa-lightbulb"></i> تحليلات ذكية</button>
+        </nav>
+        <div class="sidebar-footer">
+            <button id="exportPdfBtn"><i class="fas fa-file-pdf"></i> تصدير PDF</button>
+            <button id="exportExcelBtn"><i class="fas fa-file-excel"></i> تصدير Excel</button>
+            <button id="printReportBtn"><i class="fas fa-print"></i> طباعة التقرير</button>
+            <button class="logout-btn" id="sidebarLogoutBtn"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main-content" id="mainContent">
+        <div class="top-bar">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <button class="mobile-menu-btn" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
+                <h1 id="pageTitle">📊 لوحة المعلومات</h1>
+            </div>
+            <div class="top-bar-actions">
+                <span style="font-size:0.75rem;color:var(--text3);" id="lastUpdatedLabel">آخر تحديث: --</span>
+                <button onclick="refreshAllData()"><i class="fas fa-sync-alt"></i> تحديث</button>
+                <button class="dark-toggle" id="darkToggle" title="تبديل الوضع">🌙</button>
+            </div>
+        </div>
+        <div class="content-area" id="contentArea">
+            <!-- DASHBOARD -->
+            <div class="section-panel active" id="section-dashboard">
+                <div class="stats-grid" id="dashboardStats"></div>
+                <div class="charts-row">
+                    <div class="chart-card"><h3><i class="fas fa-chart-line" style="color:#2b6cb0;"></i> تطور الأرباح اليومية</h3><div class="chart-wrap"><canvas id="chartDailyProfit"></canvas></div></div>
+                    <div class="chart-card"><h3><i class="fas fa-chart-pie" style="color:#27ae60;"></i> توزيع المبيعات والأرباح</h3><div class="chart-wrap"><canvas id="chartPieProfit"></canvas></div></div>
+                    <div class="chart-card full-width"><h3><i class="fas fa-chart-bar" style="color:#f97316;"></i> المبيعات الشهرية</h3><div class="chart-wrap"><canvas id="chartMonthlySales"></canvas></div></div>
+                    <div class="chart-card"><h3><i class="fas fa-star" style="color:#6b46c1;"></i> أكثر المنتجات مبيعاً</h3><div class="chart-wrap"><canvas id="chartTopProducts"></canvas></div></div>
+                    <div class="chart-card"><h3><i class="fas fa-tags" style="color:#0987a0;"></i> أكثر الفئات ربحاً</h3><div class="chart-wrap"><canvas id="chartTopCategories"></canvas></div></div>
+                </div>
+            </div>
+            <!-- SALES LOG -->
+            <div class="section-panel" id="section-salesLog">
+                <div class="filter-row" id="salesFilterRow"></div>
+                <div class="table-container">
+                    <div class="table-header"><h3>📋 سجل المبيعات</h3><span id="salesCountLabel" class="text-muted"></span></div>
+                    <div class="table-scroll"><table><thead><tr><th>#</th><th>التاريخ</th><th>المنتج</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th><th>التكلفة</th><th>الربح</th><th>نسبة الربح</th><th>تفاصيل</th></tr></thead><tbody id="salesLogBody"></tbody></table></div>
+                    <div class="pagination" id="salesPagination"></div>
+                </div>
+            </div>
+            <!-- PRODUCT ANALYTICS -->
+            <div class="section-panel" id="section-productAnalytics">
+                <div class="filter-row"><input type="text" id="prodSearchInput" placeholder="🔍 بحث عن منتج..." style="flex:1;max-width:350px;"></div>
+                <div class="table-container">
+                    <div class="table-header"><h3>📦 تفاصيل المنتجات</h3></div>
+                    <div class="table-scroll"><table><thead><tr><th>المنتج</th><th>الفئة</th><th>مرات البيع</th><th>الكمية المباعة</th><th>إجمالي المبيعات</th><th>إجمالي الربح</th><th>نسبة المساهمة</th><th>آخر بيع</th><th>متوسط الربح/قطعة</th></tr></thead><tbody id="productAnalyticsBody"></tbody></table></div>
+                </div>
+            </div>
+            <!-- PROFIT ANALYSIS -->
+            <div class="section-panel" id="section-profitAnalysis">
+                <div class="stats-grid" id="profitStatsGrid"></div>
+                <div class="charts-row">
+                    <div class="chart-card full-width"><h3><i class="fas fa-chart-area" style="color:#27ae60;"></i> الأرباح التراكمية</h3><div class="chart-wrap"><canvas id="chartCumulativeProfit"></canvas></div></div>
+                </div>
+                <div class="table-container">
+                    <div class="table-header"><h3>💰 ملخص الأرباح الدوري</h3></div>
+                    <div class="table-scroll"><table><thead><tr><th>الفترة</th><th>عدد المبيعات</th><th>إجمالي الإيرادات</th><th>إجمالي التكاليف</th><th>صافي الربح</th><th>متوسط الربح/عملية</th></tr></thead><tbody id="profitPeriodBody"></tbody></table></div>
+                </div>
+            </div>
+            <!-- COMPARISON -->
+            <div class="section-panel" id="section-comparison">
+                <div class="filter-row">
+                    <label style="font-weight:700;white-space:nowrap;">الفترة الأولى:</label>
+                    <input type="date" id="compStart1"><span>إلى</span><input type="date" id="compEnd1">
+                    <label style="font-weight:700;white-space:nowrap;margin-right:16px;">الفترة الثانية:</label>
+                    <input type="date" id="compStart2"><span>إلى</span><input type="date" id="compEnd2">
+                    <button class="btn-sm" id="compareBtn">مقارنة</button>
+                </div>
+                <div class="stats-grid" id="comparisonStats"></div>
+            </div>
+            <!-- INSIGHTS -->
+            <div class="section-panel" id="section-insights">
+                <div class="stats-grid" id="insightsGrid"></div>
+                <div id="insightsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SALE DETAIL MODAL -->
+    <div class="modal-overlay" id="saleDetailModal">
+        <div class="modal-dialog"><button class="modal-close" onclick="closeModal('saleDetailModal')">&times;</button><h3>📄 تفاصيل عملية البيع</h3><div id="saleDetailContent"></div></div>
+    </div>
+
+    <script>
+        // ==================== FIREBASE INIT ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBeJ0sbdCqz60a-yqzuZSt6QstDhR3TRtM",
+            authDomain: "profit-zone-e03c6.firebaseapp.com",
+            projectId: "profit-zone-e03c6",
+            storageBucket: "profit-zone-e03c6.firebasestorage.app",
+            messagingSenderId: "306955059136",
+            appId: "1:306955059136:web:a450be9721f4a2db0d1225"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        db.enablePersistence().catch(() => {});
+
+        // ==================== GLOBAL STATE ====================
+        let allSales = [],
+            allItems = [],
+            allCategories = [],
+            currencySettings = {
+                secondaryCurrencyName: 'ريال سعودي',
+                secondaryCurrencySymbol: '﷼',
+                exchangeRate: 3.75,
+                defaultSellCurrency: 'primary'
+            };
+        let storeInfo = {};
+        let currentSection = 'dashboard';
+        let salesPage = 0;
+        const SALES_PER_PAGE = 25;
+        let salesFilterParams = { period: 'all', searchTerm: '', categoryId: '', minProfit: '', maxProfit: '' };
+        let allCharts = {};
+        let darkMode = localStorage.getItem('analyticsDarkMode') === 'true';
+
+        // ==================== UTILS ====================
+        function fmt(n) { return Number(n || 0).toFixed(2); }
+
+        function fmtInt(n) { return parseInt(n || 0); }
+
+        function fmtDate(ts) { return new Date(ts).toLocaleDateString('ar-EG', { year: 'numeric', month: 'short',
+                day: 'numeric' }); }
+
+        function fmtDateTime(ts) { return new Date(ts).toLocaleString('ar-EG'); }
+
+        function fmtTime(ts) { return new Date(ts).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }); }
+
+        function getDayKey(ts) { let d = new Date(ts); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
+        function getMonthKey(ts) { let d = new Date(ts); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+
+        function getWeekKey(ts) { let d = new Date(ts);
+            d.setHours(0, 0, 0, 0);
+            d.setDate(d.getDate() - d.getDay()); return getDayKey(d.getTime()); }
+
+        function getYearKey(ts) { return String(new Date(ts).getFullYear()); }
+
+        function escHtml(s) { if (!s) return ''; return s.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[
+                m
+            ]); }
+
+        function showToast(msg) { let t = document.createElement('div');
+            t.className = 'toast';
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3000); }
+
+        function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+        // ==================== DARK MODE ====================
+        function applyDarkMode() {
+            if (darkMode) document.body.classList.add('dark-mode');
+            else document.body.classList.remove('dark-mode');
+            document.getElementById('darkToggle').textContent = darkMode ? '☀️' : '🌙';
+            localStorage.setItem('analyticsDarkMode', darkMode);
+        }
+        document.getElementById('darkToggle').addEventListener('click', () => { darkMode = !darkMode;
+            applyDarkMode();
+            destroyAllCharts();
+            renderCurrentSection(); });
+
+        // ==================== AUTH ====================
+        document.getElementById('doLoginBtn').addEventListener('click', async () => {
+            let em = document.getElementById('loginEmail').value.trim();
+            let pw = document.getElementById('loginPassword').value.trim();
+            if (!em || !pw) {
+                document.getElementById('loginErrorMsg').style.display = 'block';
+                document.getElementById('loginErrorMsg').textContent = 'يرجى إدخال البريد وكلمة المرور';
+                return;
+            }
+            document.getElementById('loginErrorMsg').style.display = 'none';
+            try {
+                await auth.signInWithEmailAndPassword(em, pw);
+            } catch (e) {
+                document.getElementById('loginErrorMsg').style.display = 'block';
+                document.getElementById('loginErrorMsg').textContent = 'فشل تسجيل الدخول: ' + e.message;
+            }
+        });
+        document.getElementById('sidebarLogoutBtn').addEventListener('click', async () => { await auth.signOut(); });
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                document.getElementById('loginOverlay').classList.add('hidden');
+                await initApp();
+            } else {
+                document.getElementById('loginOverlay').classList.remove('hidden');
+            }
+        });
+
+        // ==================== INIT ====================
+        async function initApp() {
+            await Promise.all([fetchSales(), fetchItems(), fetchCategories(), fetchCurrencySettings(), fetchStoreInfo()]);
+            applyDarkMode();
+            renderCurrentSection();
+            document.getElementById('lastUpdatedLabel').textContent = 'آخر تحديث: ' + fmtDateTime(Date.now());
+        }
+
+        async function fetchSales() {
+            try {
+                const snap = await db.collection('sales').orderBy('timestamp', 'desc').get();
+                allSales = snap.docs.map(d => ({ saleId: d.id, ...d.data() }));
+            } catch (e) { allSales = []; }
+        }
+        async function fetchItems() {
+            try {
+                const snap = await db.collection('items').get();
+                allItems = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            } catch (e) { allItems = []; }
+        }
+        async function fetchCategories() {
+            try {
+                const snap = await db.collection('categories').get();
+                allCategories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            } catch (e) { allCategories = []; }
+        }
+        async function fetchCurrencySettings() {
+            try {
+                const d = await db.collection('currencySettings').doc('settings').get();
+                if (d.exists) currencySettings = { ...currencySettings, ...d.data() };
+            } catch (e) {}
+        }
+        async function fetchStoreInfo() {
+            try {
+                const d = await db.collection('storeInfo').doc('info').get();
+                if (d.exists) storeInfo = d.data();
+            } catch (e) {}
+        }
+        async function refreshAllData() {
+            await initApp();
+            showToast('✅ تم تحديث جميع البيانات');
+            document.getElementById('lastUpdatedLabel').textContent = 'آخر تحديث: ' + fmtDateTime(Date.now());
+        }
+
+        // ==================== NAVIGATION ====================
+        document.querySelectorAll('.sidebar-nav button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.sidebar-nav button').forEach(b => b.classList.remove(
+                    'active'));
+                btn.classList.add('active');
+                currentSection = btn.dataset.section;
+                salesPage = 0;
+                destroyAllCharts();
+                renderCurrentSection();
+                document.getElementById('pageTitle').textContent = btn.textContent.trim();
+                closeMobileSidebar();
+            });
+        });
+
+        function renderCurrentSection() {
+            document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+            let secId = 'section-' + currentSection;
+            let sec = document.getElementById(secId);
+            if (sec) sec.classList.add('active');
+            switch (currentSection) {
+                case 'dashboard':
+                    renderDashboard();
+                    break;
+                case 'salesLog':
+                    renderSalesLog();
+                    break;
+                case 'productAnalytics':
+                    renderProductAnalytics();
+                    break;
+                case 'profitAnalysis':
+                    renderProfitAnalysis();
+                    break;
+                case 'comparison':
+                    renderComparison();
+                    break;
+                case 'insights':
+                    renderInsights();
+                    break;
+            }
+        }
+
+        // ==================== CHART HELPERS ====================
+        function destroyAllCharts() {
+            Object.values(allCharts).forEach(c => { try { c.destroy(); } catch (e) {} });
+            allCharts = {};
+        }
+
+        function createChart(canvasId, config) {
+            let canvas = document.getElementById(canvasId);
+            if (!canvas) return null;
+            if (allCharts[canvasId]) { try { allCharts[canvasId].destroy(); } catch (e) {} }
+            let ctx = canvas.getContext('2d');
+            let chart = new Chart(ctx, config);
+            allCharts[canvasId] = chart;
+            return chart;
+        }
+        const chartColors = ['#2b6cb0', '#27ae60', '#f97316', '#e55353', '#6b46c1', '#0987a0', '#d69e2e', '#3182ce',
+            '#38a169', '#dd6b20', '#c53030', '#805ad5', '#00b5d8', '#b7791f'
+        ];
+
+        function getArabicChartDefaults() {
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                font: { family: 'Cairo, sans-serif' },
+                plugins: {
+                    legend: { labels: { font: { family: 'Cairo, sans-serif', size: 12 }, color: darkMode ? '#a0aec0' :
+                                '#4a5568', usePointStyle: true, padding: 16 } },
+                    tooltip: {
+                        titleFont: { family: 'Cairo, sans-serif', size: 13 },
+                        bodyFont: { family: 'Cairo, sans-serif', size: 12 },
+                        rtl: true,
+                        textDirection: 'rtl'
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { font: { family: 'Cairo, sans-serif', size: 10 }, color: darkMode ? '#a0aec0' :
+                                '#718096' },
+                        grid: { color: darkMode ? '#2d3548' : '#edf2f7' }
+                    },
+                    y: {
+                        ticks: { font: { family: 'Cairo, sans-serif', size: 10 }, color: darkMode ? '#a0aec0' :
+                                '#718096', callback: v => '$' + fmt(v) },
+                        grid: { color: darkMode ? '#2d3548' : '#edf2f7' }
+                    }
+                }
+            };
+        }
+
+        // ==================== DASHBOARD ====================
+        function renderDashboard() {
+            let now = Date.now();
+            let ds = getStartOfDay();
+            let ws = getStartOfWeek();
+            let ms = getStartOfMonth();
+            let ys = getStartOfYear();
+            let todaySales = allSales.filter(s => s.timestamp >= ds);
+            let todayRevenue = todaySales.reduce((a, s) => a + (s.totalAmount || 0), 0);
+            let todayProfit = todaySales.reduce((a, s) => a + (s.profit || 0), 0);
+            let todayOrders = todaySales.length;
+            let todayQty = todaySales.reduce((a, s) => a + (s.quantity || 0), 0);
+            let avgInvoice = todayOrders > 0 ? todayRevenue / todayOrders : 0;
+            let avgProfitPerSale = todayOrders > 0 ? todayProfit / todayOrders : 0;
+            let profitMargin = todayRevenue > 0 ? (todayProfit / todayRevenue * 100) : 0;
+            let allTimeProfit = allSales.reduce((a, s) => a + (s.profit || 0), 0);
+            let allTimeRevenue = allSales.reduce((a, s) => a + (s.totalAmount || 0), 0);
+            let totalCapital = allItems.reduce((a, i) => a + (i.purchasePrice || 0) * (i.quantity || 0), 0);
+            let firstSaleDate = allSales.length > 0 ? fmtDate(Math.min(...allSales.map(s => s.timestamp))) : '--';
+            let topProduct = getTopProducts(1)[0];
+            let topCategory = getTopCategories(1)[0];
+            let slowMovers = getSlowMovers(3);
+            let topProfitProduct = getTopProfitProducts(1)[0];
+
+            let html = `
+            <div class="stat-card"><div class="stat-icon" style="background:var(--gradient-1);"><i class="fas fa-dollar-sign"></i></div><div class="stat-label">إجمالي المبيعات اليوم</div><div class="stat-value">$${fmt(todayRevenue)}</div><div class="stat-sub">${todayOrders} طلب</div></div>
+            <div class="stat-card"><div class="stat-icon" style="background:var(--gradient-2);"><i class="fas fa-chart-line"></i></div><div class="stat-label">إجمالي الأرباح اليوم</div><div class="stat-value">$${fmt(todayProfit)}</div><div class="stat-trend up">نسبة الربح: ${fmt(profitMargin)}%</div></div>
+            <div class="stat-card"><div class="stat-icon" style="background:var(--gradient-3);"><i class="fas fa-shopping-cart"></i></div><div class="stat-label">عدد الطلبات اليوم</div><div class="stat-value">${todayOrders}</div><div class="stat-sub">${todayQty} قطعة مباعة</div></div>
+            <div class="stat-card"><div class="stat-icon" style="background:var(--gradient-4);"><i class="fas fa-cubes"></i></div><div class="stat-label">متوسط قيمة الفاتورة</div><div class="stat-value">$${fmt(avgInvoice)}</div><div class="stat-sub">متوسط الربح: $${fmt(avgProfitPerSale)}</div></div>
+            <div class="stat-card"><div class="stat-icon" style="background:var(--gradient-5);"><i class="fas fa-trophy"></i></div><div class="stat-label">أكثر منتج مبيعاً</div><div class="stat-value" style="font-size:1rem;">${topProduct?escHtml(topProduct.name):'--'}</div><div class="stat-sub">${topProduct?topProduct.totalQty+' قطعة':'--'}</div></div>
+            <div class="stat-card"><div class="stat-icon" style="background:var(--gradient-6);"><i class="fas fa-tags"></i></div><div class="stat-label">أكثر فئة مبيعاً</div><div class="stat-value" style="font-size:1rem;">${topCategory?escHtml(topCategory.name):'--'}</div><div class="stat-sub">${topCategory?'$'+fmt(topCategory.totalProfit):'--'}</div></div>
+            <div class="stat-card"><div class="stat-icon" style="background:var(--gradient-1);"><i class="fas fa-coins"></i></div><div class="stat-label">إجمالي الأرباح الكلية</div><div class="stat-value">$${fmt(allTimeProfit)}</div><div class="stat-sub">منذ ${firstSaleDate}</div></div>
+            <div class="stat-card"><div class="stat-icon" style="background:var(--gradient-2);"><i class="fas fa-warehouse"></i></div><div class="stat-label">رأس المال الحالي</div><div class="stat-value">$${fmt(totalCapital)}</div><div class="stat-sub">${allItems.length} صنف</div></div>
+            `;
+            document.getElementById('dashboardStats').innerHTML = html;
+
+            // Daily profit chart
+            let dailyData = getDailyProfitData(30);
+            createChart('chartDailyProfit', {
+                type: 'line',
+                data: {
+                    labels: dailyData.labels,
+                    datasets: [
+                        { label: 'الأرباح اليومية', data: dailyData.profits, borderColor: '#27ae60',
+                            backgroundColor: 'rgba(39,174,96,0.08)', fill: true, tension: 0.4, pointRadius: 3,
+                            pointBackgroundColor: '#27ae60', borderWidth: 2 },
+                        { label: 'المبيعات اليومية', data: dailyData.revenues, borderColor: '#2b6cb0',
+                            backgroundColor: 'rgba(43,108,176,0.05)', fill: true, tension: 0.4, pointRadius: 3,
+                            pointBackgroundColor: '#2b6cb0', borderWidth: 2, borderDash: [5, 3] }
+                    ]
+                },
+                options: { ...getArabicChartDefaults(), interaction: { mode: 'index', intersect: false } }
+            });
+
+            // Pie chart
+            createChart('chartPieProfit', {
+                type: 'doughnut',
+                data: {
+                    labels: ['صافي الربح', 'تكلفة البضائع', 'مصاريف تشغيلية (تقديرية)'],
+                    datasets: [{ data: [allTimeProfit, allTimeRevenue - allTimeProfit, Math.round(allTimeRevenue * 0.05)],
+                        backgroundColor: ['#27ae60', '#2b6cb0', '#f97316'], borderWidth: 2,
+                        borderColor: darkMode ? '#1a1f2b' : '#fff' }]
+                },
+                options: { ...getArabicChartDefaults(), cutout: '60%', plugins: { legend: { position: 'bottom',
+                            labels: { ...getArabicChartDefaults().plugins.legend.labels } } } }
+            });
+
+            // Monthly sales
+            let monthlyData = getMonthlySalesData();
+            createChart('chartMonthlySales', {
+                type: 'bar',
+                data: {
+                    labels: monthlyData.labels,
+                    datasets: [
+                        { label: 'الإيرادات', data: monthlyData.revenues, backgroundColor: 'rgba(43,108,176,0.7)',
+                            borderRadius: 8, borderSkipped: false },
+                        { label: 'الأرباح', data: monthlyData.profits, backgroundColor: 'rgba(39,174,96,0.7)',
+                            borderRadius: 8, borderSkipped: false }
+                    ]
+                },
+                options: { ...getArabicChartDefaults(), interaction: { mode: 'index', intersect: false } }
+            });
+
+            // Top products
+            let tp = getTopProducts(8);
+            createChart('chartTopProducts', {
+                type: 'bar',
+                data: {
+                    labels: tp.map(p => p.name),
+                    datasets: [{ label: 'الكمية المباعة', data: tp.map(p => p.totalQty),
+                        backgroundColor: chartColors.slice(0, tp.length), borderRadius: 6,
+                    borderSkipped: false }]
+                },
+                options: { ...getArabicChartDefaults(), indexAxis: 'y', plugins: { legend: { display: false } } }
+            });
+
+            // Top categories
+            let tc = getTopCategories(8);
+            createChart('chartTopCategories', {
+                type: 'bar',
+                data: {
+                    labels: tc.map(c => c.name),
+                    datasets: [{ label: 'إجمالي الربح', data: tc.map(c => c.totalProfit),
+                        backgroundColor: chartColors.slice(0, tc.length), borderRadius: 6,
+                    borderSkipped: false }]
+                },
+                options: { ...getArabicChartDefaults(), indexAxis: 'y', plugins: { legend: { display: false } } }
+            });
+        }
+
+        function getStartOfDay(d = new Date()) { let off = 3 * 3600000,
+                g = d.getTime() + off; let y = new Date(g).getUTCFullYear(),
+                m = new Date(g).getUTCMonth(),
+                day = new Date(g).getUTCDate(); return Date.UTC(y, m, day, 0, 0, 0) - off; }
+
+        function getStartOfWeek(d = new Date()) { let s = getStartOfDay(d),
+                off = 3 * 3600000,
+                g = new Date(s + off); return s - (g.getUTCDay() * 86400000); }
+
+        function getStartOfMonth(d = new Date()) { let s = getStartOfDay(d),
+                off = 3 * 3600000,
+                g = new Date(s + off); return Date.UTC(g.getUTCFullYear(), g.getUTCMonth(), 1, 0, 0, 0) - off; }
+
+        function getStartOfYear(d = new Date()) { let s = getStartOfDay(d),
+                off = 3 * 3600000,
+                g = new Date(s + off); return Date.UTC(g.getUTCFullYear(), 0, 1, 0, 0, 0) - off; }
+
+        function getDailyProfitData(days = 30) {
+            let labels = [],
+                profits = [],
+                revenues = [];
+            for (let i = days - 1; i >= 0; i--) {
+                let d = new Date();
+                d.setDate(d.getDate() - i);
+                let dayStart = getStartOfDay(d);
+                let dayEnd = dayStart + 86400000;
+                let daySales = allSales.filter(s => s.timestamp >= dayStart && s.timestamp < dayEnd);
+                labels.push(new Date(dayStart).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' }));
+                profits.push(daySales.reduce((a, s) => a + (s.profit || 0), 0));
+                revenues.push(daySales.reduce((a, s) => a + (s.totalAmount || 0), 0));
+            }
+            return { labels, profits, revenues };
+        }
+
+        function getMonthlySalesData() {
+            let map = {};
+            allSales.forEach(s => {
+                let mk = getMonthKey(s.timestamp);
+                if (!map[mk]) map[mk] = { revenue: 0, profit: 0 };
+                map[mk].revenue += s.totalAmount || 0;
+                map[mk].profit += s.profit || 0;
+            });
+            let keys = Object.keys(map).sort();
+            if (keys.length > 12) keys = keys.slice(-12);
+            return { labels: keys, revenues: keys.map(k => map[k].revenue), profits: keys.map(k => map[k].profit) };
+        }
+
+        function getTopProducts(n = 8) {
+            let map = {};
+            allSales.forEach(s => {
+                if (!map[s.itemId]) map[s.itemId] = { name: s.itemName || 'منتج ' + s.itemId, totalQty: 0,
+                    totalRevenue: 0, totalProfit: 0 };
+                map[s.itemId].totalQty += s.quantity || 0;
+                map[s.itemId].totalRevenue += s.totalAmount || 0;
+                map[s.itemId].totalProfit += s.profit || 0;
+            });
+            return Object.values(map).sort((a, b) => b.totalQty - a.totalQty).slice(0, n);
+        }
+
+        function getTopCategories(n = 8) {
+            let map = {};
+            allSales.forEach(s => {
+                let item = allItems.find(i => i.id === s.itemId);
+                let catName = item?.categoryName || 'بدون فئة';
+                if (!map[catName]) map[catName] = { name: catName, totalProfit: 0, totalRevenue: 0 };
+                map[catName].totalProfit += s.profit || 0;
+                map[catName].totalRevenue += s.totalAmount || 0;
+            });
+            return Object.values(map).sort((a, b) => b.totalProfit - a.totalProfit).slice(0, n);
+        }
+
+        function getTopProfitProducts(n = 8) {
+            let map = {};
+            allSales.forEach(s => {
+                if (!map[s.itemId]) map[s.itemId] = { name: s.itemName || 'منتج ' + s.itemId, totalProfit: 0 };
+                map[s.itemId].totalProfit += s.profit || 0;
+            });
+            return Object.values(map).sort((a, b) => b.totalProfit - a.totalProfit).slice(0, n);
+        }
+
+        function getSlowMovers(n = 5) {
+            let soldIds = new Set(allSales.map(s => s.itemId));
+            return allItems.filter(i => !soldIds.has(i.id) && i.quantity > 0).slice(0, n);
+        }
+
+        // ==================== SALES LOG ====================
+        function renderSalesLog() {
+            let filtered = applySalesFilters();
+            document.getElementById('salesCountLabel').textContent = `إجمالي العمليات: ${filtered.length}`;
+            let totalPages = Math.ceil(filtered.length / SALES_PER_PAGE);
+            if (salesPage >= totalPages) salesPage = Math.max(0, totalPages - 1);
+            let start = salesPage * SALES_PER_PAGE;
+            let pageItems = filtered.slice(start, start + SALES_PER_PAGE);
+            let tbody = document.getElementById('salesLogBody');
+            let html = '';
+            pageItems.forEach((s, i) => {
+                let cost = (s.purchasePriceAtTime || 0) * (s.quantity || 0);
+                let profitPct = s.totalAmount > 0 ? ((s.profit || 0) / s.totalAmount * 100) : 0;
+                html += `<tr>
+                <td>${start+i+1}</td>
+                <td>${fmtDateTime(s.timestamp)}</td>
+                <td>${escHtml(s.itemName||'--')}</td>
+                <td>${s.quantity||0}</td>
+                <td>$${fmt(s.unitPrice||0)}</td>
+                <td>$${fmt(s.totalAmount||0)}</td>
+                <td>$${fmt(cost)}</td>
+                <td class="${(s.profit||0)>=0?'profit-positive':'profit-negative'}">$${fmt(s.profit||0)}</td>
+                <td><span class="badge ${profitPct>=20?'badge-success':profitPct>=0?'badge-warning':'badge-danger'}">${fmt(profitPct)}%</span></td>
+                <td><button onclick="viewSaleDetail('${s.saleId}')" style="background:var(--primary-light);color:var(--primary);border:none;border-radius:20px;padding:5px 12px;cursor:pointer;font-size:0.72rem;font-weight:600;">عرض</button></td>
+                </tr>`;
+            });
+            if (!pageItems.length) html =
+                '<tr><td colspan="10" style="padding:30px;color:var(--text3);">لا توجد عمليات بيع مطابقة</td></tr>';
+            tbody.innerHTML = html;
+            renderSalesPagination(totalPages);
+            renderSalesFilterRow();
+        }
+
+        function applySalesFilters() {
+            let filtered = [...allSales];
+            let sp = salesFilterParams;
+            let now = Date.now();
+            if (sp.period === 'today') { let ds = getStartOfDay();
+                filtered = filtered.filter(s => s.timestamp >= ds); } else if (sp.period === 'week') { let ws =
+                    getStartOfWeek();
+                filtered = filtered.filter(s => s.timestamp >= ws); } else if (sp.period === 'month') { let ms =
+                    getStartOfMonth();
+                filtered = filtered.filter(s => s.timestamp >= ms); } else if (sp.period === 'year') { let ys =
+                    getStartOfYear();
+                filtered = filtered.filter(s => s.timestamp >= ys); } else if (sp.period === '7days') { let d7 = now -
+                    7 * 86400000;
+                filtered = filtered.filter(s => s.timestamp >= d7); } else if (sp.period === '30days') { let d30 = now -
+                    30 * 86400000;
+                filtered = filtered.filter(s => s.timestamp >= d30); } else if (sp.period === '90days') { let d90 = now -
+                    90 * 86400000;
+                filtered = filtered.filter(s => s.timestamp >= d90); } else if (sp.period === 'custom') { if (sp
+                    .customStart) filtered = filtered.filter(s => s.timestamp >= sp.customStart); if (sp
+                .customEnd) filtered = filtered.filter(s => s.timestamp <= sp.customEnd); }
+            if (sp.searchTerm) { let t = sp.searchTerm.toLowerCase();
+                filtered = filtered.filter(s => (s.itemName || '').toLowerCase().includes(t)); }
+            if (sp.categoryId) {
+                let catItems = allItems.filter(i => i.categoryId === sp.categoryId).map(i => i.id);
+                filtered = filtered.filter(s => catItems.includes(s.itemId));
+            }
+            if (sp.minProfit !== '') filtered = filtered.filter(s => (s.profit || 0) >= parseFloat(sp.minProfit));
+            if (sp.maxProfit !== '') filtered = filtered.filter(s => (s.profit || 0) <= parseFloat(sp.maxProfit));
+            return filtered;
+        }
+
+        function renderSalesFilterRow() {
+            let sp = salesFilterParams;
+            let catOpts = '<option value="">كل الفئات</option>' + allCategories.map(c =>
+                `<option value="${c.id}" ${sp.categoryId===c.id?'selected':''}>${escHtml(c.name)}</option>`).join('');
+            document.getElementById('salesFilterRow').innerHTML = `
+            <select id="sfPeriod" onchange="updateSalesFilter('period',this.value)">
+            <option value="all" ${sp.period==='all'?'selected':''}>كل الفترات</option>
+            <option value="today" ${sp.period==='today'?'selected':''}>اليوم</option>
+            <option value="week" ${sp.period==='week'?'selected':''}>الأسبوع</option>
+            <option value="month" ${sp.period==='month'?'selected':''}>الشهر</option>
+            <option value="year" ${sp.period==='year'?'selected':''}>السنة</option>
+            <option value="7days" ${sp.period==='7days'?'selected':''}>آخر 7 أيام</option>
+            <option value="30days" ${sp.period==='30days'?'selected':''}>آخر 30 يوم</option>
+            <option value="90days" ${sp.period==='90days'?'selected':''}>آخر 90 يوم</option>
+            <option value="custom" ${sp.period==='custom'?'selected':''}>مخصص</option>
+            </select>
+            ${sp.period==='custom'?`<input type="date" id="sfCustomStart" value="${sp.customStart?new Date(sp.customStart).toISOString().split('T')[0]:''}" onchange="updateSalesFilter('customStart',new Date(this.value+'T00:00:00').getTime())"><span>إلى</span><input type="date" id="sfCustomEnd" value="${sp.customEnd?new Date(sp.customEnd).toISOString().split('T')[0]:''}" onchange="updateSalesFilter('customEnd',new Date(this.value+'T23:59:59').getTime()+86399999)">`:''}
+            <input type="text" id="sfSearch" placeholder="🔍 بحث باسم المنتج" value="${escHtml(sp.searchTerm)}" oninput="updateSalesFilter('searchTerm',this.value)" style="max-width:200px;">
+            <select id="sfCategory" onchange="updateSalesFilter('categoryId',this.value)">${catOpts}</select>
+            <input type="number" id="sfMinProfit" placeholder="الحد الأدنى للربح" value="${sp.minProfit}" onchange="updateSalesFilter('minProfit',this.value)" style="max-width:130px;">
+            <input type="number" id="sfMaxProfit" placeholder="الحد الأقصى للربح" value="${sp.maxProfit}" onchange="updateSalesFilter('maxProfit',this.value)" style="max-width:130px;">
+            <button class="btn-sm outline" onclick="resetSalesFilters()">مسح الفلاتر</button>
+            `;
+        }
+
+        function updateSalesFilter(key, value) {
+            salesFilterParams[key] = value;
+            salesPage = 0;
+            renderSalesLog();
+        }
+
+        function resetSalesFilters() {
+            salesFilterParams = { period: 'all', searchTerm: '', categoryId: '', minProfit: '', maxProfit: '' };
+            salesPage = 0;
+            renderSalesLog();
+        }
+
+        function renderSalesPagination(totalPages) {
+            let html = '';
+            if (totalPages <= 1) { document.getElementById('salesPagination').innerHTML = html; return; }
+            html +=
+                `<button ${salesPage===0?'disabled':''} onclick="goToSalesPage(${salesPage-1})"><i class="fas fa-chevron-right"></i></button>`;
+            let startP = Math.max(0, salesPage - 2);
+            let endP = Math.min(totalPages - 1, salesPage + 2);
+            if (startP > 0) html += `<button onclick="goToSalesPage(0)">1</button><span>...</span>`;
+            for (let i = startP; i <= endP; i++) html +=
+                `<button class="${i===salesPage?'active':''}" onclick="goToSalesPage(${i})">${i+1}</button>`;
+            if (endP < totalPages - 1) html +=
+                `<span>...</span><button onclick="goToSalesPage(${totalPages-1})">${totalPages}</button>`;
+            html +=
+                `<button ${salesPage>=totalPages-1?'disabled':''} onclick="goToSalesPage(${salesPage+1})"><i class="fas fa-chevron-left"></i></button>`;
+            document.getElementById('salesPagination').innerHTML = html;
+        }
+
+        function goToSalesPage(p) { salesPage = p;
+            renderSalesLog(); }
+
+        function viewSaleDetail(saleId) {
+            let s = allSales.find(x => x.saleId === saleId);
+            if (!s) return;
+            let cost = (s.purchasePriceAtTime || 0) * (s.quantity || 0);
+            let profitPct = s.totalAmount > 0 ? ((s.profit || 0) / s.totalAmount * 100) : 0;
+            let item = allItems.find(i => i.id === s.itemId);
+            document.getElementById('saleDetailContent').innerHTML = `
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:0.85rem;">
+            <div><strong>رقم الفاتورة:</strong> ${escHtml(s.saleId)}</div>
+            <div><strong>التاريخ:</strong> ${fmtDateTime(s.timestamp)}</div>
+            <div><strong>المنتج:</strong> ${escHtml(s.itemName||'--')}</div>
+            <div><strong>الفئة:</strong> ${escHtml(item?.categoryName||'--')}</div>
+            <div><strong>الكمية:</strong> ${s.quantity||0}</div>
+            <div><strong>سعر الوحدة:</strong> $${fmt(s.unitPrice||0)}</div>
+            <div><strong>إجمالي الفاتورة:</strong> $${fmt(s.totalAmount||0)}</div>
+            <div><strong>تكلفة البضاعة:</strong> $${fmt(cost)}</div>
+            <div><strong>صافي الربح:</strong> <span class="${(s.profit||0)>=0?'profit-positive':'profit-negative'}">$${fmt(s.profit||0)}</span></div>
+            <div><strong>نسبة الربح:</strong> ${fmt(profitPct)}%</div>
+            <div><strong>عملة البيع:</strong> ${s.saleCurrency==='secondary'?currencySettings.secondaryCurrencySymbol:'$'}</div>
+            <div><strong>سعر التكلفة وقت البيع:</strong> $${fmt(s.purchasePriceAtTime||0)}</div>
+            </div>
+            `;
+            document.getElementById('saleDetailModal').classList.add('show');
+        }
+
+        // ==================== PRODUCT ANALYTICS ====================
+        function renderProductAnalytics() {
+            let map = {};
+            allSales.forEach(s => {
+                if (!map[s.itemId]) map[s.itemId] = { name: s.itemName || 'منتج ' + s.itemId, categoryName: '',
+                    saleCount: 0, totalQty: 0, totalRevenue: 0, totalProfit: 0, lastSale: 0 };
+                map[s.itemId].saleCount++;
+                map[s.itemId].totalQty += s.quantity || 0;
+                map[s.itemId].totalRevenue += s.totalAmount || 0;
+                map[s.itemId].totalProfit += s.profit || 0;
+                if (s.timestamp > map[s.itemId].lastSale) map[s.itemId].lastSale = s.timestamp;
+            });
+            allItems.forEach(item => {
+                if (!map[item.id]) map[item.id] = { name: item.name, categoryName: item.categoryName || '',
+                    saleCount: 0, totalQty: 0, totalRevenue: 0, totalProfit: 0, lastSale: 0 };
+                else map[item.id].categoryName = item.categoryName || '';
+            });
+            let arr = Object.values(map);
+            let totalAllProfit = arr.reduce((a, p) => a + p.totalProfit, 0);
+            let search = document.getElementById('prodSearchInput')?.value?.trim() || '';
+            if (search) arr = arr.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+            arr.sort((a, b) => b.totalProfit - a.totalProfit);
+            let html = '';
+            arr.forEach(p => {
+                let contrib = totalAllProfit > 0 ? (p.totalProfit / totalAllProfit * 100) : 0;
+                let avgProfit = p.totalQty > 0 ? p.totalProfit / p.totalQty : 0;
+                html += `<tr>
+                <td>${escHtml(p.name)}</td><td>${escHtml(p.categoryName||'--')}</td>
+                <td>${p.saleCount}</td><td>${p.totalQty}</td>
+                <td>$${fmt(p.totalRevenue)}</td>
+                <td class="profit-positive">$${fmt(p.totalProfit)}</td>
+                <td>${fmt(contrib)}%</td>
+                <td>${p.lastSale?fmtDate(p.lastSale):'--'}</td>
+                <td>$${fmt(avgProfit)}</td></tr>`;
+            });
+            if (!arr.length) html =
+                '<tr><td colspan="9" style="padding:30px;color:var(--text3);">لا توجد بيانات</td></tr>';
+            document.getElementById('productAnalyticsBody').innerHTML = html;
+        }
+        document.getElementById('prodSearchInput')?.addEventListener('input', renderProductAnalytics);
+
+        // ==================== PROFIT ANALYSIS ====================
+        function renderProfitAnalysis() {
+            let now = Date.now();
+            let ds = getStartOfDay(),
+                ws = getStartOfWeek(),
+                ms = getStartOfMonth(),
+                ys = getStartOfYear();
+            let periods = [
+                { label: 'اليوم', start: ds },
+                { label: 'الأسبوع', start: ws },
+                { label: 'الشهر', start: ms },
+                { label: 'السنة', start: ys },
+                { label: 'الكلي', start: 0 }
+            ];
+            let statsHtml = '';
+            let tableHtml = '';
+            periods.forEach(p => {
+                let s = allSales.filter(x => x.timestamp >= p.start);
+                let rev = s.reduce((a, x) => a + (x.totalAmount || 0), 0);
+                let cost = s.reduce((a, x) => a + (x.purchasePriceAtTime || 0) * (x.quantity || 0), 0);
+                let prof = s.reduce((a, x) => a + (x.profit || 0), 0);
+                let avgProf = s.length > 0 ? prof / s.length : 0;
+                statsHtml +=
+                    `<div class="stat-card"><div class="stat-label">${p.label}</div><div class="stat-value">$${fmt(prof)}</div><div class="stat-sub">${s.length} عملية | إيرادات: $${fmt(rev)}</div></div>`;
+                tableHtml +=
+                    `<tr><td>${p.label}</td><td>${s.length}</td><td>$${fmt(rev)}</td><td>$${fmt(cost)}</td><td class="profit-positive">$${fmt(prof)}</td><td>$${fmt(avgProf)}</td></tr>`;
+            });
+            document.getElementById('profitStatsGrid').innerHTML = statsHtml;
+            document.getElementById('profitPeriodBody').innerHTML = tableHtml;
+
+            // Cumulative profit
+            let sortedSales = [...allSales].sort((a, b) => a.timestamp - b.timestamp);
+            let cumLabels = [],
+                cumData = [],
+                cum = 0;
+            sortedSales.forEach(s => { cum += s.profit || 0;
+                cumLabels.push(fmtDate(s.timestamp));
+                cumData.push(cum); });
+            if (cumLabels.length > 60) { let step = Math.floor(cumLabels.length / 60);
+                cumLabels = cumLabels.filter((_, i) => i % step === 0);
+                cumData = cumData.filter((_, i) => i % step === 0); }
+            createChart('chartCumulativeProfit', {
+                type: 'line',
+                data: {
+                    labels: cumLabels,
+                    datasets: [{ label: 'الأرباح التراكمية', data: cumData, borderColor: '#27ae60',
+                        backgroundColor: 'rgba(39,174,96,0.1)', fill: true, tension: 0.3, pointRadius: 1,
+                        borderWidth: 2.5 }]
+                },
+                options: getArabicChartDefaults()
+            });
+        }
+
+        // ==================== COMPARISON ====================
+        function renderComparison() {
+            document.getElementById('comparisonStats').innerHTML =
+                '<div style="color:var(--text3);padding:20px;text-align:center;">اختر فترتين زمنيتين واضغط "مقارنة"</div>';
+        }
+        document.getElementById('compareBtn')?.addEventListener('click', () => {
+            let s1 = document.getElementById('compStart1').value ? new Date(document.getElementById('compStart1')
+                .value + 'T00:00:00').getTime() : null;
+            let e1 = document.getElementById('compEnd1').value ? new Date(document.getElementById('compEnd1').value +
+                'T23:59:59').getTime() + 86399999 : null;
+            let s2 = document.getElementById('compStart2').value ? new Date(document.getElementById('compStart2')
+                .value + 'T00:00:00').getTime() : null;
+            let e2 = document.getElementById('compEnd2').value ? new Date(document.getElementById('compEnd2').value +
+                'T23:59:59').getTime() + 86399999 : null;
+            if (!s1 || !e1 || !s2 || !e2) { showToast('يرجى تحديد الفترتين بالكامل'); return; }
+            let f1 = allSales.filter(s => s.timestamp >= s1 && s.timestamp <= e1);
+            let f2 = allSales.filter(s => s.timestamp >= s2 && s.timestamp <= e2);
+            let stats = (arr, label) => {
+                let rev = arr.reduce((a, x) => a + (x.totalAmount || 0), 0);
+                let prof = arr.reduce((a, x) => a + (x.profit || 0), 0);
+                let cnt = arr.length;
+                let qty = arr.reduce((a, x) => a + (x.quantity || 0), 0);
+                return { label, rev, prof, cnt, qty, avgInv: cnt > 0 ? rev / cnt : 0 };
+            };
+            let r1 = stats(f1, 'الفترة الأولى'),
+                r2 = stats(f2, 'الفترة الثانية');
+            let diff = (a, b) => { let d = a - b; return d >= 0 ? `<span class="profit-positive">+$${fmt(d)}</span>` :
+                    `<span class="profit-negative">-$${fmt(Math.abs(d))}</span>`; };
+            document.getElementById('comparisonStats').innerHTML = `
+            <div class="stat-card"><div class="stat-label">${r1.label} - الإيرادات</div><div class="stat-value">$${fmt(r1.rev)}</div></div>
+            <div class="stat-card"><div class="stat-label">${r2.label} - الإيرادات</div><div class="stat-value">$${fmt(r2.rev)}</div><div class="stat-sub">الفرق: ${diff(r2.rev,r1.rev)}</div></div>
+            <div class="stat-card"><div class="stat-label">${r1.label} - الأرباح</div><div class="stat-value">$${fmt(r1.prof)}</div></div>
+            <div class="stat-card"><div class="stat-label">${r2.label} - الأرباح</div><div class="stat-value">$${fmt(r2.prof)}</div><div class="stat-sub">الفرق: ${diff(r2.prof,r1.prof)}</div></div>
+            <div class="stat-card"><div class="stat-label">${r1.label} - العمليات</div><div class="stat-value">${r1.cnt}</div></div>
+            <div class="stat-card"><div class="stat-label">${r2.label} - العمليات</div><div class="stat-value">${r2.cnt}</div><div class="stat-sub">الفرق: ${r2.cnt-r1.cnt>=0?'+':''}${r2.cnt-r1.cnt}</div></div>
+            <div class="stat-card"><div class="stat-label">${r1.label} - القطع المباعة</div><div class="stat-value">${r1.qty}</div></div>
+            <div class="stat-card"><div class="stat-label">${r2.label} - القطع المباعة</div><div class="stat-value">${r2.qty}</div><div class="stat-sub">الفرق: ${r2.qty-r1.qty>=0?'+':''}${r2.qty-r1.qty}</div></div>
+            `;
+        });
+
+        // ==================== INSIGHTS ====================
+        function renderInsights() {
+            let now = Date.now();
+            let ds = getStartOfDay(),
+                ws = getStartOfWeek(),
+                ms = getStartOfMonth();
+            let todaySales = allSales.filter(s => s.timestamp >= ds);
+            let weekSales = allSales.filter(s => s.timestamp >= ws);
+            let monthSales = allSales.filter(s => s.timestamp >= ms);
+            let todayProfit = todaySales.reduce((a, s) => a + (s.profit || 0), 0);
+            let todayRevenue = todaySales.reduce((a, s) => a + (s.totalAmount || 0), 0);
+            let weekProfit = weekSales.reduce((a, s) => a + (s.profit || 0), 0);
+            let monthProfit = monthSales.reduce((a, s) => a + (s.profit || 0), 0);
+
+            // Best/worst day
+            let dayMap = {};
+            allSales.forEach(s => { let dk = getDayKey(s.timestamp); if (!dayMap[dk]) dayMap[dk] = { profit: 0,
+                    revenue: 0, count: 0 };
+                dayMap[dk].profit += s.profit || 0;
+                dayMap[dk].revenue += s.totalAmount || 0;
+                dayMap[dk].count++; });
+            let daysArr = Object.entries(dayMap).map(([k, v]) => ({ day: k, ...v }));
+            daysArr.sort((a, b) => b.profit - a.profit);
+            let bestDay = daysArr[0];
+            let worstDay = daysArr[daysArr.length - 1];
+
+            // Peak hours
+            let hourMap = {};
+            allSales.forEach(s => { let h = new Date(s.timestamp).getHours(); if (!hourMap[h]) hourMap[h] = 0;
+                hourMap[h]++; });
+            let peakHour = Object.entries(hourMap).sort((a, b) => b[1] - a[1])[0];
+
+            // Slow movers
+            let soldIds = new Set(allSales.map(s => s.itemId));
+            let slowMovers = allItems.filter(i => !soldIds.has(i.id) && i.quantity > 0);
+            let fastMovers = getTopProducts(5);
+
+            // Growth
+            let prevMonthStart = getStartOfMonth(new Date(now - 30 * 86400000));
+            let prevMonthSales = allSales.filter(s => s.timestamp >= prevMonthStart && s.timestamp < ms);
+            let prevMonthProfit = prevMonthSales.reduce((a, s) => a + (s.profit || 0), 0);
+            let profitGrowth = prevMonthProfit > 0 ? ((monthProfit - prevMonthProfit) / prevMonthProfit * 100) : 0;
+
+            document.getElementById('insightsGrid').innerHTML = `
+            <div class="stat-card"><div class="stat-icon" style="background:var(--gradient-2);"><i class="fas fa-calendar-check"></i></div><div class="stat-label">أفضل يوم مبيعات</div><div class="stat-value" style="font-size:1rem;">${bestDay?bestDay.day:'--'}</div><div class="stat-sub">ربح: $${fmt(bestDay?.profit||0)}</div></div>
+            <div class="stat-card"><div class="stat-icon" style="background:var(--gradient-3);"><i class="fas fa-calendar-times"></i></div><div class="stat-label">أسوأ يوم مبيعات</div><div class="stat-value" style="font-size:1rem;">${worstDay?worstDay.day:'--'}</div><div class="stat-sub">ربح: $${fmt(worstDay?.profit||0)}</div></div>
+            <div class="stat-card"><div class="stat-icon" style="background:var(--gradient-4);"><i class="fas fa-clock"></i></div><div class="stat-label">ساعة الذروة</div><div class="stat-value">${peakHour?peakHour[0]+':00':'--'}</div><div class="stat-sub">${peakHour?peakHour[1]+' عملية':''}</div></div>
+            <div class="stat-card"><div class="stat-icon" style="background:var(--gradient-5);"><i class="fas fa-percentage"></i></div><div class="stat-label">نمو الأرباح الشهري</div><div class="stat-value ${profitGrowth>=0?'profit-positive':'profit-negative'}">${fmt(profitGrowth)}%</div><div class="stat-sub">مقارنة بالشهر السابق</div></div>
+            `;
+            let insightsHtml = '';
+            if (bestDay) insightsHtml +=
+                `<div class="insight-card"><i class="fas fa-trophy" style="color:#f6ad55;"></i><span class="insight-text">أعلى ربح يومي</span><span class="insight-val profit-positive">$${fmt(bestDay.profit)}</span></div>`;
+            if (fastMovers.length) insightsHtml +=
+                `<div class="insight-card"><i class="fas fa-rocket" style="color:#2b6cb0;"></i><span class="insight-text">المنتجات سريعة الدوران: ${fastMovers.map(p=>escHtml(p.name)).join('، ')}</span></div>`;
+            if (slowMovers.length) insightsHtml +=
+                `<div class="insight-card"><i class="fas fa-pause-circle" style="color:#e55353;"></i><span class="insight-text">منتجات راكدة: ${slowMovers.slice(0,5).map(i=>escHtml(i.name)).join('، ')}</span></div>`;
+            let allTimeProfit = allSales.reduce((a, s) => a + (s.profit || 0), 0);
+            let totalDays = allSales.length > 0 ? Math.max(1, Math.ceil((now - Math.min(...allSales.map(s => s.timestamp))) /
+                86400000)) : 1;
+            insightsHtml +=
+                `<div class="insight-card"><i class="fas fa-calculator" style="color:#6b46c1;"></i><span class="insight-text">متوسط الربح اليومي</span><span class="insight-val">$${fmt(allTimeProfit/totalDays)}</span></div>`;
+            insightsHtml +=
+                `<div class="insight-card"><i class="fas fa-calendar-alt" style="color:#0987a0;"></i><span class="insight-text">متوسط الربح الشهري</span><span class="insight-val">$${fmt(allTimeProfit/(totalDays/30.44))}</span></div>`;
+            document.getElementById('insightsList').innerHTML = insightsHtml;
+        }
+
+        // ==================== EXPORT ====================
+        function exportToCSV() {
+            let filtered = applySalesFilters();
+            let rows = [
+                ['#', 'التاريخ', 'المنتج', 'الكمية', 'سعر الوحدة', 'الإجمالي', 'التكلفة', 'الربح', 'نسبة الربح']
+            ];
+            filtered.forEach((s, i) => {
+                let cost = (s.purchasePriceAtTime || 0) * (s.quantity || 0);
+                let profitPct = s.totalAmount > 0 ? ((s.profit || 0) / s.totalAmount * 100) : 0;
+                rows.push([i + 1, fmtDateTime(s.timestamp), s.itemName || '', s.quantity || 0, fmt(s.unitPrice ||
+                    0), fmt(s.totalAmount || 0), fmt(cost), fmt(s.profit || 0), fmt(profitPct) +
+                    '%'
+                ]);
+            });
+            let csv = rows.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\n');
+            let blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            let url = URL.createObjectURL(blob);
+            let a = document.createElement('a');
+            a.href = url;
+            a.download = 'xmetal_sales_report_' + new Date().toISOString().split('T')[0] + '.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('✅ تم تصدير ملف CSV (Excel)');
+        }
+
+        function exportToPDF() {
+            let filtered = applySalesFilters();
+            let html =
+                '<html dir="rtl"><head><meta charset="UTF-8"><style>body{font-family:Cairo,sans-serif;font-size:12px;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ccc;padding:6px;text-align:center;}th{background:#f0f4f8;}h2{text-align:center;}</style></head><body>';
+            html += '<h2>تقرير مبيعات X METAL</h2><p>تاريخ التصدير: ' + fmtDateTime(Date.now()) +
+                ' | عدد العمليات: ' + filtered.length + '</p>';
+            html +=
+                '<table><thead><tr><th>#</th><th>التاريخ</th><th>المنتج</th><th>الكمية</th><th>سعر الوحدة</th><th>الإجمالي</th><th>الربح</th></tr></thead><tbody>';
+            filtered.forEach((s, i) => {
+                html +=
+                    `<tr><td>${i+1}</td><td>${fmtDateTime(s.timestamp)}</td><td>${escHtml(s.itemName||'')}</td><td>${s.quantity||0}</td><td>$${fmt(s.unitPrice||0)}</td><td>$${fmt(s.totalAmount||0)}</td><td>$${fmt(s.profit||0)}</td></tr>`;
+            });
+            html += '</tbody></table></body></html>';
+            let w = window.open('', '_blank', 'width=900,height=700');
+            w.document.write(html);
+            w.document.close();
+            setTimeout(() => w.print(), 500);
+            showToast('✅ تم فتح نافذة الطباعة');
+        }
+        document.getElementById('exportPdfBtn').addEventListener('click', exportToPDF);
+        document.getElementById('exportExcelBtn').addEventListener('click', exportToCSV);
+        document.getElementById('printReportBtn').addEventListener('click', exportToPDF);
+
+        // ==================== MOBILE SIDEBAR ====================
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarBackdrop').classList.toggle('show');
+        });
+        document.getElementById('sidebarBackdrop').addEventListener('click', closeMobileSidebar);
+
+        function closeMobileSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarBackdrop').classList.remove('show');
+        }
+
+        // ==================== INIT ====================
+        applyDarkMode();
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMobileSidebar(); });
+        window.addEventListener('click', e => {
+            if (e.target.classList.contains('modal-overlay') && e.target.classList.contains('show')) e.target
+                .classList.remove('show');
+        });
+        console.log('🚀 X METAL Analytics System Ready');
+        console.log('📊 Dashboard | 📋 Sales Log | 📦 Product Analytics | 💰 Profit Analysis | 📈 Comparisons | 💡 Insights');
+    </script>
+</body>
+</html>
