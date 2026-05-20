@@ -6,9 +6,10 @@
     <title>X METAL USERS</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js">
+    </script>
     <style>
         * {
             margin: 0;
@@ -83,12 +84,11 @@
             min-height: calc(100vh - 200px);
         }
 
-        /* ========== سلايدر النصائح والإعلانات المتطور (مع اتجاه RTL) ========== */
         .tips-slider-section {
             margin: 5px 0 15px;
             position: relative;
             display: none;
-            direction: rtl; /* الأساس RTL */
+            direction: rtl;
         }
 
         .tips-slider-container {
@@ -109,7 +109,7 @@
             scroll-behavior: smooth;
             width: 100%;
             scrollbar-width: none;
-            direction: rtl; /* تغيير الاتجاه إلى RTL لتمرير من اليمين لليسار */
+            direction: rtl;
         }
 
         .tips-slider-wrapper::-webkit-scrollbar {
@@ -132,7 +132,6 @@
             direction: rtl;
         }
 
-        /* Overlay شفاف للصورة الخلفية */
         .tip-slide-bg-overlay {
             position: absolute;
             top: 0;
@@ -145,7 +144,6 @@
             border-radius: inherit;
         }
 
-        /* محتوى السلايد */
         .tip-slide-content {
             position: relative;
             z-index: 2;
@@ -159,7 +157,6 @@
             transition: all 0.2s;
         }
 
-        /* الصورة / الأيقونة */
         .tip-media {
             flex-shrink: 0;
             display: flex;
@@ -177,7 +174,6 @@
             font-size: 2.5rem;
         }
 
-        /* مربع النصوص */
         .tip-text-box {
             flex: 1;
             min-width: 180px;
@@ -202,7 +198,7 @@
             transition: 0.2s ease;
             font-size: 0.85rem;
             margin-top: 0.5rem;
-            background-color: currentColor; /* يتم ضبطه لاحقاً */
+            background-color: currentColor;
             border: none;
             cursor: pointer;
         }
@@ -211,7 +207,6 @@
             filter: brightness(0.95);
         }
 
-        /* الصور المصغرة */
         .tip-thumbnails {
             display: flex;
             gap: 8px;
@@ -227,7 +222,6 @@
             transition: 0.2s;
         }
 
-        /* نقاط التنقل */
         .slider-dots {
             display: flex;
             justify-content: center;
@@ -249,7 +243,6 @@
             transform: scale(1.3);
         }
 
-        /* زر تصفح المنتجات أسفل السلايدر مع تأثير نبض */
         .shop-now-btn {
             display: block;
             width: fit-content;
@@ -283,7 +276,6 @@
             100% { transform: scale(1); box-shadow: 0 8px 20px rgba(249, 115, 22, 0.4); }
         }
 
-        /* استجابة للهواتف */
         @media (max-width: 768px) {
             .tip-slide-content {
                 padding: 1rem 1.2rem;
@@ -316,7 +308,6 @@
             }
         }
 
-        /* باقي الأنماط القديمة كما هي (منتجات، تواصل، إلخ) */
         .store-image-section {
             margin: 20px 0 5px;
             text-align: center;
@@ -549,8 +540,7 @@
             margin-left: 8px;
         }
         .secondary-price { font-size: 0.75rem; color: #64748b; margin-right: 5px; }
-        
-        /* تفاصيل المنتج (كما في القديمة) */
+
         .product-details-container { max-width: 850px; margin: 0 auto; padding: 15px; }
         .product-details-card {
             background: white;
@@ -605,7 +595,7 @@
             text-align: right;
         }
         .specs-table th { background: #eef2ff; font-weight: 700; }
-        
+
         .contact-container { display: flex; flex-wrap: wrap; gap: 25px; margin-top: 25px; }
         .contact-info {
             flex: 1;
@@ -726,13 +716,19 @@
         let isSearching = false;
         let currentSearchQuery = '';
         let currentCategoryId = null;
-        let currentDetailsItem = null; // لتتبع المنتج الحالي في صفحة التفاصيل
+        let currentDetailsItem = null;
 
-        // متغيرات السلايدر المتطور
         let tipsSliderItems = [];
         let tipsSliderSettings = { autoSlideDelay: 5000 };
         let autoSlideTimer = null;
         let currentSlideIndex = 0;
+
+        let unsubStoreInfo = null;
+        let unsubCurrency = null;
+        let unsubCategories = null;
+        let unsubItems = null;
+        let unsubTipsSettings = null;
+        let unsubTipsItems = null;
 
         const storeNameHeader = document.getElementById('storeNameHeader');
         const searchInput = document.getElementById('search-input');
@@ -750,7 +746,6 @@
         const tipsSliderWrapper = document.getElementById('tipsSliderWrapper');
         const sliderDots = document.getElementById('sliderDots');
 
-        // دوال مساعدة للصور (تحسين)
         function getOptimizedThumbnailUrl(originalUrl, width = 200) {
             if (!originalUrl) return null;
             if (originalUrl.includes('cloudinary.com') || originalUrl.includes('res.cloudinary.com')) {
@@ -769,7 +764,6 @@
         }
         function getPrimaryImage(imagesArr) { if (!imagesArr?.length) return null; const primary = imagesArr.find(img => img.isPrimary); return primary ? primary.url : imagesArr[0].url; }
         const PLACEHOLDER_SVG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 24 24' fill='%23cbd5e1'%3E%3Cpath d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 8h-4v4h-4v-4H6V9h4V5h4v4h4v2z'/%3E%3C/svg%3E";
-        
         function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
         function formatPriceHTML(priceUSD, discountPercent = 0) { 
             let finalPrice = priceUSD; 
@@ -788,8 +782,7 @@
             } 
             return `<strong>${primaryHtml}</strong> ${secondaryHtml}`; 
         }
-        
-        // دوال المنتجات والفئات (مأخوذة من الجديدة مع الحفاظ على الكفاءة)
+
         function createProductCard(item) { 
             const card = document.createElement('div'); 
             card.className = 'product-card'; 
@@ -813,7 +806,7 @@
             card.addEventListener('click', () => showItemDetails(item.id)); 
             return card; 
         }
-        
+
         function getFilteredProducts() { 
             let filtered = items.filter(i => !i.hidden); 
             if (storeInfo.hideOutOfStock) filtered = filtered.filter(i => i.quantity > 0); 
@@ -823,7 +816,7 @@
             } else if (currentCategoryId !== null) filtered = filtered.filter(p => p.categoryId === currentCategoryId); 
             return filtered; 
         }
-        
+
         function displayFilteredProducts() { 
             const filtered = getFilteredProducts(); 
             productsContainer.innerHTML = ''; 
@@ -834,7 +827,7 @@
             const sorted = [...filtered].sort((a, b) => a.name.localeCompare(b.name, 'ar')); 
             sorted.forEach(item => productsContainer.appendChild(createProductCard(item))); 
         }
-        
+
         function renderCategoriesFilter() { 
             let html = `<button class="category-chip ${currentCategoryId === null ? 'active' : ''}" data-cat-id="all"><i class="fas fa-th-large"></i> الكل</button>`; 
             categories.forEach(cat => { 
@@ -862,26 +855,29 @@
             }); 
             setTimeout(() => { if (categoriesFilterWrapper) categoriesFilterWrapper.scrollLeft = 0; }, 30); 
         }
-        
-        function loadCategoriesRealtime() { 
-            db.collection('categories').onSnapshot(snapshot => { 
-                categories = []; 
-                snapshot.forEach(doc => { 
-                    const data = doc.data(); 
-                    categories.push({ id: doc.id, name: data.name || 'بدون اسم', icon: data.icon || '' }); 
-                }); 
-                categories.sort((a, b) => a.name.localeCompare(b.name, 'ar')); 
-                renderCategoriesFilter(); 
-                if (document.getElementById('products-page').classList.contains('active')) displayFilteredProducts(); 
-            }); 
+
+        function subscribeCategories() {
+            if (unsubCategories) return;
+            unsubCategories = db.collection('categories').onSnapshot(snapshot => {
+                categories = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    categories.push({ id: doc.id, name: data.name || 'بدون اسم', icon: data.icon || '' });
+                });
+                categories.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+                renderCategoriesFilter();
+                if (document.getElementById('products-page').classList.contains('active')) displayFilteredProducts();
+            });
         }
-        
-        // ========== دالة تفاصيل المنتج المحسنة (مثل القديمة بالكامل) ==========
+
+        function unsubscribeCategories() {
+            if (unsubCategories) { unsubCategories(); unsubCategories = null; }
+        }
+
         function showItemDetails(itemId) { 
             const item = items.find(i => i.id === itemId); 
             if (!item) return; 
             currentDetailsItem = item;
-            
             const allImages = item.images || [];
             const fullPrimaryUrl = getPrimaryImage(allImages) || '';
             let imagesGalleryHtml = `<div class="main-img" id="detailMainImage"><img src="${fullPrimaryUrl}" alt="${escapeHtml(item.name)}" style="max-width:100%; max-height:100%; object-fit:contain;" onerror="this.src='${PLACEHOLDER_SVG}'"></div>`;
@@ -894,7 +890,6 @@
                 thumbsHtml += '</div>';
                 imagesGalleryHtml += thumbsHtml;
             } else if (allImages.length === 0) imagesGalleryHtml = `<div class="main-img"><i class="fas fa-cog fa-4x" style="color:#cbd5e1;"></i></div>`;
-            
             let videoHtml = '';
             if (item.youtubeUrl && item.youtubeUrl.trim()) {
                 let embedUrl = item.youtubeUrl;
@@ -902,35 +897,27 @@
                 else if (embedUrl.includes('youtu.be/')) embedUrl = embedUrl.replace('youtu.be/', 'www.youtube.com/embed/');
                 videoHtml = `<div class="video-wrapper"><iframe src="${embedUrl}" frameborder="0" allowfullscreen loading="lazy"></iframe></div>`;
             }
-            
             let specsHtml = '';
             if (item.specifications && item.specifications.length) {
                 specsHtml = '<table class="specs-table">';
                 item.specifications.forEach(spec => { if (spec.key && spec.value) specsHtml += `<tr><th>${escapeHtml(spec.key)}</th><td>${escapeHtml(spec.value)}</td></tr>`; });
                 specsHtml += '</table>';
             }
-            
             let categoryInfo = item.categoryName ? `<div style="background:#eef2ff; display:inline-block; padding:4px 16px; border-radius:40px; margin-bottom:15px;">${escapeHtml(item.categoryName)}</div>` : '';
-            
             let priceHtml = '';
             if (item.showPrice === true) {
                 const discount = (item.discountEnabled && item.discountValue > 0) ? item.discountValue : 0;
                 priceHtml = `<div style="font-size:1.6rem; margin:15px 0; color:#ea580c;">${formatPriceHTML(item.salePrice, discount)}</div>`;
                 if (discount > 0) priceHtml += `<div style="font-size:0.85rem; color:#16a34a;">خصم ${discount}%</div>`;
             }
-            
             let descriptionHtml = '';
             if (item.description && item.description.trim()) {
                 descriptionHtml = `<p class="description">${escapeHtml(item.description)}</p>`;
             }
-            
             let stockMessage = '';
             if (item.quantity === 0) stockMessage = '<div style="background:#fee2e2; padding:10px; border-radius:40px; color:#dc2626; margin:10px 0;">❌ المنتج غير متوفر حالياً</div>';
             else if (item.limitedQuantity) stockMessage = '<div style="background:#fff3e3; padding:10px; border-radius:40px; color:#f97316;">⚠️ كمية محدودة، اطلب الآن!</div>';
-            
             productDetailsContainer.innerHTML = `<div class="product-details-card">${imagesGalleryHtml}<h2 style="font-size:1.8rem;">${escapeHtml(item.name)}</h2>${categoryInfo}${descriptionHtml}${priceHtml}${stockMessage}${videoHtml}${specsHtml}<button class="back-btn btn" style="background:#e2e8f0; color:#1e293b; margin-top:20px; width:100%;" onclick="if(isSearching){ performInstantSearch(); } else { showPage('products'); }">العودة إلى المنتجات</button></div>`;
-            
-            // إضافة مستمعي الصور المصغرة
             setTimeout(() => {
                 document.querySelectorAll('.thumb').forEach(thumb => {
                     thumb.addEventListener('click', (e) => {
@@ -948,7 +935,7 @@
             }, 50);
             showPage('product-details');
         }
-        
+
         function renderContactPage() { 
             let phoneHtml = storeInfo.phone ? `<div class="phone-container"><a href="tel:${encodeURIComponent(storeInfo.phone)}" class="phone-number"><i class="fas fa-phone-alt"></i> ${escapeHtml(storeInfo.phone)}</a></div>` : '';
             let socialHtml = '';
@@ -986,14 +973,15 @@
                 ${mapSectionHtml}
             `;
         }
-        
+
         function renderStoreImage() { 
             if (storeInfo.imageUrl) storeImageContainer.innerHTML = `<img src="${storeInfo.imageUrl}" alt="صورة المحل" loading="lazy">`; 
             else storeImageContainer.innerHTML = ''; 
         }
-        
-        function loadItemsRealtime() { 
-            db.collection('items').onSnapshot(snapshot => { 
+
+        function subscribeItems() {
+            if (unsubItems) return;
+            unsubItems = db.collection('items').onSnapshot(snapshot => { 
                 items = []; 
                 snapshot.forEach(doc => { 
                     const data = doc.data(); 
@@ -1011,31 +999,40 @@
                     const stillExists = items.find(i => i.id === currentDetailsItem.id); 
                     if (stillExists) showItemDetails(stillExists.id); 
                 } 
-            }); 
+            });
         }
-        
-        function loadStoreInfoRealtime() { 
-            db.collection('storeInfo').doc('info').onSnapshot(doc => { 
+
+        function unsubscribeItems() {
+            if (unsubItems) { unsubItems(); unsubItems = null; }
+        }
+
+        function subscribeStoreInfo() {
+            if (unsubStoreInfo) return;
+            unsubStoreInfo = db.collection('storeInfo').doc('info').onSnapshot(doc => { 
                 if (doc.exists) storeInfo = { ...doc.data(), hideOutOfStock: doc.data().hideOutOfStock === true }; 
                 else storeInfo = { name: '', address: '', phone: '', googleMapsLink: '', imageUrl: '', videoUrl: '', socialLinks: [], hideOutOfStock: false }; 
                 storeNameHeader.textContent = storeInfo.name || 'PARTZONE'; 
                 renderStoreImage(); 
                 if (document.getElementById('contact-page').classList.contains('active')) renderContactPage(); 
                 if (document.getElementById('products-page').classList.contains('active')) displayFilteredProducts(); 
-            }); 
+            });
         }
-        
-        function loadCurrencySettingsRealtime() { 
-            db.collection('currencySettings').doc('settings').onSnapshot(doc => { 
+
+        function subscribeCurrency() {
+            if (unsubCurrency) return;
+            unsubCurrency = db.collection('currencySettings').doc('settings').onSnapshot(doc => { 
                 if (doc.exists) currencySettings = { secondaryCurrencyName: doc.data().secondaryCurrencyName, secondaryCurrencySymbol: doc.data().secondaryCurrencySymbol, exchangeRate: doc.data().exchangeRate || 1, defaultInputCurrency: doc.data().defaultInputCurrency, defaultSellCurrency: doc.data().defaultSellCurrency }; 
                 else currencySettings = { secondaryCurrencyName: '', secondaryCurrencySymbol: '', exchangeRate: 1, defaultInputCurrency: 'primary', defaultSellCurrency: 'primary' }; 
                 if (document.getElementById('products-page').classList.contains('active')) displayFilteredProducts(); 
                 if (document.getElementById('product-details-page').classList.contains('active') && currentDetailsItem) showItemDetails(currentDetailsItem.id); 
                 if (document.getElementById('contact-page').classList.contains('active')) renderContactPage(); 
-            }); 
+            });
         }
-        
-        // ======================= السلايدر المتطور (بدون أسهم، واتجاه RTL) =======================
+
+        function unsubscribeCurrency() {
+            if (unsubCurrency) { unsubCurrency(); unsubCurrency = null; }
+        }
+
         function isTipActive(item) {
             if (item.hidden) return false;
             const now = new Date();
@@ -1178,17 +1175,25 @@
             tipsSliderWrapper.removeEventListener('touchend', start); tipsSliderWrapper.addEventListener('touchend', start);
         }
         function handleScrollSnap() { const slides = tipsSliderWrapper.querySelectorAll('.tip-slide'); if (!slides.length) return; const containerRect = tipsSliderWrapper.getBoundingClientRect(); let closestIndex = 0; let minDist = Infinity; slides.forEach((slide, idx) => { const rect = slide.getBoundingClientRect(); const distance = Math.abs(rect.left - containerRect.left); if (distance < minDist) { minDist = distance; closestIndex = idx; } }); if (closestIndex !== currentSlideIndex) { currentSlideIndex = closestIndex; updateDots(); } }
-        
-        function loadTipsSliderRealtime() {
-            db.collection('sliderSettings').doc('settings').onSnapshot(doc => { if (doc.exists) tipsSliderSettings.autoSlideDelay = doc.data().autoSlideDelay || 5000; else tipsSliderSettings.autoSlideDelay = 5000; renderTipsSlider(); });
-            db.collection('sliderTips').onSnapshot(snapshot => {
-                tipsSliderItems = [];
-                snapshot.forEach(doc => { const data = doc.data(); tipsSliderItems.push({ id: doc.id, title: data.title, subtitle: data.subtitle, icon: data.icon, iconAlign: data.iconAlign, imageUrl: data.imageUrl, imageThumb: data.imageThumb, imageAlign: data.imageAlign, imageShape: data.imageShape, thumbnails: data.thumbnails || [], thumbsAlign: data.thumbsAlign, thumbsShape: data.thumbsShape, buttonText: data.buttonText, buttonLink: data.buttonLink, textAlign: data.textAlign, backgroundColor: data.backgroundColor, gradient1: data.gradient1, gradient2: data.gradient2, gradientDir: data.gradientDir, bgImage: data.bgImage, textColor: data.textColor, borderColor: data.borderColor, borderWidth: data.borderWidth, borderRadius: data.borderRadius, shadow: data.shadow, autoSlideDelay: data.autoSlideDelay, startDate: data.startDate, endDate: data.endDate, priority: data.priority, hidden: data.hidden === true, order: data.order }); });
-                renderTipsSlider();
-            });
+
+        function subscribeTipsSlider() {
+            if (!unsubTipsSettings) {
+                unsubTipsSettings = db.collection('sliderSettings').doc('settings').onSnapshot(doc => { if (doc.exists) tipsSliderSettings.autoSlideDelay = doc.data().autoSlideDelay || 5000; else tipsSliderSettings.autoSlideDelay = 5000; renderTipsSlider(); });
+            }
+            if (!unsubTipsItems) {
+                unsubTipsItems = db.collection('sliderTips').onSnapshot(snapshot => {
+                    tipsSliderItems = [];
+                    snapshot.forEach(doc => { const data = doc.data(); tipsSliderItems.push({ id: doc.id, title: data.title, subtitle: data.subtitle, icon: data.icon, iconAlign: data.iconAlign, imageUrl: data.imageUrl, imageThumb: data.imageThumb, imageAlign: data.imageAlign, imageShape: data.imageShape, thumbnails: data.thumbnails || [], thumbsAlign: data.thumbsAlign, thumbsShape: data.thumbsShape, buttonText: data.buttonText, buttonLink: data.buttonLink, textAlign: data.textAlign, backgroundColor: data.backgroundColor, gradient1: data.gradient1, gradient2: data.gradient2, gradientDir: data.gradientDir, bgImage: data.bgImage, textColor: data.textColor, borderColor: data.borderColor, borderWidth: data.borderWidth, borderRadius: data.borderRadius, shadow: data.shadow, autoSlideDelay: data.autoSlideDelay, startDate: data.startDate, endDate: data.endDate, priority: data.priority, hidden: data.hidden === true, order: data.order }); });
+                    renderTipsSlider();
+                });
+            }
         }
 
-        // دوال البحث (محسنة للعودة من التفاصيل)
+        function unsubscribeTipsSlider() {
+            if (unsubTipsSettings) { unsubTipsSettings(); unsubTipsSettings = null; }
+            if (unsubTipsItems) { unsubTipsItems(); unsubTipsItems = null; }
+        }
+
         function performInstantSearch() { 
             const query = searchInput.value.trim(); 
             currentSearchQuery = query; 
@@ -1207,9 +1212,9 @@
                 displayFilteredProducts(); 
             } else showPage('products'); 
         }
-        
+
         function performSearch() { performInstantSearch(); }
-        
+
         backFromSearch.addEventListener('click', () => { 
             searchInput.value = ''; 
             currentSearchQuery = ''; 
@@ -1218,33 +1223,48 @@
             renderCategoriesFilter(); 
             showPage('products'); 
         });
-        
+
         searchBtn.addEventListener('click', performSearch); 
         searchInput.addEventListener('input', performInstantSearch); 
         searchInput.addEventListener('keypress', e => { if (e.key === 'Enter') performSearch(); });
-        
+
         function showPage(pageId) { 
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); 
             document.getElementById(`${pageId}-page`).classList.add('active'); 
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active')); 
             const activeBtn = Array.from(document.querySelectorAll('.nav-btn')).find(btn => btn.getAttribute('onclick') === `showPage('${pageId}')`); 
-            if (activeBtn) activeBtn.classList.add('active'); 
-            if (pageId === 'products') { 
+            if (activeBtn) activeBtn.classList.add('active');
+
+            if (pageId === 'home') {
+                subscribeTipsSlider();
+                unsubscribeItems();
+                unsubscribeCategories();
+                unsubscribeCurrency();
+            } else if (pageId === 'products') {
+                unsubscribeTipsSlider();
+                subscribeItems();
+                subscribeCategories();
+                subscribeCurrency();
                 if (isSearching && currentSearchQuery) { 
                     searchResultsTitle.style.display = 'flex'; 
                     searchResultsText.textContent = `نتائج البحث عن "${currentSearchQuery}"`; 
                 } else searchResultsTitle.style.display = 'none'; 
                 displayFilteredProducts(); 
-                setTimeout(() => { if (categoriesFilterWrapper) categoriesFilterWrapper.scrollLeft = 0; }, 10); 
-            } else if (pageId === 'contact') renderContactPage(); 
-            else if (pageId === 'home') renderStoreImage(); 
+                setTimeout(() => { if (categoriesFilterWrapper) categoriesFilterWrapper.scrollLeft = 0; }, 10);
+            } else if (pageId === 'product-details') {
+                unsubscribeTipsSlider();
+                subscribeItems();
+                subscribeCurrency();
+            } else if (pageId === 'contact') {
+                unsubscribeTipsSlider();
+                unsubscribeItems();
+                unsubscribeCategories();
+                unsubscribeCurrency();
+                renderContactPage();
+            }
         }
-        
-        loadItemsRealtime(); 
-        loadStoreInfoRealtime(); 
-        loadCurrencySettingsRealtime(); 
-        loadCategoriesRealtime(); 
-        loadTipsSliderRealtime();
+
+        subscribeStoreInfo();
         showPage('home');
     </script>
 </body>
