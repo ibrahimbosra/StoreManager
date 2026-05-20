@@ -6,9 +6,12 @@
     <title>X METAL ADMIN</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js">
+    </script>
     <style>
         * {
             margin: 0;
@@ -885,7 +888,8 @@
                     </div>
                     <div class="form-group">
                         <label>وصف المنتج</label>
-                        <textarea id="productDescription" rows="2" style="width:100%; padding:10px; border-radius:20px; border:1px solid #e2e8f0;"></textarea>
+                        <textarea id="productDescription" rows="2"
+                        style="width:100%; padding:10px; border-radius:20px; border:1px solid #e2e8f0;"></textarea>
                     </div>
                     <div class="form-group">
                         <label>رابط يوتيوب (فيديو)</label>
@@ -1255,6 +1259,9 @@
             tempEditCurrency = false;
         let itemVisibility = {};
         let currentFilter = "all";
+        let hasFetchedSales = false;
+        let hasFetchedActivityLog = false;
+        window._cachedStats = { allTimeProfit: 0 };
 
         function arabicAlphabeticalComparator(a, b) {
             return a.name.localeCompare(b.name, 'ar', { sensitivity: 'variant', usage: 'sort' });
@@ -1365,15 +1372,17 @@
             let pd = 0,
                 pw = 0,
                 pm = 0,
-                py = 0,
-                pa = 0;
+                py = 0;
             sales.forEach(s => {
-                pa += s.profit || 0;
                 if (s.timestamp >= ds) pd += s.profit;
                 if (s.timestamp >= ws) pw += s.profit;
                 if (s.timestamp >= ms) pm += s.profit;
                 if (s.timestamp >= ys) py += s.profit;
             });
+            let pa = window._cachedStats?.allTimeProfit || 0;
+            if (!window._cachedStats || window._cachedStats.allTimeProfit === undefined) {
+                pa = sales.reduce((sum, s) => sum + (s.profit || 0), 0);
+            }
             document.getElementById('profitDayDetail').innerText = '$' + formatPrimary(pd);
             document.getElementById('profitWeekDetail').innerText = '$' + formatPrimary(pw);
             document.getElementById('profitMonthDetail').innerText = '$' + formatPrimary(pm);
@@ -1718,7 +1727,7 @@
         }
 
         async function fetchSales() {
-            const snap = await db.collection('sales').orderBy('timestamp', 'desc').get();
+            const snap = await db.collection('sales').orderBy('timestamp', 'desc').limit(1000).get();
             sales = snap.docs.map(d => ({ saleId: d.id, ...d.data() }));
             saveAllToLocalStorage();
             updateStats();
@@ -1727,7 +1736,7 @@
         }
 
         async function fetchActivityLog() {
-            const snap = await db.collection('activityLog').orderBy('timestamp', 'desc').get();
+            const snap = await db.collection('activityLog').orderBy('timestamp', 'desc').limit(500).get();
             activityLog = snap.docs.map(d => ({ activityId: d.id, ...d.data() }));
             saveAllToLocalStorage();
             if (document.getElementById('historyModal').style.display === 'flex' && document.getElementById(
@@ -1755,6 +1764,20 @@
             updateEditSalePriceDisplay();
         }
 
+        async function fetchStatsDoc() {
+            try {
+                let d = await db.collection('stats').doc('totals').get();
+                if (d.exists) {
+                    window._cachedStats = d.data();
+                } else {
+                    window._cachedStats = { allTimeProfit: 0 };
+                }
+            } catch (e) {
+                window._cachedStats = { allTimeProfit: 0 };
+            }
+            updateStats();
+        }
+
         async function addToActivityLog(type, details) {
             let entry = { actionType: type, details, dateTime: new Date().toLocaleString('ar-EG'), timestamp: Date.now() };
             await db.collection('activityLog').add(entry);
@@ -1778,7 +1801,8 @@
                     sSec = formatSecondary(convertToSecondary(item.salePrice));
                 let vis = itemVisibility[item.id] || false;
                 let cardClass = item.quantity === 0 ? 'out-of-stock' : (item.quantity <= 2 ? 'low-stock' : '');
-                html += `<div class="product-card ${cardClass}" data-id="${item.id}"><div class="product-index-outer">${idx+1}</div>
+                html +=
+                    `<div class="product-card ${cardClass}" data-id="${item.id}"><div class="product-index-outer">${idx+1}</div>
                 <div class="card-header"><div class="product-title"><span class="product-name">${escapeHtml(item.name)}</span>${item.categoryName?`<span class="product-category">${escapeHtml(item.categoryName)}</span>`:''}</div>
                 <div class="product-meta-wrapper"><div class="product-meta"><span><i class="fas fa-cubes"></i> ${item.quantity}</span><span class="profit-badge-small ${profitClass} ${vis?'':'blur-price'}">${profit}%</span></div>
                 <button class="eye-icon" data-id="${item.id}" title="${vis?'إخفاء':'إظهار'}"><i class="fas ${vis?'fa-eye':'fa-eye-slash'}"></i></button></div></div>
@@ -1954,6 +1978,11 @@
                 await db.collection('items').doc(item.id).update({ quantity: item.quantity, updatedAt: Date.now() });
                 let ref = await db.collection('sales').add(saleObj);
                 saleObj.saleId = ref.id;
+                await db.collection('stats').doc('totals').set({
+                    allTimeProfit: firebase.firestore.FieldValue.increment(profit),
+                    updatedAt: Date.now()
+                }, { merge: true });
+                window._cachedStats.allTimeProfit = (window._cachedStats.allTimeProfit || 0) + profit;
                 items = items.map(i => i.id === item.id ? item : i);
                 sales.unshift(saleObj);
                 displayItems();
@@ -2027,11 +2056,20 @@
             if (diff > 0 && prod.quantity < diff) return alert('كمية غير متوفرة');
             prod.quantity -= diff;
             await db.collection('items').doc(prod.id).update({ quantity: prod.quantity, updatedAt: Date.now() });
+            let oldProfit = sale.profit || 0;
             let newTotal = newQty * price;
             let newProfit = (price - prod.purchasePrice) * newQty;
+            let profitDiff = newProfit - oldProfit;
             let upd = { ...sale, quantity: newQty, unitPrice: price, totalAmount: newTotal, profit: newProfit,
                 saleCurrency: tempEditCurrency ? 'secondary' : 'primary' };
             await db.collection('sales').doc(saleId).set(upd);
+            if (profitDiff !== 0) {
+                await db.collection('stats').doc('totals').set({
+                    allTimeProfit: firebase.firestore.FieldValue.increment(profitDiff),
+                    updatedAt: Date.now()
+                }, { merge: true });
+                window._cachedStats.allTimeProfit = (window._cachedStats.allTimeProfit || 0) + profitDiff;
+            }
             items = items.map(i => i.id === prod.id ? prod : i);
             Object.assign(sale, upd);
             displayItems();
@@ -2052,6 +2090,11 @@
             prod.quantity += sale.quantity;
             await db.collection('items').doc(prod.id).update({ quantity: prod.quantity, updatedAt: Date.now() });
             await db.collection('sales').doc(saleId).delete();
+            await db.collection('stats').doc('totals').set({
+                allTimeProfit: firebase.firestore.FieldValue.increment(-(sale.profit || 0)),
+                updatedAt: Date.now()
+            }, { merge: true });
+            window._cachedStats.allTimeProfit = (window._cachedStats.allTimeProfit || 0) - (sale.profit || 0);
             items = items.map(i => i.id === prod.id ? prod : i);
             sales = sales.filter(s => s.saleId !== saleId);
             displayItems();
@@ -2084,12 +2127,27 @@
         document.getElementById('storeInfoBtn').addEventListener('click', () => { fetchStoreInfo();
             document.getElementById('storeInfoModal').style.display = 'flex';
             settingsDropdown.classList.remove('show'); });
-        document.getElementById('historyBtn').addEventListener('click', () => { document.getElementById('historyModal').style
-                .display = 'flex';
+        document.getElementById('historyBtn').addEventListener('click', async () => {
+            document.getElementById('historyModal').style.display = 'flex';
+            if (!hasFetchedSales) {
+                document.getElementById('connectionStatus').innerText = 'جاري تحميل المبيعات...';
+                document.getElementById('connectionStatus').style.display = 'block';
+                await fetchSales();
+                hasFetchedSales = true;
+                document.getElementById('connectionStatus').style.display = 'none';
+            }
+            if (!hasFetchedActivityLog) {
+                document.getElementById('connectionStatus').innerText = 'جاري تحميل السجل...';
+                document.getElementById('connectionStatus').style.display = 'block';
+                await fetchActivityLog();
+                hasFetchedActivityLog = true;
+                document.getElementById('connectionStatus').style.display = 'none';
+            }
             updateStats();
             displaySalesLog();
             displayActivityLog();
-            settingsDropdown.classList.remove('show'); });
+            settingsDropdown.classList.remove('show');
+        });
         document.getElementById('categoriesBtn').addEventListener('click', () => { populateCategorySelect();
             renderCategoriesUI();
             renderProductsChecklistForCategory('');
@@ -2223,8 +2281,8 @@
                     'loginErrorMsg').innerText = 'مطلوب';
                 document.getElementById('loginErrorMsg').style.display = 'block'; return; }
             document.getElementById('loginErrorMsg').style.display = 'none'; try { await auth
-                .signInWithEmailAndPassword(email, pass); } catch (err) { document.getElementById('loginErrorMsg').innerText =
-                    'فشل الدخول';
+                    .signInWithEmailAndPassword(email, pass); } catch (err) { document.getElementById('loginErrorMsg')
+                    .innerText = 'فشل الدخول';
                 document.getElementById('loginErrorMsg').style.display = 'block'; } });
         auth.onAuthStateChanged(async (user) => {
             if (user) {
@@ -2232,16 +2290,22 @@
                 document.getElementById('appMain').style.display = 'flex';
                 document.getElementById('connectionStatus').innerText = 'جار التحميل...';
                 document.getElementById('connectionStatus').style.display = 'block';
+                loadAllFromLocalStorage();
+                hasFetchedSales = false;
+                hasFetchedActivityLog = false;
+                window._cachedStats = { allTimeProfit: 0 };
                 await fetchCurrencySettings();
                 await fetchCategories();
                 await fetchItems();
-                await fetchSales();
-                await fetchActivityLog();
+                await fetchStatsDoc();
                 document.getElementById('connectionStatus').innerText = 'تم';
                 setTimeout(() => document.getElementById('connectionStatus').style.display = 'none', 2000);
             } else {
                 document.getElementById('loginContainer').style.display = 'flex';
                 document.getElementById('appMain').style.display = 'none';
+                hasFetchedSales = false;
+                hasFetchedActivityLog = false;
+                window._cachedStats = { allTimeProfit: 0 };
             }
         });
     </script>
