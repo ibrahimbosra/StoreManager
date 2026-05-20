@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -56,7 +55,6 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-        /* ========== شاشة تسجيل الدخول ========== */
         .login-container {
             max-width: 440px;
             margin: 8vh auto;
@@ -158,7 +156,6 @@
             display: block;
         }
 
-        /* ========== لوحة التحكم ========== */
         .dashboard {
             display: none;
             max-width: 1400px;
@@ -240,7 +237,6 @@
             border-color: #fca5a5;
         }
 
-        /* ========== شريط الأدوات ========== */
         .toolbar {
             display: flex;
             gap: 12px;
@@ -355,7 +351,6 @@
             color: var(--primary);
         }
 
-        /* ========== قائمة العناصر ========== */
         .items-list {
             display: flex;
             flex-direction: column;
@@ -544,7 +539,6 @@
             opacity: 1;
         }
 
-        /* ========== مودال التعديل ========== */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -829,7 +823,6 @@
             flex-wrap: wrap;
         }
 
-        /* ========== مودال الأيقونات ========== */
         .icon-search-modal {
             position: fixed;
             top: 0;
@@ -898,7 +891,6 @@
             border-color: var(--primary);
         }
 
-        /* ========== حالة فارغة ========== */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -920,7 +912,6 @@
             margin-bottom: 6px;
         }
 
-        /* ========== تنبيه التوست ========== */
         .toast-container {
             position: fixed;
             top: 20px;
@@ -973,7 +964,6 @@
             }
         }
 
-        /* ========== تحسينات الـ Scrollbar ========== */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -993,7 +983,6 @@
 </head>
 <body>
 
-    <!-- ==================== شاشة تسجيل الدخول ==================== -->
     <div id="loginScreen" class="login-container">
         <div class="login-icon"><i class="fas fa-sliders-h"></i></div>
         <h2>لوحة تحكم السلايدر</h2>
@@ -1004,9 +993,7 @@
         <p id="loginError" class="error-msg"></p>
     </div>
 
-    <!-- ==================== لوحة التحكم ==================== -->
     <div id="dashboard" class="dashboard">
-        <!-- الهيدر -->
         <div class="dashboard-header">
             <div class="header-left">
                 <div class="header-icon"><i class="fas fa-rectangle-ad"></i></div>
@@ -1018,7 +1005,6 @@
             </div>
         </div>
 
-        <!-- شريط الأدوات -->
         <div class="toolbar">
             <div class="search-box">
                 <i class="fas fa-search"></i>
@@ -1031,6 +1017,7 @@
                 <button class="filter-chip" data-filter="scheduled">مجدول</button>
             </div>
             <button class="btn btn-primary" id="addNewBtn"><i class="fas fa-plus-circle"></i> إضافة جديد</button>
+            <button class="btn btn-outline" id="refreshDataBtn" title="تحديث البيانات من الخادم"><i class="fas fa-sync-alt"></i> تحديث</button>
             <div style="display:flex;align-items:center;gap:8px;background:#f8fafc;padding:6px 14px;border-radius:50px;border:1px solid var(--border);">
                 <label style="font-weight:600;font-size:0.8rem;white-space:nowrap;">⏱️ مدة العرض:</label>
                 <input type="number" id="autoSlideDelayInput" value="5000" min="1000" step="500" style="width:80px;padding:6px 10px;border-radius:20px;border:2px solid var(--border);font-family:'Cairo',sans-serif;text-align:center;font-size:0.8rem;">
@@ -1039,11 +1026,9 @@
             </div>
         </div>
 
-        <!-- قائمة العناصر -->
         <div id="itemsListContainer" class="items-list"></div>
     </div>
 
-    <!-- ==================== مودال إضافة/تعديل ==================== -->
     <div class="modal-overlay" id="editModalOverlay">
         <div class="modal">
             <div class="modal-header">
@@ -1212,7 +1197,6 @@
                 </div>
             </div>
 
-            <!-- معاينة مباشرة -->
             <div class="live-preview-card" id="livePreviewCard">
                 <span class="preview-label">معاينة مباشرة</span>
                 <div style="font-weight:700;font-size:0.9rem;color:var(--text-secondary);">املأ الحقول للبدء...</div>
@@ -1225,7 +1209,6 @@
         </div>
     </div>
 
-    <!-- ==================== مودال الأيقونات ==================== -->
     <div class="icon-search-modal" id="iconPickerModal">
         <div class="icon-search-content">
             <h3 style="margin-bottom:12px;font-weight:800;">اختر أيقونة</h3>
@@ -1235,7 +1218,6 @@
         </div>
     </div>
 
-    <!-- ==================== التوست ==================== -->
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
@@ -1251,7 +1233,6 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // ==================== مكتبة الأيقونات ====================
         const popularIcons = [
             "fa-solid fa-tag", "fa-solid fa-percent", "fa-solid fa-gift", "fa-solid fa-star",
             "fa-solid fa-fire", "fa-solid fa-bolt", "fa-solid fa-bell", "fa-solid fa-calendar",
@@ -1271,14 +1252,13 @@
             "fa-solid fa-certificate", "fa-solid fa-award", "fa-solid fa-ranking-star"
         ];
 
-        // ==================== المتغيرات العامة ====================
         let allItems = [];
         let currentEditId = null;
         let currentThumbnails = [];
         let activeFilter = 'all';
         let searchQuery = '';
+        let globalAutoSlideDelay = 5000;
 
-        // ==================== عناصر DOM ====================
         const loginScreen = document.getElementById('loginScreen');
         const dashboard = document.getElementById('dashboard');
         const loginBtn = document.getElementById('loginBtn');
@@ -1312,8 +1292,8 @@
         const borderWidthVal = document.getElementById('borderWidthVal');
         const editBorderRadius = document.getElementById('editBorderRadius');
         const borderRadiusVal = document.getElementById('borderRadiusVal');
+        const refreshDataBtn = document.getElementById('refreshDataBtn');
 
-        // عناصر النموذج الأخرى
         const editTitle = document.getElementById('editTitle');
         const editSubtitle = document.getElementById('editSubtitle');
         const editIcon = document.getElementById('editIcon');
@@ -1340,7 +1320,6 @@
         const editEndDate = document.getElementById('editEndDate');
         const editPriority = document.getElementById('editPriority');
 
-        // ==================== التوست ====================
         function showToast(message, type = 'success') {
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
@@ -1349,14 +1328,12 @@
             setTimeout(() => toast.remove(), 3000);
         }
 
-        // ==================== المصادقة ====================
         auth.onAuthStateChanged(user => {
             if (user) {
                 loginScreen.style.display = 'none';
                 dashboard.style.display = 'block';
                 userEmailDisplay.textContent = user.email || 'مدير';
-                loadRealtimeData();
-                loadSettings();
+                fetchAllDataOnce();
             } else {
                 loginScreen.style.display = 'block';
                 dashboard.style.display = 'none';
@@ -1384,41 +1361,53 @@
 
         logoutBtn.addEventListener('click', () => auth.signOut());
 
-        // ==================== تحميل الإعدادات ====================
-        function loadSettings() {
-            db.collection('sliderSettings').doc('settings').onSnapshot(doc => {
-                if (doc.exists) {
-                    autoSlideDelayInput.value = doc.data().autoSlideDelay || 5000;
-                } else {
-                    autoSlideDelayInput.value = 5000;
-                }
-            });
+        function fetchAllDataOnce() {
+            const tipsPromise = db.collection('sliderTips').get();
+            const settingsPromise = db.collection('sliderSettings').doc('settings').get();
+
+            Promise.all([tipsPromise, settingsPromise])
+                .then(([tipsSnapshot, settingsDoc]) => {
+                    allItems = [];
+                    tipsSnapshot.forEach(doc => {
+                        allItems.push({ id: doc.id, ...doc.data() });
+                    });
+                    allItems.sort((a, b) => (b.priority || 0) - (a.priority || 0) || (a.order || 0) - (b.order || 0));
+
+                    if (settingsDoc.exists) {
+                        globalAutoSlideDelay = settingsDoc.data().autoSlideDelay || 5000;
+                    } else {
+                        globalAutoSlideDelay = 5000;
+                    }
+                    autoSlideDelayInput.value = globalAutoSlideDelay;
+
+                    renderItemsList();
+                })
+                .catch(error => {
+                    console.error('خطأ في تحميل البيانات:', error);
+                    showToast('خطأ في الاتصال بقاعدة البيانات', 'error');
+                });
         }
+
+        refreshDataBtn.addEventListener('click', () => {
+            refreshDataBtn.disabled = true;
+            refreshDataBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحديث...';
+            fetchAllDataOnce().finally(() => {
+                refreshDataBtn.disabled = false;
+                refreshDataBtn.innerHTML = '<i class="fas fa-sync-alt"></i> تحديث';
+                showToast('تم تحديث البيانات', 'success');
+            });
+        });
 
         saveDelayBtn.addEventListener('click', async () => {
             const delay = parseInt(autoSlideDelayInput.value) || 5000;
             try {
                 await db.collection('sliderSettings').doc('settings').set({ autoSlideDelay: delay }, { merge: true });
+                globalAutoSlideDelay = delay;
                 showToast('تم حفظ مدة العرض بنجاح', 'success');
             } catch (e) {
                 showToast('خطأ في الحفظ', 'error');
             }
         });
-
-        // ==================== تحميل العناصر ====================
-        function loadRealtimeData() {
-            db.collection('sliderTips').onSnapshot(snapshot => {
-                allItems = [];
-                snapshot.forEach(doc => {
-                    allItems.push({ id: doc.id, ...doc.data() });
-                });
-                allItems.sort((a, b) => (b.priority || 0) - (a.priority || 0) || (a.order || 0) - (b.order || 0));
-                renderItemsList();
-            }, error => {
-                console.error('خطأ في تحميل البيانات:', error);
-                showToast('خطأ في الاتصال بقاعدة البيانات', 'error');
-            });
-        }
 
         function getFilteredItems() {
             let filtered = [...allItems];
@@ -1453,10 +1442,8 @@
         function getItemStatus(item) {
             const now = new Date();
             if (item.hidden) return { label: 'مخفي', class: 'status-hidden', icon: 'fa-eye-slash' };
-            if (item.startDate && new Date(item.startDate) > now) return { label: 'مجدول', class: 'status-scheduled',
-                icon: 'fa-clock' };
-            if (item.endDate && new Date(item.endDate) < now) return { label: 'منتهي', class: 'status-hidden',
-            icon: 'fa-calendar-xmark' };
+            if (item.startDate && new Date(item.startDate) > now) return { label: 'مجدول', class: 'status-scheduled', icon: 'fa-clock' };
+            if (item.endDate && new Date(item.endDate) < now) return { label: 'منتهي', class: 'status-hidden', icon: 'fa-calendar-xmark' };
             return { label: 'مفعل', class: 'status-active', icon: 'fa-circle-check' };
         }
 
@@ -1531,13 +1518,11 @@
         function buildMiniPreviewContent(item) {
             let html = '';
             if (item.imageUrl) {
-                html +=
-                    `<img src="${item.imageThumb || item.imageUrl}" alt="" loading="lazy" onerror="this.style.display='none';" style="border-radius:${item.imageShape || '8px'};">`;
+                html += `<img src="${item.imageThumb || item.imageUrl}" alt="" loading="lazy" onerror="this.style.display='none';" style="border-radius:${item.imageShape || '8px'};">`;
             } else if (item.icon) {
                 html += `<span class="mini-icon"><i class="${item.icon}"></i></span>`;
             }
-            html +=
-                `<span style="font-size:0.75rem;font-weight:700;line-height:1.3;">${escapeHtml((item.title || '').substring(0, 30))}</span>`;
+            html += `<span style="font-size:0.75rem;font-weight:700;line-height:1.3;">${escapeHtml((item.title || '').substring(0, 30))}</span>`;
             return html;
         }
 
@@ -1556,7 +1541,6 @@
             });
         }
 
-        // ==================== السحب والإفلات ====================
         function handleDragStart(e) {
             e.target.classList.add('dragging');
             e.dataTransfer.setData('text/plain', e.target.dataset.id);
@@ -1591,10 +1575,18 @@
             if (!draggedItem || !targetItem) return;
 
             try {
-                await db.collection('sliderTips').doc(draggedId).update({ order: targetItem.order || 0, priority: targetItem
-                        .priority || 0 });
-                await db.collection('sliderTips').doc(targetId).update({ order: draggedItem.order || 0, priority: draggedItem
-                        .priority || 0 });
+                await db.collection('sliderTips').doc(draggedId).update({ order: targetItem.order || 0, priority: targetItem.priority || 0 });
+                await db.collection('sliderTips').doc(targetId).update({ order: draggedItem.order || 0, priority: draggedItem.priority || 0 });
+
+                const tempOrder = draggedItem.order;
+                const tempPriority = draggedItem.priority;
+                draggedItem.order = targetItem.order;
+                draggedItem.priority = targetItem.priority;
+                targetItem.order = tempOrder;
+                targetItem.priority = tempPriority;
+                allItems.sort((a, b) => (b.priority || 0) - (a.priority || 0) || (a.order || 0) - (b.order || 0));
+                renderItemsList();
+
                 showToast('تم تحديث الترتيب', 'success');
             } catch (err) {
                 showToast('فشل تحديث الترتيب', 'error');
@@ -1606,7 +1598,6 @@
             document.querySelectorAll('.item-card').forEach(c => c.classList.remove('drag-over'));
         }
 
-        // ==================== المودال ====================
         function openModal(title) {
             modalTitle.innerHTML = `<i class="fas fa-pen-to-square"></i> ${title}`;
             editModalOverlay.classList.add('active');
@@ -1706,7 +1697,6 @@
             openModal('تعديل العنصر');
         }
 
-        // ==================== الصور المصغرة ====================
         function renderThumbnailsEditor() {
             thumbnailsEditor.innerHTML = '';
             currentThumbnails.forEach((url, index) => {
@@ -1753,7 +1743,6 @@
             }
         });
 
-        // ==================== حفظ العنصر ====================
         async function saveItem() {
             const title = editTitle.value.trim();
             if (!title) {
@@ -1791,20 +1780,26 @@
                 endDate: editEndDate.value || null,
                 priority: parseInt(editPriority.value) || 0,
                 hidden: currentEditId ? (allItems.find(i => i.id === currentEditId)?.hidden || false) : false,
-                order: currentEditId ? (allItems.find(i => i.id === currentEditId)?.order || 0) : (allItems.length > 0 ? Math
-                    .max(...allItems.map(i => i.order || 0)) + 1 : 1),
+                order: currentEditId ? (allItems.find(i => i.id === currentEditId)?.order || 0) : (allItems.length > 0 ? Math.max(...allItems.map(i => i.order || 0)) + 1 : 1),
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
 
             try {
                 if (currentEditId) {
                     await db.collection('sliderTips').doc(currentEditId).update(itemData);
+                    const index = allItems.findIndex(i => i.id === currentEditId);
+                    if (index !== -1) {
+                        allItems[index] = { id: currentEditId, ...itemData, updatedAt: new Date() };
+                    }
                     showToast('تم تحديث العنصر بنجاح', 'success');
                 } else {
                     itemData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-                    await db.collection('sliderTips').add(itemData);
+                    const docRef = await db.collection('sliderTips').add(itemData);
+                    allItems.push({ id: docRef.id, ...itemData, createdAt: new Date() });
                     showToast('تم إضافة العنصر بنجاح', 'success');
                 }
+                allItems.sort((a, b) => (b.priority || 0) - (a.priority || 0) || (a.order || 0) - (b.order || 0));
+                renderItemsList();
                 closeModal();
                 clearForm();
             } catch (err) {
@@ -1814,13 +1809,14 @@
 
         saveItemBtn.addEventListener('click', saveItem);
 
-        // ==================== إجراءات العناصر ====================
         async function toggleHide(id) {
             const item = allItems.find(i => i.id === id);
             if (!item) return;
             try {
                 await db.collection('sliderTips').doc(id).update({ hidden: !item.hidden });
-                showToast(item.hidden ? 'تم إظهار العنصر' : 'تم إخفاء العنصر', 'info');
+                item.hidden = !item.hidden;
+                renderItemsList();
+                showToast(item.hidden ? 'تم إخفاء العنصر' : 'تم إظهار العنصر', 'info');
             } catch (err) {
                 showToast('خطأ: ' + err.message, 'error');
             }
@@ -1834,7 +1830,10 @@
             itemData.order = (allItems.length > 0 ? Math.max(...allItems.map(i => i.order || 0)) + 1 : 1);
             itemData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
             try {
-                await db.collection('sliderTips').add(itemData);
+                const docRef = await db.collection('sliderTips').add(itemData);
+                allItems.push({ id: docRef.id, ...itemData, createdAt: new Date() });
+                allItems.sort((a, b) => (b.priority || 0) - (a.priority || 0) || (a.order || 0) - (b.order || 0));
+                renderItemsList();
                 showToast('تم نسخ العنصر بنجاح', 'success');
             } catch (err) {
                 showToast('خطأ: ' + err.message, 'error');
@@ -1845,13 +1844,14 @@
             if (!confirm('هل أنت متأكد من حذف هذا العنصر نهائياً؟')) return;
             try {
                 await db.collection('sliderTips').doc(id).delete();
+                allItems = allItems.filter(i => i.id !== id);
+                renderItemsList();
                 showToast('تم حذف العنصر', 'info');
             } catch (err) {
                 showToast('خطأ: ' + err.message, 'error');
             }
         }
 
-        // ==================== المعاينة المباشرة ====================
         function updateLivePreview() {
             const bg = editBgColor.value || '#ffffff';
             const g1 = editGradient1.value || '#ffffff';
@@ -1883,27 +1883,23 @@
 
             let mediaHtml = '';
             if (imgUrl) {
-                mediaHtml =
-                    `<img src="${imgUrl}" style="width:60px;height:60px;border-radius:${imageShape};object-fit:cover;flex-shrink:0;" onerror="this.style.display='none';">`;
+                mediaHtml = `<img src="${imgUrl}" style="width:60px;height:60px;border-radius:${imageShape};object-fit:cover;flex-shrink:0;" onerror="this.style.display='none';">`;
             } else if (iconClass) {
                 mediaHtml = `<i class="${iconClass}" style="font-size:2rem;flex-shrink:0;"></i>`;
             }
 
             let thumbsHtml = '';
             if (currentThumbnails.length > 0) {
-                thumbsHtml = '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:' + thumbsAlign +
-                    ';margin-top:6px;">';
+                thumbsHtml = '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:' + thumbsAlign + ';margin-top:6px;">';
                 currentThumbnails.forEach(url => {
-                    thumbsHtml +=
-                        `<img src="${url}" style="width:36px;height:36px;border-radius:${thumbsShape};object-fit:cover;" loading="lazy" onerror="this.style.display='none';">`;
+                    thumbsHtml += `<img src="${url}" style="width:36px;height:36px;border-radius:${thumbsShape};object-fit:cover;" loading="lazy" onerror="this.style.display='none';">`;
                 });
                 thumbsHtml += '</div>';
             }
 
             let buttonHtml = '';
             if (btnText && btnLink) {
-                buttonHtml =
-                    `<a href="#" style="display:inline-block;background:${txtColor};color:${bg};padding:7px 18px;border-radius:30px;text-decoration:none;font-weight:700;font-size:0.8rem;margin-top:6px;">${escapeHtml(btnText)}</a>`;
+                buttonHtml = `<a href="#" style="display:inline-block;background:${txtColor};color:${bg};padding:7px 18px;border-radius:30px;text-decoration:none;font-weight:700;font-size:0.8rem;margin-top:6px;">${escapeHtml(btnText)}</a>`;
             }
 
             livePreviewCard.style.background = bgStyle;
@@ -1926,7 +1922,6 @@
             `;
         }
 
-        // تحديث المعاينة عند أي تغيير
         const allFormInputs = [
             editTitle, editSubtitle, editIcon, editIconAlign, editImageUrl, editImageAlign, editImageShape,
             editThumbsAlign, editThumbsShape, editButtonText, editButtonLink, editTextAlign,
@@ -1944,7 +1939,6 @@
             updateLivePreview();
         });
 
-        // ==================== أيقونة picker ====================
         function renderIconsGrid(filter = '') {
             const filtered = popularIcons.filter(icon => icon.toLowerCase().includes(filter.toLowerCase()));
             const currentIcon = editIcon.value.trim();
@@ -1957,8 +1951,7 @@
                     editIcon.value = selectedIcon;
                     iconPreviewLarge.innerHTML = `<i class="${selectedIcon}"></i>`;
                     iconPickerModal.classList.remove('active');
-                    document.querySelectorAll('.icon-option').forEach(o => o.classList.remove(
-                        'selected'));
+                    document.querySelectorAll('.icon-option').forEach(o => o.classList.remove('selected'));
                     opt.classList.add('selected');
                     updateLivePreview();
                 });
@@ -1981,7 +1974,6 @@
             if (e.target === iconPickerModal) iconPickerModal.classList.remove('active');
         });
 
-        // ==================== البحث والفلترة ====================
         searchItemsInput.addEventListener('input', () => {
             searchQuery = searchItemsInput.value.trim();
             renderItemsList();
@@ -1996,13 +1988,11 @@
             }
         });
 
-        // ==================== وظائف مساعدة ====================
         function escapeHtml(str) {
             if (!str) return '';
             return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[m]);
         }
 
-        // ==================== اختصارات لوحة المفاتيح ====================
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 if (editModalOverlay.classList.contains('active')) closeModal();
@@ -2014,7 +2004,6 @@
             }
         });
 
-        // ==================== بدء التشغيل ====================
         console.log('🚀 نظام إدارة سلايدر النصائح والإعلانات - جاهز للعمل');
     </script>
 </body>
