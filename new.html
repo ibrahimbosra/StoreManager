@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -188,60 +189,6 @@
             transform: scale(0.94);
             background: #e2e8f0;
         }
-        .settings-dropdown {
-            position: absolute;
-            top: 70px;
-            left: 16px;
-            background: white;
-            border-radius: 28px;
-            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.2);
-            z-index: 2500;
-            min-width: 220px;
-            overflow: hidden;
-            display: none;
-            flex-direction: column;
-            animation: fadeIn 0.2s ease;
-        }
-        .settings-dropdown.show {
-            display: flex;
-        }
-        .dropdown-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 20px;
-            background: white;
-            border: none;
-            width: 100%;
-            text-align: right;
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: #1e2b3c;
-            cursor: pointer;
-            transition: 0.2s;
-            border-bottom: 1px solid #f0f2f5;
-        }
-        .dropdown-item:last-child {
-            border-bottom: none;
-        }
-        .dropdown-item i {
-            width: 24px;
-            font-size: 1.1rem;
-            color: #4a6fa5;
-        }
-        .dropdown-item:hover {
-            background: #f8fafc;
-        }
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
         .filter-bar {
             display: flex;
             gap: 10px;
@@ -333,14 +280,6 @@
             color: #1e2b3c;
             word-break: break-word;
             line-height: 1.3;
-        }
-        .product-category {
-            font-size: 0.7rem;
-            background: #eef2ff;
-            padding: 2px 8px;
-            border-radius: 30px;
-            color: #4a6fa5;
-            white-space: nowrap;
         }
         .product-meta-wrapper {
             display: flex;
@@ -620,16 +559,14 @@
             cursor: pointer;
         }
         .spec-row,
-        .image-row,
-        .social-row {
+        .image-row {
             display: flex;
             gap: 8px;
             margin-bottom: 10px;
             align-items: center;
         }
         .spec-row input,
-        .image-row input,
-        .social-row input {
+        .image-row input {
             flex: 1;
             padding: 10px;
             border: 1px solid #e2e8f0;
@@ -637,137 +574,13 @@
             background: #f8fafc;
         }
         .spec-row button,
-        .image-row button,
-        .social-row button {
+        .image-row button {
             background: #f1f5f9;
             border: none;
             width: 36px;
             height: 36px;
             border-radius: 50%;
             cursor: pointer;
-        }
-        .report-tabs {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-        .report-tab {
-            flex: 1 0 auto;
-            padding: 10px 12px;
-            border: none;
-            border-radius: 40px;
-            background: #eef2f6;
-            font-weight: 600;
-            font-size: 0.8rem;
-            cursor: pointer;
-        }
-        .report-tab.active {
-            background: #4a6fa5;
-            color: white;
-        }
-        .report-section {
-            display: none;
-        }
-        .report-section.active {
-            display: block;
-        }
-        .stats-cards {
-            background: #f8fafd;
-            border-radius: 24px;
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-        .profit-period {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 12px;
-        }
-        .period-item {
-            background: white;
-            border-radius: 20px;
-            padding: 12px;
-            border: 1px solid #e2e8f0;
-        }
-        .table-wrapper {
-            overflow-x: auto;
-            max-height: 300px;
-            border-radius: 16px;
-            border: 1px solid #edf2f7;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.75rem;
-            min-width: 500px;
-        }
-        th,
-        td {
-            padding: 10px;
-            border-bottom: 1px solid #edf2f7;
-            text-align: center;
-        }
-        th {
-            background: #f1f5f9;
-            position: sticky;
-            top: 0;
-        }
-        .date-group-header {
-            background: #e6edf7;
-            font-weight: 700;
-        }
-        .cat-list-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            border-bottom: 1px solid #eef2f6;
-        }
-        .cat-name-icon {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .cat-name-icon i {
-            width: 28px;
-            font-size: 1.2rem;
-            color: #4a6fa5;
-        }
-        .cat-actions {
-            display: flex;
-            gap: 8px;
-        }
-        .cat-actions button {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1.2rem;
-            padding: 4px;
-            border-radius: 8px;
-            transition: 0.2s;
-        }
-        .cat-actions .edit-cat-icon {
-            color: #4a6fa5;
-        }
-        .cat-actions .delete-cat-icon {
-            color: #e74c3c;
-        }
-        .cat-actions button:hover {
-            background: #f0f4fa;
-        }
-        .products-checklist {
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #e2e8f0;
-            border-radius: 20px;
-            padding: 8px;
-            margin: 8px 0;
-        }
-        .product-check {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px;
         }
         .toggle-row {
             display: flex;
@@ -782,14 +595,6 @@
             text-align: center;
             color: #94a3b8;
             padding: 30px;
-        }
-        .category-icon-input {
-            margin-top: 8px;
-        }
-        .icon-hint {
-            font-size: 0.7rem;
-            color: #5f6c84;
-            margin-top: 4px;
         }
     </style>
 </head>
@@ -820,14 +625,6 @@
                 <input type="text" id="searchInput" placeholder="بحث...">
             </div>
             <button class="header-btn primary" id="addItemBtn"><i class="fas fa-plus"></i></button>
-            <button class="header-btn" id="settingsMenuBtn"><i class="fas fa-cog"></i></button>
-        </div>
-        <div id="settingsDropdown" class="settings-dropdown">
-            <button class="dropdown-item" id="storeInfoBtn"><i class="fas fa-store-alt"></i> معلومات المتجر</button>
-            <button class="dropdown-item" id="historyBtn"><i class="fas fa-chart-line"></i> التقارير</button>
-            <button class="dropdown-item" id="categoriesBtn"><i class="fas fa-tags"></i> إدارة الفئات</button>
-            <button class="dropdown-item" id="currencySettingsBtn"><i class="fas fa-coins"></i> إعدادات العملة</button>
-            <button class="dropdown-item" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
         </div>
         <div class="filter-bar">
             <button class="filter-btn active" data-filter="all">الكل</button>
@@ -875,15 +672,6 @@
                         <div class="input-wrapper">
                             <i class="fas fa-cubes"></i>
                             <input type="number" id="quantity" min="0" required>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>الفئة</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-list"></i>
-                            <select id="productCategoryId">
-                                <option value="">-- بدون فئة --</option>
-                            </select>
                         </div>
                     </div>
                     <div class="form-group">
@@ -938,103 +726,6 @@
             </div>
         </div>
 
-        <div class="modal" id="categoriesModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2><i class="fas fa-tags"></i> إدارة الفئات</h2>
-                    <button class="close-modal closeModalBtn">&times;</button>
-                </div>
-                <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap">
-                    <input type="text" id="newCategoryName" placeholder="اسم الفئة الجديدة" style="flex:2; padding:10px; border-radius:40px; border:1px solid #ccc">
-                    <input type="text" id="newCategoryIcon" placeholder="أيقونة (مثل: fas fa-motorcycle)" style="flex:2; padding:10px; border-radius:40px; border:1px solid #ccc">
-                    <button id="createCategoryBtn" class="action-btn" style="flex:1">إنشاء</button>
-                </div>
-                <div class="icon-hint">📘 أدخل اسم أيقونة Font Awesome (مثال: fas fa-tag, fab fa-whatsapp)</div>
-                <div id="categoriesList"></div>
-                <div class="group-assign-section" style="margin-top:20px; border-top:1px solid #edf2f9; padding-top:16px">
-                    <h3>تعيين منتجات لفئة (جماعي)</h3>
-                    <div class="form-group">
-                        <label>اختر الفئة:</label>
-                        <select id="assignCategorySelect" style="width:100%; padding:10px; border-radius:40px"></select>
-                    </div>
-                    <div class="form-group">
-                        <input type="text" id="assignProductSearch" placeholder="بحث..." style="width:100%; padding:8px; border-radius:40px; border:1px solid #ccc">
-                    </div>
-                    <div class="products-checklist" id="productsChecklist"></div>
-                    <button id="assignProductsBtn" class="save-btn" style="margin-top:10px">حفظ التعيينات</button>
-                </div>
-                <div class="form-actions" style="margin-top:20px">
-                    <button type="button" id="closeCategoriesBtn" class="cancel-btn">إغلاق</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal" id="storeInfoModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>معلومات المتجر للزبائن</h2>
-                    <button class="close-modal closeModalBtn">&times;</button>
-                </div>
-                <form id="storeInfoForm">
-                    <div class="form-group">
-                        <label>اسم المتجر</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-store"></i>
-                            <input type="text" id="storeName">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>العنوان</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <input type="text" id="storeAddress">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>رقم التواصل</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-phone"></i>
-                            <input type="text" id="storePhone">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>رابط Google Maps</label>
-                        <div class="input-wrapper">
-                            <i class="fab fa-google"></i>
-                            <input type="url" id="storeMapLink">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>رابط صورة المحل</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-image"></i>
-                            <input type="url" id="storeImageUrl">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>رابط فيديو المحل (يوتيوب)</label>
-                        <div class="input-wrapper">
-                            <i class="fab fa-youtube"></i>
-                            <input type="url" id="storeVideoUrl">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>روابط التواصل الاجتماعي</label>
-                        <div id="socialLinksContainer"></div>
-                        <button type="button" id="addSocialBtn" class="action-btn">+ إضافة رابط</button>
-                    </div>
-                    <div class="toggle-row">
-                        <span>إخفاء المنتجات غير المتوفرة عن الزبائن</span>
-                        <label><input type="checkbox" id="storeHideOutOfStock"></label>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" id="cancelStoreInfoBtn" class="cancel-btn">إلغاء</button>
-                        <button type="submit" class="save-btn">حفظ</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
         <div class="modal" id="sellModal">
             <div class="modal-content">
                 <div class="modal-header">
@@ -1064,162 +755,6 @@
                     <div class="form-actions">
                         <button type="button" id="cancelSellBtn" class="cancel-btn">إلغاء</button>
                         <button type="submit" class="save-btn">تأكيد</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <div class="modal" id="editSaleModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>تعديل بيع</h2>
-                    <button class="close-modal closeModalBtn">&times;</button>
-                </div>
-                <form id="editSaleForm">
-                    <input type="hidden" id="editSaleId">
-                    <input type="hidden" id="editOriginalItemId">
-                    <input type="hidden" id="editOriginalQuantity">
-                    <input type="hidden" id="editSaleCurrency">
-                    <div class="form-group">
-                        <label>المنتج: <span id="editProductName"></span></label>
-                    </div>
-                    <div class="form-group">
-                        <label>الكمية</label>
-                        <div class="input-wrapper">
-                            <input type="number" id="editQuantity" min="1" required>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label id="editPriceLabel">السعر</label>
-                        <div class="input-wrapper special">
-                            <input type="number" id="editPrice" step="0.01" required>
-                            <button type="button" class="currency-switch" id="switchEditCurrency">تبديل</button>
-                        </div>
-                        <div id="editPriceSecondaryInfo" class="currency-info"></div>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" id="cancelEditSaleBtn" class="cancel-btn">إلغاء</button>
-                        <button type="submit" class="save-btn">حفظ</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <div class="modal" id="historyModal">
-            <div class="modal-content" style="max-width: 550px;">
-                <div class="modal-header">
-                    <h2>التقارير والإحصائيات</h2>
-                    <button class="close-modal closeModalBtn">&times;</button>
-                </div>
-                <div class="report-tabs">
-                    <button class="report-tab active" data-section="profits">💰 أرباح المبيعات</button>
-                    <button class="report-tab" data-section="inventory">📦 ملخص المخزون</button>
-                    <button class="report-tab" data-section="sales">🛒 سجل المبيعات</button>
-                    <button class="report-tab" data-section="activities">📋 سجل العمليات</button>
-                </div>
-                <div class="report-section active" id="profitsSection">
-                    <div class="stats-cards">
-                        <div class="profit-period">
-                            <div class="period-item"><span class="period-label">اليوم</span><span id="profitDayDetail">$0.00</span></div>
-                            <div class="period-item"><span class="period-label">الأسبوع</span><span id="profitWeekDetail">$0.00</span></div>
-                            <div class="period-item"><span class="period-label">الشهر</span><span id="profitMonthDetail">$0.00</span></div>
-                            <div class="period-item"><span class="period-label">السنة</span><span id="profitYearDetail">$0.00</span></div>
-                            <div class="period-item"><span class="period-label">الكلي</span><span id="profitAllTime">$0.00</span></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="report-section" id="inventorySection">
-                    <div class="stats-cards">
-                        <div><strong>إجمالي المنتجات:</strong> <span id="invTotalQty">0</span></div>
-                        <div><strong>عدد الأصناف:</strong> <span id="invCategories">0</span></div>
-                        <div><strong>رأس المال:</strong> <span id="invCapital">$0</span></div>
-                        <div><strong>الربح المحتمل:</strong> <span id="invProfit">$0</span></div>
-                    </div>
-                </div>
-                <div class="report-section" id="salesLogSection">
-                    <div class="table-wrapper">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>المنتج</th>
-                                    <th>الكمية</th>
-                                    <th>سعر الوحدة</th>
-                                    <th>الإجمالي</th>
-                                    <th>الربح</th>
-                                    <th>التاريخ</th>
-                                    <th>إجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody id="salesLogBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="report-section" id="activityLogSection">
-                    <div style="margin-bottom:12px">
-                        <button id="clearHistoryBtn" class="action-btn" style="background:#ffeae8;color:#c23321">مسح السجل</button>
-                    </div>
-                    <div class="table-wrapper">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>التاريخ</th>
-                                    <th>النوع</th>
-                                    <th>التفاصيل</th>
-                                </tr>
-                            </thead>
-                            <tbody id="historyTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal" id="settingsModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>إعدادات العملة</h2>
-                    <button class="close-modal closeModalBtn">&times;</button>
-                </div>
-                <form id="settingsForm">
-                    <div class="form-group">
-                        <label>اسم العملة الثانوية</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-coins"></i>
-                            <input type="text" id="secondaryCurrencyName" value="ريال سعودي">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>الرمز</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-hashtag"></i>
-                            <input type="text" id="secondaryCurrencySymbol" value="﷼">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>سعر الصرف (1$ =)</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-exchange-alt"></i>
-                            <input type="number" id="exchangeRate" step="0.01" value="3.75">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>عملة الشراء الافتراضية</label>
-                        <div class="radio-group">
-                            <label><input type="radio" name="defaultInputCurrency" value="primary" checked> دولار</label>
-                            <label><input type="radio" name="defaultInputCurrency" value="secondary"> ثانوية</label>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>عملة البيع الافتراضية</label>
-                        <div class="radio-group">
-                            <label><input type="radio" name="defaultSellCurrency" value="primary" checked> دولار</label>
-                            <label><input type="radio" name="defaultSellCurrency" value="secondary"> ثانوية</label>
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" id="cancelSettingsBtn" class="cancel-btn">إلغاء</button>
-                        <button type="submit" class="save-btn">حفظ</button>
                     </div>
                 </form>
             </div>
@@ -1255,13 +790,9 @@
             isEditing = false;
         let tempPurchaseCurrency = false,
             tempSaleCurrency = false,
-            tempSellCurrency = false,
-            tempEditCurrency = false;
+            tempSellCurrency = false;
         let itemVisibility = {};
         let currentFilter = "all";
-        let hasFetchedSales = false;
-        let hasFetchedActivityLog = false;
-        window._cachedStats = { allTimeProfit: 0 };
 
         function arabicAlphabeticalComparator(a, b) {
             return a.name.localeCompare(b.name, 'ar', { sensitivity: 'variant', usage: 'sort' });
@@ -1305,36 +836,6 @@
             return filtered;
         }
 
-        function getStartOfDayGMT3(d = new Date()) {
-            let off = 3 * 3600000,
-                g = d.getTime() + off;
-            let y = new Date(g).getUTCFullYear(),
-                m = new Date(g).getUTCMonth(),
-                day = new Date(g).getUTCDate();
-            return Date.UTC(y, m, day, 0, 0, 0) - off;
-        }
-
-        function getStartOfWeekGMT3(d = new Date()) {
-            let s = getStartOfDayGMT3(d),
-                off = 3 * 3600000,
-                g = new Date(s + off);
-            return s - (g.getUTCDay() * 86400000);
-        }
-
-        function getStartOfMonthGMT3(d = new Date()) {
-            let s = getStartOfDayGMT3(d),
-                off = 3 * 3600000,
-                g = new Date(s + off);
-            return Date.UTC(g.getUTCFullYear(), g.getUTCMonth(), 1, 0, 0, 0) - off;
-        }
-
-        function getStartOfYearGMT3(d = new Date()) {
-            let s = getStartOfDayGMT3(d),
-                off = 3 * 3600000,
-                g = new Date(s + off);
-            return Date.UTC(g.getUTCFullYear(), 0, 1, 0, 0, 0) - off;
-        }
-
         function formatPrimary(a) { return a.toFixed(2); }
 
         function formatSecondary(a) { return Number.isInteger(a) ? a : a.toFixed(2).replace(/\.0+$/, ''); }
@@ -1349,45 +850,6 @@
             } else {
                 return formatSecondary(convertToSecondary(value)) + ' ' + symbol;
             }
-        }
-
-        function updateStats() {
-            let cap = 0,
-                pot = 0,
-                tot = 0;
-            items.forEach(i => {
-                cap += i.purchasePrice * i.quantity;
-                pot += (i.salePrice - i.purchasePrice) * i.quantity;
-                tot += i.quantity;
-            });
-            document.getElementById('invTotalQty').innerText = tot;
-            document.getElementById('invCategories').innerText = items.length;
-            document.getElementById('invCapital').innerText = '$' + formatPrimary(cap);
-            document.getElementById('invProfit').innerText = '$' + formatPrimary(pot);
-            let now = Date.now(),
-                ds = getStartOfDayGMT3(),
-                ws = getStartOfWeekGMT3(),
-                ms = getStartOfMonthGMT3(),
-                ys = getStartOfYearGMT3();
-            let pd = 0,
-                pw = 0,
-                pm = 0,
-                py = 0;
-            sales.forEach(s => {
-                if (s.timestamp >= ds) pd += s.profit;
-                if (s.timestamp >= ws) pw += s.profit;
-                if (s.timestamp >= ms) pm += s.profit;
-                if (s.timestamp >= ys) py += s.profit;
-            });
-            let pa = window._cachedStats?.allTimeProfit || 0;
-            if (!window._cachedStats || window._cachedStats.allTimeProfit === undefined) {
-                pa = sales.reduce((sum, s) => sum + (s.profit || 0), 0);
-            }
-            document.getElementById('profitDayDetail').innerText = '$' + formatPrimary(pd);
-            document.getElementById('profitWeekDetail').innerText = '$' + formatPrimary(pw);
-            document.getElementById('profitMonthDetail').innerText = '$' + formatPrimary(pm);
-            document.getElementById('profitYearDetail').innerText = '$' + formatPrimary(py);
-            document.getElementById('profitAllTime').innerText = '$' + formatPrimary(pa);
         }
 
         function updateProductPriceDisplay() {
@@ -1410,21 +872,12 @@
             if (el) el.innerText = display;
         }
 
-        function updateEditSalePriceDisplay() {
-            let v = parseFloat(document.getElementById('editPrice')?.value) || 0;
-            let sym = currencySettings.secondaryCurrencySymbol;
-            let display = getConversionDisplay(v, tempEditCurrency, sym);
-            let el = document.getElementById('editPriceSecondaryInfo');
-            if (el) el.innerText = display;
-        }
-
         function updatePriceLabels() {
             let sym = currencySettings.secondaryCurrencySymbol;
             document.getElementById('purchasePriceLabel').innerHTML = 'سعر الشراء (' + (tempPurchaseCurrency ? sym : '$') +
                 ')';
             document.getElementById('salePriceLabel').innerHTML = 'سعر البيع (' + (tempSaleCurrency ? sym : '$') + ')';
             document.getElementById('sellPriceLabel').innerHTML = 'السعر (' + (tempSellCurrency ? sym : '$') + ')';
-            document.getElementById('editPriceLabel').innerHTML = 'السعر (' + (tempEditCurrency ? sym : '$') + ')';
         }
 
         async function saveAllToLocalStorage() {
@@ -1447,160 +900,246 @@
                     'itemVisibility'));
                 if (localStorage.getItem('categories')) categories = JSON.parse(localStorage.getItem('categories'));
                 displayItems();
-                updateStats();
             } catch (e) {}
         }
 
-        async function fetchCategories() {
-            const snap = await db.collection('categories').get();
-            categories = snap.docs.map(d => ({ id: d.id, name: d.data().name || '', icon: d.data().icon || '' }));
-            categories.sort((a, b) => a.name.localeCompare(b.name, 'ar', { sensitivity: 'base' }));
+        async function fetchItems() {
+            const snap = await db.collection('items').get();
+            items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             saveAllToLocalStorage();
-            renderCategoriesUI();
-            populateCategorySelect();
-        }
-
-        async function addCategory(name, icon) {
-            if (!name.trim()) return;
-            const ref = await db.collection('categories').add({ name: name.trim(), icon: icon.trim() || '',
-                createdAt: Date.now() });
-            categories.push({ id: ref.id, name: name.trim(), icon: icon.trim() || '' });
-            categories.sort((a, b) => a.name.localeCompare(b.name, 'ar', { sensitivity: 'base' }));
-            saveAllToLocalStorage();
-            renderCategoriesUI();
-            populateCategorySelect();
-            addToActivityLog('category', 'إضافة فئة: ' + name + (icon ? ' أيقونة: ' + icon : ''));
-        }
-
-        async function updateCategory(catId, newName, newIcon) {
-            await db.collection('categories').doc(catId).update({ name: newName, icon: newIcon });
-            let cat = categories.find(c => c.id === catId);
-            if (cat) { cat.name = newName;
-                cat.icon = newIcon; }
-            categories.sort((a, b) => a.name.localeCompare(b.name, 'ar', { sensitivity: 'base' }));
-            saveAllToLocalStorage();
-            renderCategoriesUI();
-            populateCategorySelect();
-        }
-
-        async function deleteCategory(catId) {
-            if (!confirm('حذف الفئة؟')) return;
-            await db.collection('categories').doc(catId).delete();
-            categories = categories.filter(c => c.id !== catId);
-            for (let p of items) {
-                if (p.categoryId === catId) {
-                    p.categoryId = null;
-                    p.categoryName = '';
-                    await db.collection('items').doc(p.id).update({ categoryId: null, categoryName: '' });
-                }
-            }
-            saveAllToLocalStorage();
-            renderCategoriesUI();
-            populateCategorySelect();
             displayItems();
         }
 
-        function renderCategoriesUI() {
-            let container = document.getElementById('categoriesList');
-            if (!container) return;
-            if (!categories.length) { container.innerHTML = '<div>لا توجد فئات</div>'; return; }
+        async function fetchCurrencySettings() {
+            let d = await db.collection('currencySettings').doc('settings').get();
+            if (d.exists) currencySettings = { ...currencySettings, ...d.data() };
+            saveAllToLocalStorage();
+            document.getElementById('secondaryCurrencyName') && (document.getElementById('secondaryCurrencyName').value =
+                currencySettings.secondaryCurrencyName);
+            document.getElementById('secondaryCurrencySymbol') && (document.getElementById('secondaryCurrencySymbol').value =
+                currencySettings.secondaryCurrencySymbol);
+            document.getElementById('exchangeRate') && (document.getElementById('exchangeRate').value = currencySettings
+                .exchangeRate);
+            let inputRadio = document.querySelector('input[name="defaultInputCurrency"][value="' + currencySettings
+                .defaultInputCurrency + '"]');
+            if (inputRadio) inputRadio.checked = true;
+            let sellRadio = document.querySelector('input[name="defaultSellCurrency"][value="' + currencySettings
+                .defaultSellCurrency + '"]');
+            if (sellRadio) sellRadio.checked = true;
+            tempPurchaseCurrency = (currencySettings.defaultInputCurrency === 'secondary');
+            tempSaleCurrency = (currencySettings.defaultInputCurrency === 'secondary');
+            tempSellCurrency = (currencySettings.defaultSellCurrency === 'secondary');
+            updatePriceLabels();
+            updateProductPriceDisplay();
+            updateSellPriceDisplay();
+        }
+
+        async function addToActivityLog(type, details) {
+            let entry = { actionType: type, details, dateTime: new Date().toLocaleString('ar-EG'), timestamp: Date.now() };
+            await db.collection('activityLog').add(entry);
+            activityLog.unshift(entry);
+            saveAllToLocalStorage();
+        }
+
+        function displayItems() {
+            let term = document.getElementById('searchInput').value;
+            let filteredSorted = filterAndSortProducts(term, currentFilter);
+            if (!filteredSorted.length) {
+                document.getElementById('itemsList').innerHTML =
+                    '<div class="empty-state">لا توجد منتجات</div>';
+                return;
+            }
             let html = '';
-            categories.forEach(cat => {
-                let count = items.filter(i => i.categoryId === cat.id).length;
-                let iconHtml = cat.icon ? `<i class="${cat.icon}"></i>` : '<i class="fas fa-tag"></i>';
+            filteredSorted.forEach((item, idx) => {
+                let profit = ((item.salePrice - item.purchasePrice) / item.purchasePrice * 100).toFixed(2);
+                let profitClass = profit >= 0 ? 'profit-positive' : 'profit-negative';
+                let pSec = formatSecondary(convertToSecondary(item.purchasePrice)),
+                    sSec = formatSecondary(convertToSecondary(item.salePrice));
+                let vis = itemVisibility[item.id] || false;
+                let cardClass = item.quantity === 0 ? 'out-of-stock' : (item.quantity <= 2 ? 'low-stock' : '');
                 html +=
-                    `<div class="cat-list-item"><div class="cat-name-icon">${iconHtml} <strong>${escapeHtml(cat.name)}</strong> (${count} منتج)</div><div class="cat-actions"><button class="edit-cat-icon" data-id="${cat.id}" data-name="${escapeHtml(cat.name)}" data-icon="${escapeHtml(cat.icon)}"><i class="fas fa-pencil-alt"></i></button><button class="delete-cat-icon" data-id="${cat.id}"><i class="fas fa-times"></i></button></div></div>`;
+                    `<div class="product-card ${cardClass}" data-id="${item.id}"><div class="product-index-outer">${idx+1}</div>
+                <div class="card-header"><div class="product-title"><span class="product-name">${escapeHtml(item.name)}</span></div>
+                <div class="product-meta-wrapper"><div class="product-meta"><span><i class="fas fa-cubes"></i> ${item.quantity}</span><span class="profit-badge-small ${profitClass} ${vis?'':'blur-price'}">${profit}%</span></div>
+                <button class="eye-icon" data-id="${item.id}" title="${vis?'إخفاء':'إظهار'}"><i class="fas ${vis?'fa-eye':'fa-eye-slash'}"></i></button></div></div>
+                <div class="price-row"><div class="price-col purchase-price"><div class="price-label">شراء</div><div class="primary-price ${vis?'':'blur-price'}">$${formatPrimary(item.purchasePrice)}</div><div class="secondary-price ${vis?'':'blur-price'}">${pSec} ${currencySettings.secondaryCurrencySymbol}</div></div>
+                <div class="price-col sale-price"><div class="price-label">بيع</div><div class="primary-price">$${formatPrimary(item.salePrice)}</div><div class="secondary-price">${sSec} ${currencySettings.secondaryCurrencySymbol}</div></div></div>
+                <div class="action-buttons"><button class="action-btn sell" data-id="${item.id}" ${item.quantity===0?'disabled':''}><i class="fas fa-shopping-cart"></i> بيع</button><button class="action-btn edit" data-id="${item.id}"><i class="fas fa-edit"></i> تعديل</button><button class="action-btn delete" data-id="${item.id}"><i class="fas fa-trash-alt"></i> حذف</button></div></div>`;
             });
-            container.innerHTML = html;
-            document.querySelectorAll('.edit-cat-icon').forEach(btn => btn.addEventListener('click', () => {
-                let newName = prompt('الاسم الجديد', btn.dataset.name);
-                if (newName) {
-                    let newIcon = prompt('الأيقونة الجديدة (مثال: fas fa-motorcycle) أو اتركها فارغة', btn.dataset
-                        .icon);
-                    updateCategory(btn.dataset.id, newName, newIcon || '');
-                }
-            }));
-            document.querySelectorAll('.delete-cat-icon').forEach(btn => btn.addEventListener('click', () => deleteCategory(
-                btn.dataset.id)));
+            document.getElementById('itemsList').innerHTML = html;
+            document.querySelectorAll('.sell').forEach(b => b.addEventListener('click', e => openSellModal(e.currentTarget
+                .dataset.id)));
+            document.querySelectorAll('.edit').forEach(b => b.addEventListener('click', e => editItem(e.currentTarget.dataset
+                .id)));
+            document.querySelectorAll('.delete').forEach(b => b.addEventListener('click', e => { if (confirm('حذف المنتج؟'))
+                    performDelete(e.currentTarget.dataset.id); }));
+            document.querySelectorAll('.eye-icon').forEach(btn => btn.addEventListener('click', e => { let id = btn.dataset
+                    .id;
+                itemVisibility[id] = !itemVisibility[id];
+                displayItems(); }));
         }
 
-        function populateCategorySelect() {
-            let select = document.getElementById('productCategoryId');
-            if (select) {
-                select.innerHTML = '<option value="">-- بدون فئة --</option>';
-                categories.forEach(c => {
-                    let opt = document.createElement('option');
-                    opt.value = c.id;
-                    opt.textContent = c.name;
-                    select.appendChild(opt);
-                });
-            }
-            let assignSel = document.getElementById('assignCategorySelect');
-            if (assignSel) {
-                assignSel.innerHTML = '<option value="">-- اختر فئة --</option>';
-                categories.forEach(c => {
-                    let opt = document.createElement('option');
-                    opt.value = c.id;
-                    opt.textContent = c.name;
-                    assignSel.appendChild(opt);
-                });
-            }
-        }
-
-        async function assignProductsToCategory(categoryId, productIds) {
-            if (!categoryId) return;
-            let cat = categories.find(c => c.id === categoryId);
-            if (!cat) return;
-            let batch = db.batch();
-            for (let pid of productIds) {
-                let p = items.find(i => i.id === pid);
-                if (p) {
-                    p.categoryId = categoryId;
-                    p.categoryName = cat.name;
-                    batch.update(db.collection('items').doc(pid), { categoryId, categoryName: cat.name });
-                }
-            }
-            await batch.commit();
-            items = items.map(i => productIds.includes(i.id) ? { ...i, categoryId, categoryName: cat.name } : i);
+        async function performDelete(itemId) {
+            let item = items.find(i => i.id === itemId);
+            if (!item) return;
+            await db.collection('items').doc(itemId).delete();
+            items = items.filter(i => i.id !== itemId);
+            await addToActivityLog('delete', 'حذف "' + item.name + '"');
             displayItems();
-            addToActivityLog('category', 'تعيين منتجات لفئة');
-            renderCategoriesUI();
         }
 
-        function renderProductsChecklistForCategory(categoryId) {
-            let container = document.getElementById('productsChecklist');
-            if (!container) return;
-            let filtered = [...items];
-            let search = document.getElementById('assignProductSearch')?.value.trim() || '';
-            if (search !== '') {
-                filtered = filtered.filter(p => p.name.includes(search));
-                filtered.forEach(p => {
-                    let priority = 3;
-                    if (p.name.startsWith(search)) priority = 1;
-                    else {
-                        let words = p.name.split(/\s+/);
-                        for (let w of words)
-                            if (w.startsWith(search)) { priority = 2; break; }
-                    }
-                    p._tempPriority = priority;
-                });
-                filtered.sort((a, b) => {
-                    if (a._tempPriority !== b._tempPriority) return a._tempPriority - b._tempPriority;
-                    return arabicAlphabeticalComparator(a, b);
-                });
-                filtered.forEach(p => delete p._tempPriority);
+        function addItem() {
+            currentItemId = null;
+            isEditing = false;
+            document.getElementById('itemForm').reset();
+            document.getElementById('productHidden').checked = false;
+            document.getElementById('productLimitedQty').checked = false;
+            document.getElementById('productDiscountEnabled').checked = false;
+            document.getElementById('discountValueGroup').style.display = 'none';
+            document.getElementById('productDiscountValue').value = 0;
+            document.getElementById('productShowPrice').checked = false;
+            document.getElementById('productDescription').value = '';
+            document.getElementById('productYoutubeUrl').value = '';
+            document.getElementById('specificationsContainer').innerHTML = '';
+            document.getElementById('imagesContainer').innerHTML = '';
+            addSpecificationRow('', '');
+            addImageRow('', true);
+            tempPurchaseCurrency = (currencySettings.defaultInputCurrency === 'secondary');
+            tempSaleCurrency = (currencySettings.defaultInputCurrency === 'secondary');
+            document.getElementById('modalTitle').innerText = 'إضافة قطعة';
+            updatePriceLabels();
+            updateProductPriceDisplay();
+            document.getElementById('itemModal').style.display = 'flex';
+        }
+
+        function editItem(id) {
+            let item = items.find(i => i.id === id);
+            if (!item) return;
+            currentItemId = id;
+            isEditing = true;
+            document.getElementById('itemName').value = item.name;
+            tempPurchaseCurrency = (currencySettings.defaultInputCurrency === 'secondary');
+            tempSaleCurrency = (currencySettings.defaultInputCurrency === 'secondary');
+            document.getElementById('purchasePrice').value = tempPurchaseCurrency ? formatSecondary(convertToSecondary(item
+                .purchasePrice)) : item.purchasePrice;
+            document.getElementById('salePrice').value = tempSaleCurrency ? formatSecondary(convertToSecondary(item.salePrice)) :
+                item.salePrice;
+            document.getElementById('quantity').value = item.quantity;
+            document.getElementById('productHidden').checked = item.hidden || false;
+            document.getElementById('productLimitedQty').checked = item.limitedQuantity || false;
+            document.getElementById('productDiscountEnabled').checked = item.discountEnabled || false;
+            document.getElementById('productDiscountValue').value = item.discountValue || 0;
+            document.getElementById('discountValueGroup').style.display = item.discountEnabled ? 'block' : 'none';
+            document.getElementById('productShowPrice').checked = item.showPrice || false;
+            document.getElementById('productDescription').value = item.description || '';
+            document.getElementById('productYoutubeUrl').value = item.youtubeUrl || '';
+            loadSpecificationsAndImages(item);
+            document.getElementById('modalTitle').innerText = 'تعديل القطعة';
+            updatePriceLabels();
+            updateProductPriceDisplay();
+            document.getElementById('itemModal').style.display = 'flex';
+        }
+
+        document.getElementById('itemForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            let name = document.getElementById('itemName').value.trim();
+            let purchase = tempPurchaseCurrency ? convertToPrimary(parseFloat(document.getElementById('purchasePrice')
+                .value) || 0) : parseFloat(document.getElementById('purchasePrice').value) || 0;
+            let sale = tempSaleCurrency ? convertToPrimary(parseFloat(document.getElementById('salePrice').value) || 0) :
+                parseFloat(document.getElementById('salePrice').value) || 0;
+            let qty = parseInt(document.getElementById('quantity').value) || 0;
+            if (!name || purchase < 0 || sale < 0 || qty < 0) return alert('بيانات غير صالحة');
+            let extra = {
+                hidden: document.getElementById('productHidden').checked,
+                limitedQuantity: document.getElementById('productLimitedQty').checked,
+                discountEnabled: document.getElementById('productDiscountEnabled').checked,
+                discountValue: document.getElementById('productDiscountEnabled').checked ? parseFloat(document
+                    .getElementById('productDiscountValue').value) || 0 : 0,
+                showPrice: document.getElementById('productShowPrice').checked,
+                description: document.getElementById('productDescription').value,
+                youtubeUrl: document.getElementById('productYoutubeUrl').value,
+                specifications: collectSpecifications(),
+                images: collectImages(),
+                categoryId: null,
+                categoryName: ''
+            };
+            if (isEditing) {
+                let item = items.find(i => i.id === currentItemId);
+                if (!item) return;
+                Object.assign(item, { name, purchasePrice: purchase, salePrice: sale, quantity: qty, ...extra,
+                    updatedAt: Date.now() });
+                await db.collection('items').doc(item.id).set(item);
+                await addToActivityLog('update', 'تعديل "' + name + '"');
             } else {
-                filtered.sort(arabicAlphabeticalComparator);
+                let newId = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                let newItem = { id: newId, name, purchasePrice: purchase, salePrice: sale, quantity: qty, ...extra,
+                    createdAt: Date.now(), updatedAt: Date.now() };
+                await db.collection('items').doc(newId).set(newItem);
+                items.push(newItem);
+                await addToActivityLog('add', 'إضافة "' + name + '"');
             }
-            if (!filtered.length) { container.innerHTML = 'لا توجد منتجات'; return; }
-            let html = '';
-            filtered.forEach(prod => {
-                let checked = (categoryId && prod.categoryId === categoryId);
-                html +=
-                    `<div class="product-check"><input type="checkbox" value="${prod.id}" id="prod_${prod.id}" ${checked?'checked':''}> <label for="prod_${prod.id}">${escapeHtml(prod.name)}</label></div>`;
-            });
-            container.innerHTML = html;
+            displayItems();
+            document.getElementById('itemModal').style.display = 'none';
+            document.getElementById('connectionStatus').innerText = 'تم الحفظ';
+            document.getElementById('connectionStatus').style.display = 'block';
+            setTimeout(() => document.getElementById('connectionStatus').style.display = 'none', 2000);
+        });
+
+        function openSellModal(itemId) {
+            let item = items.find(i => i.id === itemId);
+            if (!item) return;
+            document.getElementById('sellProductName').innerText = item.name;
+            document.getElementById('sellQuantity').value = 1;
+            document.getElementById('sellQuantity').max = item.quantity;
+            tempSellCurrency = (currencySettings.defaultSellCurrency === 'secondary');
+            document.getElementById('sellPriceLabel').innerHTML = 'السعر (' + (tempSellCurrency ? currencySettings
+                .secondaryCurrencySymbol : '$') + ')';
+            document.getElementById('sellPrice').value = tempSellCurrency ? formatSecondary(convertToSecondary(item.salePrice)) :
+                item.salePrice;
+            updateSellPriceDisplay();
+            document.getElementById('sellForm').dataset.itemId = itemId;
+            document.getElementById('sellModal').style.display = 'flex';
         }
+
+        document.getElementById('sellForm').onsubmit = async (e) => {
+            e.preventDefault();
+            let itemId = document.getElementById('sellForm').dataset.itemId;
+            let item = items.find(i => i.id === itemId);
+            if (!item) return;
+            let qty = parseInt(document.getElementById('sellQuantity').value);
+            if (qty <= 0 || qty > item.quantity) return alert('كمية غير صالحة');
+            let price = tempSellCurrency ? convertToPrimary(parseFloat(document.getElementById('sellPrice').value) || 0) :
+                parseFloat(document.getElementById('sellPrice').value) || 0;
+            let profit = (price - item.purchasePrice) * qty;
+            let saleObj = {
+                itemId: item.id,
+                itemName: item.name,
+                quantity: qty,
+                unitPrice: price,
+                totalAmount: price * qty,
+                profit,
+                purchasePriceAtTime: item.purchasePrice,
+                timestamp: Date.now(),
+                saleCurrency: tempSellCurrency ? 'secondary' : 'primary'
+            };
+            try {
+                item.quantity -= qty;
+                await db.collection('items').doc(item.id).update({ quantity: item.quantity, updatedAt: Date.now() });
+                let ref = await db.collection('sales').add(saleObj);
+                saleObj.saleId = ref.id;
+                await db.collection('stats').doc('totals').set({
+                    allTimeProfit: firebase.firestore.FieldValue.increment(profit),
+                    updatedAt: Date.now()
+                }, { merge: true });
+                items = items.map(i => i.id === item.id ? item : i);
+                sales.unshift(saleObj);
+                await addToActivityLog('sell', 'بيع ' + qty + ' من "' + item.name + '" بسعر $' + formatPrimary(
+                price));
+                displayItems();
+                saveAllToLocalStorage();
+                document.getElementById('sellModal').style.display = 'none';
+            } catch (err) { alert('فشل البيع'); }
+        };
 
         function addSpecificationRow(key = '', val = '') {
             let div = document.createElement('div');
@@ -1670,514 +1209,9 @@
             else addImageRow('', true);
         }
 
-        function addSocialRow(url = '', icon = '') {
-            let div = document.createElement('div');
-            div.className = 'social-row';
-            div.innerHTML =
-                `<input type="url" placeholder="الرابط" value="${escapeHtml(url)}"><input type="text" placeholder="أيقونة (مثال: fab fa-whatsapp)" value="${escapeHtml(icon)}"><button type="button" class="remove-social">✖</button>`;
-            div.querySelector('.remove-social').addEventListener('click', () => div.remove());
-            document.getElementById('socialLinksContainer').appendChild(div);
-        }
-
-        function collectSocialLinks() {
-            let rows = document.querySelectorAll('#socialLinksContainer .social-row');
-            let links = [];
-            rows.forEach(row => {
-                let inputs = row.querySelectorAll('input');
-                if (inputs[0] && inputs[0].value.trim()) links.push({ network: '', url: inputs[0].value.trim(),
-                    icon: inputs[1] ? inputs[1].value.trim() : '' });
-            });
-            return links;
-        }
-
-        function loadSocialLinks(links) {
-            let container = document.getElementById('socialLinksContainer');
-            container.innerHTML = '';
-            if (links && links.length) links.forEach(l => addSocialRow(l.url || '', l.icon || ''));
-            else addSocialRow('', '');
-        }
-
-        async function fetchStoreInfo() {
-            let d = await db.collection('storeInfo').doc('info').get();
-            if (d.exists) {
-                let data = d.data();
-                document.getElementById('storeName').value = data.name || '';
-                document.getElementById('storeAddress').value = data.address || '';
-                document.getElementById('storePhone').value = data.phone || '';
-                document.getElementById('storeMapLink').value = data.googleMapsLink || '';
-                document.getElementById('storeImageUrl').value = data.imageUrl || '';
-                document.getElementById('storeVideoUrl').value = data.videoUrl || '';
-                document.getElementById('storeHideOutOfStock').checked = data.hideOutOfStock === true;
-                loadSocialLinks(data.socialLinks || []);
-            } else {
-                loadSocialLinks([]);
-                document.getElementById('storeHideOutOfStock').checked = false;
-            }
-        }
-
-        async function saveStoreInfoToFirebase(info) {
-            await db.collection('storeInfo').doc('info').set(info);
-        }
-
-        async function fetchItems() {
-            const snap = await db.collection('items').get();
-            items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            saveAllToLocalStorage();
-            displayItems();
-        }
-
-        async function fetchSales() {
-            const snap = await db.collection('sales').orderBy('timestamp', 'desc').limit(1000).get();
-            sales = snap.docs.map(d => ({ saleId: d.id, ...d.data() }));
-            saveAllToLocalStorage();
-            updateStats();
-            if (document.getElementById('historyModal').style.display === 'flex' && document.getElementById(
-                    'salesLogSection').classList.contains('active')) displaySalesLog();
-        }
-
-        async function fetchActivityLog() {
-            const snap = await db.collection('activityLog').orderBy('timestamp', 'desc').limit(500).get();
-            activityLog = snap.docs.map(d => ({ activityId: d.id, ...d.data() }));
-            saveAllToLocalStorage();
-            if (document.getElementById('historyModal').style.display === 'flex' && document.getElementById(
-                    'activityLogSection').classList.contains('active')) displayActivityLog();
-        }
-
-        async function fetchCurrencySettings() {
-            let d = await db.collection('currencySettings').doc('settings').get();
-            if (d.exists) currencySettings = { ...currencySettings, ...d.data() };
-            saveAllToLocalStorage();
-            document.getElementById('secondaryCurrencyName').value = currencySettings.secondaryCurrencyName;
-            document.getElementById('secondaryCurrencySymbol').value = currencySettings.secondaryCurrencySymbol;
-            document.getElementById('exchangeRate').value = currencySettings.exchangeRate;
-            document.querySelector(`input[name="defaultInputCurrency"][value="${currencySettings.defaultInputCurrency}"]`)
-                .checked = true;
-            document.querySelector(`input[name="defaultSellCurrency"][value="${currencySettings.defaultSellCurrency}"]`)
-                .checked = true;
-            tempPurchaseCurrency = (currencySettings.defaultInputCurrency === 'secondary');
-            tempSaleCurrency = (currencySettings.defaultInputCurrency === 'secondary');
-            tempSellCurrency = (currencySettings.defaultSellCurrency === 'secondary');
-            tempEditCurrency = false;
-            updatePriceLabels();
-            updateProductPriceDisplay();
-            updateSellPriceDisplay();
-            updateEditSalePriceDisplay();
-        }
-
-        async function fetchStatsDoc() {
-            try {
-                let d = await db.collection('stats').doc('totals').get();
-                if (d.exists) {
-                    window._cachedStats = d.data();
-                } else {
-                    window._cachedStats = { allTimeProfit: 0 };
-                }
-            } catch (e) {
-                window._cachedStats = { allTimeProfit: 0 };
-            }
-            updateStats();
-        }
-
-        async function addToActivityLog(type, details) {
-            let entry = { actionType: type, details, dateTime: new Date().toLocaleString('ar-EG'), timestamp: Date.now() };
-            await db.collection('activityLog').add(entry);
-            activityLog.unshift(entry);
-            saveAllToLocalStorage();
-            if (document.getElementById('historyModal').style.display === 'flex' && document.getElementById(
-                    'activityLogSection').classList.contains('active')) displayActivityLog();
-        }
-
-        function displayItems() {
-            let term = document.getElementById('searchInput').value;
-            let filteredSorted = filterAndSortProducts(term, currentFilter);
-            if (!filteredSorted.length) { document.getElementById('itemsList').innerHTML =
-                    '<div class="empty-state">لا توجد منتجات</div>';
-                updateStats(); return; }
-            let html = '';
-            filteredSorted.forEach((item, idx) => {
-                let profit = ((item.salePrice - item.purchasePrice) / item.purchasePrice * 100).toFixed(2);
-                let profitClass = profit >= 0 ? 'profit-positive' : 'profit-negative';
-                let pSec = formatSecondary(convertToSecondary(item.purchasePrice)),
-                    sSec = formatSecondary(convertToSecondary(item.salePrice));
-                let vis = itemVisibility[item.id] || false;
-                let cardClass = item.quantity === 0 ? 'out-of-stock' : (item.quantity <= 2 ? 'low-stock' : '');
-                html +=
-                    `<div class="product-card ${cardClass}" data-id="${item.id}"><div class="product-index-outer">${idx+1}</div>
-                <div class="card-header"><div class="product-title"><span class="product-name">${escapeHtml(item.name)}</span>${item.categoryName?`<span class="product-category">${escapeHtml(item.categoryName)}</span>`:''}</div>
-                <div class="product-meta-wrapper"><div class="product-meta"><span><i class="fas fa-cubes"></i> ${item.quantity}</span><span class="profit-badge-small ${profitClass} ${vis?'':'blur-price'}">${profit}%</span></div>
-                <button class="eye-icon" data-id="${item.id}" title="${vis?'إخفاء':'إظهار'}"><i class="fas ${vis?'fa-eye':'fa-eye-slash'}"></i></button></div></div>
-                <div class="price-row"><div class="price-col purchase-price"><div class="price-label">شراء</div><div class="primary-price ${vis?'':'blur-price'}">$${formatPrimary(item.purchasePrice)}</div><div class="secondary-price ${vis?'':'blur-price'}">${pSec} ${currencySettings.secondaryCurrencySymbol}</div></div>
-                <div class="price-col sale-price"><div class="price-label">بيع</div><div class="primary-price">$${formatPrimary(item.salePrice)}</div><div class="secondary-price">${sSec} ${currencySettings.secondaryCurrencySymbol}</div></div></div>
-                <div class="action-buttons"><button class="action-btn sell" data-id="${item.id}" ${item.quantity===0?'disabled':''}><i class="fas fa-shopping-cart"></i> بيع</button><button class="action-btn edit" data-id="${item.id}"><i class="fas fa-edit"></i> تعديل</button><button class="action-btn delete" data-id="${item.id}"><i class="fas fa-trash-alt"></i> حذف</button></div></div>`;
-            });
-            document.getElementById('itemsList').innerHTML = html;
-            updateStats();
-            document.querySelectorAll('.sell').forEach(b => b.addEventListener('click', e => openSellModal(e.currentTarget
-                .dataset.id)));
-            document.querySelectorAll('.edit').forEach(b => b.addEventListener('click', e => editItem(e.currentTarget.dataset
-                .id)));
-            document.querySelectorAll('.delete').forEach(b => b.addEventListener('click', e => { if (confirm('حذف المنتج؟'))
-                    performDelete(e.currentTarget.dataset.id); }));
-            document.querySelectorAll('.eye-icon').forEach(btn => btn.addEventListener('click', e => { let id = btn.dataset
-                    .id;
-                itemVisibility[id] = !itemVisibility[id];
-                displayItems(); }));
-        }
-
-        async function performDelete(itemId) {
-            let item = items.find(i => i.id === itemId);
-            if (!item) return;
-            await db.collection('items').doc(itemId).delete();
-            items = items.filter(i => i.id !== itemId);
-            await addToActivityLog('delete', 'حذف "' + item.name + '"');
-            displayItems();
-        }
-
-        function addItem() {
-            currentItemId = null;
-            isEditing = false;
-            document.getElementById('itemForm').reset();
-            document.getElementById('productHidden').checked = false;
-            document.getElementById('productLimitedQty').checked = false;
-            document.getElementById('productDiscountEnabled').checked = false;
-            document.getElementById('discountValueGroup').style.display = 'none';
-            document.getElementById('productDiscountValue').value = 0;
-            document.getElementById('productShowPrice').checked = false;
-            document.getElementById('productDescription').value = '';
-            document.getElementById('productYoutubeUrl').value = '';
-            document.getElementById('specificationsContainer').innerHTML = '';
-            document.getElementById('imagesContainer').innerHTML = '';
-            addSpecificationRow('', '');
-            addImageRow('', true);
-            tempPurchaseCurrency = (currencySettings.defaultInputCurrency === 'secondary');
-            tempSaleCurrency = (currencySettings.defaultInputCurrency === 'secondary');
-            document.getElementById('modalTitle').innerText = 'إضافة قطعة';
-            updatePriceLabels();
-            updateProductPriceDisplay();
-            populateCategorySelect();
-            document.getElementById('productCategoryId').value = '';
-            document.getElementById('itemModal').style.display = 'flex';
-        }
-
-        function editItem(id) {
-            let item = items.find(i => i.id === id);
-            if (!item) return;
-            currentItemId = id;
-            isEditing = true;
-            document.getElementById('itemName').value = item.name;
-            tempPurchaseCurrency = (currencySettings.defaultInputCurrency === 'secondary');
-            tempSaleCurrency = (currencySettings.defaultInputCurrency === 'secondary');
-            document.getElementById('purchasePrice').value = tempPurchaseCurrency ? formatSecondary(convertToSecondary(item
-                .purchasePrice)) : item.purchasePrice;
-            document.getElementById('salePrice').value = tempSaleCurrency ? formatSecondary(convertToSecondary(item.salePrice)) :
-                item.salePrice;
-            document.getElementById('quantity').value = item.quantity;
-            document.getElementById('productHidden').checked = item.hidden || false;
-            document.getElementById('productLimitedQty').checked = item.limitedQuantity || false;
-            document.getElementById('productDiscountEnabled').checked = item.discountEnabled || false;
-            document.getElementById('productDiscountValue').value = item.discountValue || 0;
-            document.getElementById('discountValueGroup').style.display = item.discountEnabled ? 'block' : 'none';
-            document.getElementById('productShowPrice').checked = item.showPrice || false;
-            document.getElementById('productDescription').value = item.description || '';
-            document.getElementById('productYoutubeUrl').value = item.youtubeUrl || '';
-            document.getElementById('productCategoryId').value = item.categoryId || '';
-            loadSpecificationsAndImages(item);
-            document.getElementById('modalTitle').innerText = 'تعديل القطعة';
-            updatePriceLabels();
-            updateProductPriceDisplay();
-            document.getElementById('itemModal').style.display = 'flex';
-        }
-
-        document.getElementById('itemForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            let name = document.getElementById('itemName').value.trim();
-            let purchase = tempPurchaseCurrency ? convertToPrimary(parseFloat(document.getElementById('purchasePrice')
-                .value) || 0) : parseFloat(document.getElementById('purchasePrice').value) || 0;
-            let sale = tempSaleCurrency ? convertToPrimary(parseFloat(document.getElementById('salePrice').value) || 0) :
-                parseFloat(document.getElementById('salePrice').value) || 0;
-            let qty = parseInt(document.getElementById('quantity').value) || 0;
-            if (!name || purchase < 0 || sale < 0 || qty < 0) return alert('بيانات غير صالحة');
-            let catId = document.getElementById('productCategoryId').value;
-            let cat = categories.find(c => c.id === catId);
-            let categoryName = cat ? cat.name : '';
-            let extra = {
-                hidden: document.getElementById('productHidden').checked,
-                limitedQuantity: document.getElementById('productLimitedQty').checked,
-                discountEnabled: document.getElementById('productDiscountEnabled').checked,
-                discountValue: document.getElementById('productDiscountEnabled').checked ? parseFloat(document
-                    .getElementById('productDiscountValue').value) || 0 : 0,
-                showPrice: document.getElementById('productShowPrice').checked,
-                description: document.getElementById('productDescription').value,
-                youtubeUrl: document.getElementById('productYoutubeUrl').value,
-                specifications: collectSpecifications(),
-                images: collectImages(),
-                categoryId: catId || null,
-                categoryName
-            };
-            if (isEditing) {
-                let item = items.find(i => i.id === currentItemId);
-                if (!item) return;
-                Object.assign(item, { name, purchasePrice: purchase, salePrice: sale, quantity: qty, ...extra,
-                    updatedAt: Date.now() });
-                await db.collection('items').doc(item.id).set(item);
-                await addToActivityLog('update', `تعديل "${name}"`);
-            } else {
-                let newId = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                let newItem = { id: newId, name, purchasePrice: purchase, salePrice: sale, quantity: qty, ...extra,
-                    createdAt: Date.now(), updatedAt: Date.now() };
-                await db.collection('items').doc(newId).set(newItem);
-                items.push(newItem);
-                await addToActivityLog('add', `إضافة "${name}"`);
-            }
-            displayItems();
-            document.getElementById('itemModal').style.display = 'none';
-            document.getElementById('connectionStatus').innerText = 'تم الحفظ';
-            document.getElementById('connectionStatus').style.display = 'block';
-            setTimeout(() => document.getElementById('connectionStatus').style.display = 'none', 2000);
-        });
-
-        function openSellModal(itemId) {
-            let item = items.find(i => i.id === itemId);
-            if (!item) return;
-            document.getElementById('sellProductName').innerText = item.name;
-            document.getElementById('sellQuantity').value = 1;
-            document.getElementById('sellQuantity').max = item.quantity;
-            tempSellCurrency = (currencySettings.defaultSellCurrency === 'secondary');
-            document.getElementById('sellPriceLabel').innerHTML = 'السعر (' + (tempSellCurrency ? currencySettings
-                .secondaryCurrencySymbol : '$') + ')';
-            document.getElementById('sellPrice').value = tempSellCurrency ? formatSecondary(convertToSecondary(item.salePrice)) :
-                item.salePrice;
-            updateSellPriceDisplay();
-            document.getElementById('sellForm').dataset.itemId = itemId;
-            document.getElementById('sellModal').style.display = 'flex';
-        }
-
-        document.getElementById('sellForm').onsubmit = async (e) => {
-            e.preventDefault();
-            let itemId = document.getElementById('sellForm').dataset.itemId;
-            let item = items.find(i => i.id === itemId);
-            if (!item) return;
-            let qty = parseInt(document.getElementById('sellQuantity').value);
-            if (qty <= 0 || qty > item.quantity) return alert('كمية غير صالحة');
-            let price = tempSellCurrency ? convertToPrimary(parseFloat(document.getElementById('sellPrice').value) || 0) :
-                parseFloat(document.getElementById('sellPrice').value) || 0;
-            let profit = (price - item.purchasePrice) * qty;
-            let saleObj = {
-                itemId: item.id,
-                itemName: item.name,
-                quantity: qty,
-                unitPrice: price,
-                totalAmount: price * qty,
-                profit,
-                purchasePriceAtTime: item.purchasePrice,
-                timestamp: Date.now(),
-                saleCurrency: tempSellCurrency ? 'secondary' : 'primary'
-            };
-            try {
-                item.quantity -= qty;
-                await db.collection('items').doc(item.id).update({ quantity: item.quantity, updatedAt: Date.now() });
-                let ref = await db.collection('sales').add(saleObj);
-                saleObj.saleId = ref.id;
-                await db.collection('stats').doc('totals').set({
-                    allTimeProfit: firebase.firestore.FieldValue.increment(profit),
-                    updatedAt: Date.now()
-                }, { merge: true });
-                window._cachedStats.allTimeProfit = (window._cachedStats.allTimeProfit || 0) + profit;
-                items = items.map(i => i.id === item.id ? item : i);
-                sales.unshift(saleObj);
-                displayItems();
-                updateStats();
-                saveAllToLocalStorage();
-                document.getElementById('sellModal').style.display = 'none';
-                if (document.getElementById('historyModal').style.display === 'flex') {
-                    if (document.getElementById('salesLogSection').classList.contains('active')) displaySalesLog();
-                    if (document.getElementById('activityLogSection').classList.contains('active')) displayActivityLog();
-                }
-            } catch (err) { alert('فشل البيع'); }
-        };
-
-        function displaySalesLog() {
-            let tbody = document.getElementById('salesLogBody');
-            if (!tbody) return;
-            if (!sales.length) { tbody.innerHTML = '<tr><td colspan="7" class="empty-state">لا توجد مبيعات</td></tr>'; return; }
-            let grouped = {};
-            sales.forEach(s => {
-                let d = new Date(s.timestamp);
-                let ds =
-                    `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-                if (!grouped[ds]) grouped[ds] = [];
-                grouped[ds].push(s);
-            });
-            let html = '';
-            Object.keys(grouped).sort((a, b) => b.localeCompare(a)).forEach(ds => {
-                let day = new Date(ds + 'T12:00:00').toLocaleDateString('ar-EG', { weekday: 'long' });
-                html += `<tr class="date-group-header"><td colspan="7">${day} ${ds}</td></tr>`;
-                grouped[ds].forEach(s => {
-                    html +=
-                        `<tr><td>${escapeHtml(s.itemName)}</td><td>${s.quantity}</td><td>$${formatPrimary(s.unitPrice)}</td><td>$${formatPrimary(s.totalAmount)}</td><td>$${formatPrimary(s.profit)}</td><td>${new Date(s.timestamp).toLocaleString('ar-EG')}</td><td><button onclick="editSale('${s.saleId}')">تعديل</button> <button onclick="cancelSale('${s.saleId}')">إلغاء</button></td></tr>`;
-                });
-            });
-            tbody.innerHTML = html;
-        }
-
-        window.editSale = (saleId) => {
-            document.getElementById('historyModal').style.display = 'none';
-            let sale = sales.find(s => s.saleId === saleId);
-            let prod = items.find(i => i.id === sale.itemId);
-            if (!prod) return alert('المنتج غير موجود');
-            document.getElementById('editSaleId').value = sale.saleId;
-            document.getElementById('editOriginalItemId').value = sale.itemId;
-            document.getElementById('editOriginalQuantity').value = sale.quantity;
-            document.getElementById('editSaleCurrency').value = sale.saleCurrency || 'primary';
-            document.getElementById('editProductName').innerText = sale.itemName;
-            document.getElementById('editQuantity').value = sale.quantity;
-            document.getElementById('editQuantity').max = prod.quantity + sale.quantity;
-            tempEditCurrency = (sale.saleCurrency === 'secondary');
-            document.getElementById('editPriceLabel').innerHTML = 'السعر (' + (tempEditCurrency ? currencySettings
-                .secondaryCurrencySymbol : '$') + ')';
-            document.getElementById('editPrice').value = tempEditCurrency ? formatSecondary(convertToSecondary(sale.unitPrice)) :
-                sale.unitPrice;
-            updateEditSalePriceDisplay();
-            document.getElementById('editSaleModal').style.display = 'flex';
-        };
-
-        document.getElementById('editSaleForm').onsubmit = async (e) => {
-            e.preventDefault();
-            let saleId = document.getElementById('editSaleId').value;
-            let itemId = document.getElementById('editOriginalItemId').value;
-            let oldQty = parseInt(document.getElementById('editOriginalQuantity').value);
-            let newQty = parseInt(document.getElementById('editQuantity').value);
-            let price = tempEditCurrency ? convertToPrimary(parseFloat(document.getElementById('editPrice').value) || 0) :
-                parseFloat(document.getElementById('editPrice').value) || 0;
-            let sale = sales.find(s => s.saleId === saleId);
-            let prod = items.find(i => i.id === itemId);
-            if (!sale || !prod) return;
-            let diff = newQty - oldQty;
-            if (diff > 0 && prod.quantity < diff) return alert('كمية غير متوفرة');
-            prod.quantity -= diff;
-            await db.collection('items').doc(prod.id).update({ quantity: prod.quantity, updatedAt: Date.now() });
-            let oldProfit = sale.profit || 0;
-            let newTotal = newQty * price;
-            let newProfit = (price - prod.purchasePrice) * newQty;
-            let profitDiff = newProfit - oldProfit;
-            let upd = { ...sale, quantity: newQty, unitPrice: price, totalAmount: newTotal, profit: newProfit,
-                saleCurrency: tempEditCurrency ? 'secondary' : 'primary' };
-            await db.collection('sales').doc(saleId).set(upd);
-            if (profitDiff !== 0) {
-                await db.collection('stats').doc('totals').set({
-                    allTimeProfit: firebase.firestore.FieldValue.increment(profitDiff),
-                    updatedAt: Date.now()
-                }, { merge: true });
-                window._cachedStats.allTimeProfit = (window._cachedStats.allTimeProfit || 0) + profitDiff;
-            }
-            items = items.map(i => i.id === prod.id ? prod : i);
-            Object.assign(sale, upd);
-            displayItems();
-            updateStats();
-            saveAllToLocalStorage();
-            document.getElementById('editSaleModal').style.display = 'none';
-            if (document.getElementById('historyModal').style.display === 'flex') {
-                if (document.getElementById('salesLogSection').classList.contains('active')) displaySalesLog();
-                if (document.getElementById('activityLogSection').classList.contains('active')) displayActivityLog();
-            }
-        };
-
-        window.cancelSale = async (saleId) => {
-            if (!confirm('إلغاء البيع؟')) return;
-            let sale = sales.find(s => s.saleId === saleId);
-            let prod = items.find(i => i.id === sale.itemId);
-            if (!prod) return;
-            prod.quantity += sale.quantity;
-            await db.collection('items').doc(prod.id).update({ quantity: prod.quantity, updatedAt: Date.now() });
-            await db.collection('sales').doc(saleId).delete();
-            await db.collection('stats').doc('totals').set({
-                allTimeProfit: firebase.firestore.FieldValue.increment(-(sale.profit || 0)),
-                updatedAt: Date.now()
-            }, { merge: true });
-            window._cachedStats.allTimeProfit = (window._cachedStats.allTimeProfit || 0) - (sale.profit || 0);
-            items = items.map(i => i.id === prod.id ? prod : i);
-            sales = sales.filter(s => s.saleId !== saleId);
-            displayItems();
-            updateStats();
-            saveAllToLocalStorage();
-            if (document.getElementById('historyModal').style.display === 'flex') {
-                if (document.getElementById('salesLogSection').classList.contains('active')) displaySalesLog();
-                if (document.getElementById('activityLogSection').classList.contains('active')) displayActivityLog();
-            }
-        };
-
-        function displayActivityLog() {
-            let tbody = document.getElementById('historyTableBody');
-            if (!tbody) return;
-            if (!activityLog.length) { tbody.innerHTML = '<tr><td colspan="4" class="empty-state">لا توجد عمليات</td></tr>';
-                return; }
-            let html = '';
-            activityLog.forEach((a, i) => html +=
-                `<tr><td>${i+1}</td><td>${a.dateTime||''}</td><td>${a.actionType}</td><td>${a.details}</td></tr>`);
-            tbody.innerHTML = html;
-        }
-
         document.getElementById('addItemBtn').addEventListener('click', addItem);
-        const settingsMenuBtn = document.getElementById('settingsMenuBtn');
-        const settingsDropdown = document.getElementById('settingsDropdown');
-        settingsMenuBtn.addEventListener('click', (e) => { e.stopPropagation();
-            settingsDropdown.classList.toggle('show'); });
-        document.addEventListener('click', (e) => { if (!settingsMenuBtn.contains(e.target) && !settingsDropdown.contains(e
-                .target)) settingsDropdown.classList.remove('show'); });
-        document.getElementById('storeInfoBtn').addEventListener('click', () => { fetchStoreInfo();
-            document.getElementById('storeInfoModal').style.display = 'flex';
-            settingsDropdown.classList.remove('show'); });
-        document.getElementById('historyBtn').addEventListener('click', async () => {
-            document.getElementById('historyModal').style.display = 'flex';
-            if (!hasFetchedSales) {
-                document.getElementById('connectionStatus').innerText = 'جاري تحميل المبيعات...';
-                document.getElementById('connectionStatus').style.display = 'block';
-                await fetchSales();
-                hasFetchedSales = true;
-                document.getElementById('connectionStatus').style.display = 'none';
-            }
-            if (!hasFetchedActivityLog) {
-                document.getElementById('connectionStatus').innerText = 'جاري تحميل السجل...';
-                document.getElementById('connectionStatus').style.display = 'block';
-                await fetchActivityLog();
-                hasFetchedActivityLog = true;
-                document.getElementById('connectionStatus').style.display = 'none';
-            }
-            updateStats();
-            displaySalesLog();
-            displayActivityLog();
-            settingsDropdown.classList.remove('show');
-        });
-        document.getElementById('categoriesBtn').addEventListener('click', () => { populateCategorySelect();
-            renderCategoriesUI();
-            renderProductsChecklistForCategory('');
-            document.getElementById('categoriesModal').style.display = 'flex';
-            settingsDropdown.classList.remove('show'); });
-        document.getElementById('currencySettingsBtn').addEventListener('click', () => { document.getElementById(
-                'settingsModal').style.display = 'flex';
-            settingsDropdown.classList.remove('show'); });
-        document.getElementById('logoutBtn').addEventListener('click', async () => { await auth.signOut();
-            settingsDropdown.classList.remove('show'); });
-        document.getElementById('createCategoryBtn').addEventListener('click', async () => { let name = document.getElementById(
-                'newCategoryName').value.trim();
-            let icon = document.getElementById('newCategoryIcon').value.trim(); if (name) await addCategory(name, icon);
-            document.getElementById('newCategoryName').value = '';
-            document.getElementById('newCategoryIcon').value = ''; });
-        document.getElementById('assignProductsBtn').addEventListener('click', async () => { let catId = document.getElementById(
-                'assignCategorySelect').value; if (!catId) return alert('اختر فئة');
-            let checks = document.querySelectorAll('#productsChecklist input:checked');
-            let productIds = Array.from(checks).map(ch => ch.value); if (!productIds.length) return alert('اختر منتجات');
-            await assignProductsToCategory(catId, productIds);
-            alert('تم التحديث');
-            document.getElementById('categoriesModal').style.display = 'none'; });
-        document.getElementById('assignCategorySelect').addEventListener('change', e => renderProductsChecklistForCategory(e
-            .target.value));
-        document.getElementById('assignProductSearch').addEventListener('input', () => { let catId = document.getElementById(
-                'assignCategorySelect').value;
-            renderProductsChecklistForCategory(catId); });
         document.getElementById('addSpecBtn').addEventListener('click', () => addSpecificationRow('', ''));
         document.getElementById('addImageBtn').addEventListener('click', () => addImageRow('', false));
-        document.getElementById('addSocialBtn').addEventListener('click', () => addSocialRow('', ''));
         document.getElementById('switchPurchaseCurrency').addEventListener('click', () => { let inputEl = document.getElementById(
                 'purchasePrice');
             let v = parseFloat(inputEl.value) || 0;
@@ -2200,81 +1234,24 @@
             document.getElementById('sellPriceLabel').innerHTML = 'السعر (' + (tempSellCurrency ? currencySettings
                 .secondaryCurrencySymbol : '$') + ')';
             updateSellPriceDisplay(); });
-        document.getElementById('switchEditCurrency').addEventListener('click', () => { let inputEl = document.getElementById(
-                'editPrice');
-            let v = parseFloat(inputEl.value) || 0;
-            tempEditCurrency = !tempEditCurrency;
-            inputEl.value = tempEditCurrency ? formatSecondary(convertToSecondary(v)) : convertToPrimary(v).toFixed(2);
-            document.getElementById('editPriceLabel').innerHTML = 'السعر (' + (tempEditCurrency ? currencySettings
-                .secondaryCurrencySymbol : '$') + ')';
-            updateEditSalePriceDisplay(); });
         document.getElementById('purchasePrice').addEventListener('input', updateProductPriceDisplay);
         document.getElementById('salePrice').addEventListener('input', updateProductPriceDisplay);
         document.getElementById('sellPrice').addEventListener('input', updateSellPriceDisplay);
-        document.getElementById('editPrice').addEventListener('input', updateEditSalePriceDisplay);
         document.getElementById('searchInput').addEventListener('input', () => displayItems());
         document.querySelectorAll('.filter-btn').forEach(btn => { btn.addEventListener('click', () => { document
                 .querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 currentFilter = btn.dataset.filter;
                 displayItems(); }); });
-        document.getElementById('clearHistoryBtn').addEventListener('click', async () => { if (confirm('مسح السجل؟')) {
-                let snap = await db.collection('activityLog').get();
-                let batch = db.batch();
-                snap.docs.forEach(d => batch.delete(d.ref));
-                await batch.commit();
-                activityLog = [];
-                saveAllToLocalStorage();
-                displayActivityLog();
-            } });
-        document.getElementById('settingsForm').addEventListener('submit', async (e) => { e.preventDefault();
-            let ns = { secondaryCurrencyName: document.getElementById('secondaryCurrencyName').value.trim(),
-                secondaryCurrencySymbol: document.getElementById('secondaryCurrencySymbol').value.trim(),
-                exchangeRate: parseFloat(document.getElementById('exchangeRate').value),
-                defaultInputCurrency: document.querySelector('input[name="defaultInputCurrency"]:checked').value,
-                defaultSellCurrency: document.querySelector('input[name="defaultSellCurrency"]:checked').value }; if (!ns
-                .secondaryCurrencyName || !ns.secondaryCurrencySymbol || isNaN(ns.exchangeRate) || ns.exchangeRate <= 0)
-                return alert('بيانات غير صالحة');
-            await db.collection('currencySettings').doc('settings').set(ns);
-            currencySettings = ns;
-            await addToActivityLog('settings', 'تغيير إعدادات العملة');
-            tempPurchaseCurrency = (ns.defaultInputCurrency === 'secondary');
-            tempSaleCurrency = (ns.defaultInputCurrency === 'secondary');
-            tempSellCurrency = (ns.defaultSellCurrency === 'secondary');
-            updatePriceLabels();
-            updateProductPriceDisplay();
-            updateSellPriceDisplay();
-            updateEditSalePriceDisplay();
-            displayItems();
-            document.getElementById('settingsModal').style.display = 'none'; });
-        document.getElementById('storeInfoForm').addEventListener('submit', async (e) => { e.preventDefault();
-            let info = { name: document.getElementById('storeName').value.trim(), address: document.getElementById(
-                    'storeAddress').value.trim(), phone: document.getElementById('storePhone').value.trim(),
-                googleMapsLink: document.getElementById('storeMapLink').value.trim(), imageUrl: document.getElementById(
-                    'storeImageUrl').value.trim(), videoUrl: document.getElementById('storeVideoUrl').value.trim(),
-                socialLinks: collectSocialLinks(), hideOutOfStock: document.getElementById('storeHideOutOfStock').checked };
-            await saveStoreInfoToFirebase(info);
-            await addToActivityLog('settings', 'تحديث معلومات المتجر');
-            document.getElementById('storeInfoModal').style.display = 'none'; });
         document.getElementById('productDiscountEnabled').addEventListener('change', () => { document.getElementById(
                 'discountValueGroup').style.display = document.getElementById('productDiscountEnabled').checked ? 'block' :
                 'none'; });
         document.querySelectorAll('.closeModalBtn').forEach(btn => btn.addEventListener('click', () => document.querySelectorAll(
             '.modal').forEach(m => m.style.display = 'none')));
-        ['cancelItemBtn', 'cancelSellBtn', 'cancelEditSaleBtn', 'cancelSettingsBtn', 'cancelStoreInfoBtn', 'closeCategoriesBtn']
-        .forEach(id => { let btn = document.getElementById(id); if (btn) btn.addEventListener('click', () => document
-                .querySelectorAll('.modal').forEach(m => m.style.display = 'none')); });
+        ['cancelItemBtn', 'cancelSellBtn'].forEach(id => { let btn = document.getElementById(id); if (btn) btn.addEventListener(
+                'click', () => document.querySelectorAll('.modal').forEach(m => m.style.display = 'none')); });
         window.addEventListener('click', e => { if (e.target.classList.contains('modal')) e.target.style.display = 'none'; });
-        document.querySelectorAll('.report-tab').forEach(tab => { tab.addEventListener('click', () => { document
-                .querySelectorAll('.report-tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                let sec = tab.dataset.section;
-                document.querySelectorAll('.report-section').forEach(s => s.classList.remove('active'));
-                let targetId = sec === 'sales' ? 'salesLogSection' : sec === 'activities' ? 'activityLogSection' :
-                    sec + 'Section';
-                document.getElementById(targetId)?.classList.add('active'); if (sec === 'sales') displaySalesLog();
-                else if (sec === 'activities') displayActivityLog();
-                else updateStats(); }); });
+
         document.getElementById('doLoginBtn').addEventListener('click', async () => { let email = document.getElementById(
                 'loginEmail').value.trim();
             let pass = document.getElementById('loginPassword').value.trim(); if (!email || !pass) { document.getElementById(
@@ -2284,6 +1261,7 @@
                     .signInWithEmailAndPassword(email, pass); } catch (err) { document.getElementById('loginErrorMsg')
                     .innerText = 'فشل الدخول';
                 document.getElementById('loginErrorMsg').style.display = 'block'; } });
+
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 document.getElementById('loginContainer').style.display = 'none';
@@ -2291,21 +1269,13 @@
                 document.getElementById('connectionStatus').innerText = 'جار التحميل...';
                 document.getElementById('connectionStatus').style.display = 'block';
                 loadAllFromLocalStorage();
-                hasFetchedSales = false;
-                hasFetchedActivityLog = false;
-                window._cachedStats = { allTimeProfit: 0 };
                 await fetchCurrencySettings();
-                await fetchCategories();
                 await fetchItems();
-                await fetchStatsDoc();
                 document.getElementById('connectionStatus').innerText = 'تم';
                 setTimeout(() => document.getElementById('connectionStatus').style.display = 'none', 2000);
             } else {
                 document.getElementById('loginContainer').style.display = 'flex';
                 document.getElementById('appMain').style.display = 'none';
-                hasFetchedSales = false;
-                hasFetchedActivityLog = false;
-                window._cachedStats = { allTimeProfit: 0 };
             }
         });
     </script>
