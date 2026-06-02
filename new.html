@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+=<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -577,11 +577,26 @@
             border-radius: 36px;
             width: 100%;
             max-width: 480px;
-            overflow-y: visible;
-            max-height: none;
-            padding: 20px 20px;
+            /* limit height to viewport and enable scrolling only when needed */
+            max-height: calc(100vh - 48px);
+            overflow-y: auto;
+            padding: 20px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
             transition: background 0.3s;
+            -webkit-overflow-scrolling: touch;
+        }
+        .modal-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        .modal-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .modal-content::-webkit-scrollbar-thumb {
+            background: var(--scroll-thumb);
+            border-radius: 10px;
+        }
+        .modal-content::-webkit-scrollbar-thumb:hover {
+            background: var(--scroll-thumb-hover);
         }
         .modal-header {
             display: flex;
@@ -649,6 +664,37 @@
             padding-left: 56px;
             padding-right: 46px;
         }
+
+        /* Purchase batches row styling */
+        .purchase-batch-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .purchase-batch-row input {
+            height: 36px;
+            padding: 6px 8px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text);
+            min-width: 0;
+        }
+        .purchase-batch-row .batch-qty { width: 70px; }
+        .purchase-batch-row .batch-unit { width: 90px; }
+        .purchase-batch-row .batch-supplier { flex: 1; min-width: 80px; }
+        .purchase-batch-row .batch-note { flex: 1; min-width: 80px; }
+        .purchase-batch-row .remove-batch {
+            background: var(--red-bg);
+            color: var(--red-text);
+            border: none;
+            padding: 6px 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+        .purchase-batch-row .remove-batch:active { transform: scale(0.98); }
         .currency-switch {
             position: absolute;
             left: 6px;
@@ -795,6 +841,17 @@
                             <button type="button" class="currency-switch" id="switchPurchaseCurrency">تبديل</button>
                         </div>
                         <div id="purchasePriceSecondary" class="currency-info"></div>
+                        <div id="purchaseBatchesContainer" style="margin-top:10px;background:var(--surface);padding:10px;border-radius:12px;border:1px solid var(--border);">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;">
+                                <strong>دفعات الشراء</strong>
+                                <div style="display:flex;gap:8px;align-items:center;">
+                                    <div style="font-size:0.85rem;color:var(--text3);">إجمالي الكمية: <span id="batchesTotalQty">0</span></div>
+                                    <div style="font-size:0.85rem;color:var(--text3);">إجمالي التكلفة: <span id="batchesTotalCost">0</span></div>
+                                    <button type="button" id="addPurchaseBatchBtn" class="action-btn">+ إضافة دفعة</button>
+                                </div>
+                            </div>
+                            <div id="purchaseBatchesList" style="display:flex;flex-direction:column;gap:8px;"></div>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label id="salePriceLabel">سعر البيع ($)</label>
@@ -981,6 +1038,102 @@
             if (sEl) sEl.innerText = sDisplay;
         }
 
+        // --- Purchase batches support ---
+        window.currentPurchaseBatches = [];
+        function addPurchaseBatchRow(batch) {
+            batch = batch || { quantity: '', unitCost: '', supplier: '', note: '' };
+            var list = document.getElementById('purchaseBatchesList');
+            if (!list) return;
+            var row = document.createElement('div');
+            row.className = 'purchase-batch-row';
+            row.style.display = 'flex';
+            row.style.gap = '8px';
+            row.style.alignItems = 'center';
+            row.innerHTML =
+                '<input type="number" class="batch-qty" min="0" step="1" value="' + (batch.quantity !== undefined ? batch.quantity : '') + '" placeholder="كمية" style="width:90px;padding:8px;border-radius:10px;border:1px solid var(--border);">' +
+                '<input type="number" class="batch-unit" min="0" step="0.01" value="' + (batch.unitCost !== undefined ? batch.unitCost : '') + '" placeholder="سعر الوحدة" style="width:110px;padding:8px;border-radius:10px;border:1px solid var(--border);">' +
+                '<input type="text" class="batch-supplier" placeholder="المورد" value="' + (batch.supplier || '') + '" style="flex:1;padding:8px;border-radius:10px;border:1px solid var(--border);">' +
+                '<input type="text" class="batch-note" placeholder="ملاحظة" value="' + (batch.note || '') + '" style="flex:1;padding:8px;border-radius:10px;border:1px solid var(--border);">' +
+                '<button type="button" class="remove-batch" title="حذف" style="background:transparent;border:none;color:var(--danger);font-weight:700;">✖</button>';
+            list.appendChild(row);
+
+            var qtyEl = row.querySelector('.batch-qty');
+            var unitEl = row.querySelector('.batch-unit');
+            var supEl = row.querySelector('.batch-supplier');
+            var noteEl = row.querySelector('.batch-note');
+            var delBtn = row.querySelector('.remove-batch');
+
+            function onChange() { computeBatchesSummary(); }
+            qtyEl.addEventListener('input', onChange);
+            unitEl.addEventListener('input', onChange);
+            supEl.addEventListener('input', onChange);
+            noteEl.addEventListener('input', onChange);
+            delBtn.addEventListener('click', function() { row.remove(); computeBatchesSummary(); });
+            computeBatchesSummary();
+        }
+
+        function getPurchaseBatchesFromUI() {
+            var rows = document.querySelectorAll('#purchaseBatchesList .purchase-batch-row');
+            var batches = [];
+            rows.forEach(function(r) {
+                var q = parseInt(r.querySelector('.batch-qty').value) || 0;
+                var u = parseFloat(r.querySelector('.batch-unit').value) || 0;
+                var s = r.querySelector('.batch-supplier').value || '';
+                var n = r.querySelector('.batch-note').value || '';
+                if (q > 0 && u >= 0) batches.push({ quantity: q, unitCost: Number(u), supplier: s, note: n, timestamp: Date.now() });
+            });
+            return batches;
+        }
+
+        function computeBatchesSummary() {
+            var rows = document.querySelectorAll('#purchaseBatchesList .purchase-batch-row');
+            var totalQty = 0, totalCost = 0;
+            rows.forEach(function(r) {
+                var q = parseInt(r.querySelector('.batch-qty').value) || 0;
+                var uDisplay = parseFloat(r.querySelector('.batch-unit').value) || 0;
+                var uPrimary = tempPurchaseCurrency ? convertToPrimary(uDisplay) : uDisplay;
+                if (q > 0 && uPrimary >= 0) {
+                    totalQty += q;
+                    totalCost += q * uPrimary;
+                }
+            });
+            var avgPrimary = totalQty > 0 ? (totalCost / totalQty) : 0;
+            document.getElementById('batchesTotalQty').innerText = totalQty;
+            var totalCostDisplayed = tempPurchaseCurrency ? convertToSecondary(totalCost) : totalCost;
+            document.getElementById('batchesTotalCost').innerText = formatSecondary(totalCostDisplayed);
+            var purchaseEl = document.getElementById('purchasePrice');
+            if (purchaseEl) {
+                if (totalQty > 0) {
+                    var avgDisplayed = tempPurchaseCurrency ? convertToSecondary(avgPrimary) : avgPrimary;
+                    purchaseEl.value = Number(avgDisplayed.toFixed(2));
+                    purchaseEl.readOnly = true;
+                    purchaseEl.title = 'سعر الشراء محسوب تلقائياً من دفعات الشراء';
+                } else {
+                    purchaseEl.readOnly = false;
+                    purchaseEl.title = '';
+                    if (!purchaseEl.value) purchaseEl.value = '';
+                }
+            }
+            var qtyEl = document.getElementById('quantity');
+            if (qtyEl) {
+                if (totalQty > 0) {
+                    qtyEl.value = totalQty;
+                    qtyEl.readOnly = true;
+                    qtyEl.title = 'تم تعيين الكمية تلقائياً من دفعات الشراء';
+                } else {
+                    qtyEl.readOnly = false;
+                    qtyEl.title = '';
+                    if (!qtyEl.value) qtyEl.value = '';
+                }
+            }
+            window.currentPurchaseBatches = getPurchaseBatchesFromUI();
+        }
+
+        document.addEventListener('click', function(e) {
+            if (e.target && e.target.id === 'addPurchaseBatchBtn') addPurchaseBatchRow({ quantity: '', unitCost: '', supplier: '', note: '' });
+        });
+
+
         function updateSellPriceDisplay() {
             let v = parseFloat(document.getElementById('sellPrice')?.value) || 0;
             let sym = currencySettings.secondaryCurrencySymbol;
@@ -1114,10 +1267,13 @@
             document.getElementById('purchasePrice').value = '';
             document.getElementById('salePrice').value = '';
             document.getElementById('quantity').value = '';
+            // clear purchase batches UI
+            try { document.getElementById('purchaseBatchesList').innerHTML = ''; window.currentPurchaseBatches = []; } catch (e) {}
             tempPurchaseCurrency = (currencySettings.defaultInputCurrency === 'secondary');
             tempSaleCurrency = (currencySettings.defaultInputCurrency === 'secondary');
             updatePriceLabels();
             updateProductPriceDisplay();
+            try { computeBatchesSummary(); } catch (e) {}
             document.getElementById('itemName').focus();
             currentItemId = null;
             isEditing = false;
@@ -1142,17 +1298,55 @@
             document.getElementById('salePrice').value = tempSaleCurrency ? formatSecondary(convertToSecondary(item.salePrice)) :
                 item.salePrice;
             document.getElementById('quantity').value = item.quantity;
+            // populate purchase batches UI if present
+            try {
+                document.getElementById('purchaseBatchesList').innerHTML = '';
+                window.currentPurchaseBatches = [];
+                if (item.purchaseBatches && Array.isArray(item.purchaseBatches) && item.purchaseBatches.length) {
+                    item.purchaseBatches.forEach(b => {
+                        // unitCost stored in primary currency; display in current input currency
+                        const displayUnit = tempPurchaseCurrency ? formatSecondary(convertToSecondary(b.unitCost)) : b.unitCost;
+                        addPurchaseBatchRow({ quantity: b.quantity || 0, unitCost: displayUnit, supplier: b.supplier || '', note: b.note || '' });
+                    });
+                } else {
+                    if ((item.quantity || 0) > 0) addPurchaseBatchRow({ quantity: item.quantity || 0, unitCost: item.purchasePrice || 0, supplier: '', note: '' });
+                }
+            } catch (e) {}
             document.getElementById('modalTitle').innerText = 'تعديل القطعة';
             updatePriceLabels();
             updateProductPriceDisplay();
+            try { computeBatchesSummary(); } catch (e) {}
             document.getElementById('itemModal').style.display = 'flex';
         }
 
         document.getElementById('itemForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const itemForm = document.getElementById('itemForm');
+            if (!itemForm.checkValidity()) {
+                itemForm.reportValidity();
+                return;
+            }
+            try { computeBatchesSummary(); } catch (err) {}
             let name = document.getElementById('itemName').value.trim();
-            let purchase = tempPurchaseCurrency ? convertToPrimary(parseFloat(document.getElementById('purchasePrice')
-                .value) || 0) : parseFloat(document.getElementById('purchasePrice').value) || 0;
+            // determine purchase price from purchase batches (weighted average) if any
+            let uiBatches = getPurchaseBatchesFromUI();
+            let purchase = 0;
+            let storedBatches = [];
+            if (uiBatches && uiBatches.length) {
+                let tQ = 0, tC = 0;
+                uiBatches.forEach(b => {
+                    let unit = Number(b.unitCost) || 0;
+                    if (tempPurchaseCurrency) unit = convertToPrimary(unit);
+                    tQ += Number(b.quantity) || 0;
+                    tC += unit * (Number(b.quantity) || 0);
+                    storedBatches.push({ quantity: Number(b.quantity) || 0, unitCost: Number(unit), supplier: b.supplier || '', note: b.note || '', timestamp: b.timestamp || Date.now() });
+                });
+                purchase = tQ > 0 ? (tC / tQ) : 0;
+            } else {
+                purchase = tempPurchaseCurrency ? convertToPrimary(parseFloat(document.getElementById('purchasePrice')
+                    .value) || 0) : parseFloat(document.getElementById('purchasePrice').value) || 0;
+            }
+            purchase = Number((purchase || 0).toFixed(2));
             let sale = tempSaleCurrency ? convertToPrimary(parseFloat(document.getElementById('salePrice').value) || 0) :
                 parseFloat(document.getElementById('salePrice').value) || 0;
             let qty = parseInt(document.getElementById('quantity').value) || 0;
@@ -1161,7 +1355,7 @@
             if (isEditing) {
                 let item = items.find(i => i.id === currentItemId);
                 if (!item) return;
-                Object.assign(item, { name, purchasePrice: purchase, salePrice: sale, quantity: qty,
+                Object.assign(item, { name, purchasePrice: purchase, salePrice: sale, quantity: qty, purchaseBatches: storedBatches,
                     updatedAt: Date.now() });
                 await db.collection('items').doc(item.id).set(item);
                 await addToActivityLog('update', 'تعديل "' + name + '"');
@@ -1172,7 +1366,7 @@
                 setTimeout(() => document.getElementById('connectionStatus').style.display = 'none', 2000);
             } else {
                 let newId = 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                let newItem = { id: newId, name, purchasePrice: purchase, salePrice: sale, quantity: qty,
+                let newItem = { id: newId, name, purchasePrice: purchase, salePrice: sale, quantity: qty, purchaseBatches: storedBatches,
                     createdAt: Date.now(), updatedAt: Date.now() };
                 await db.collection('items').doc(newId).set(newItem);
                 items.push(newItem);
@@ -1279,13 +1473,20 @@
         });
 
         document.getElementById('addItemBtn').addEventListener('click', addItem);
-        document.getElementById('switchPurchaseCurrency').addEventListener('click', () => { let inputEl = document.getElementById(
-                'purchasePrice');
+        document.getElementById('switchPurchaseCurrency').addEventListener('click', () => {
+            let inputEl = document.getElementById('purchasePrice');
             let v = parseFloat(inputEl.value) || 0;
+            // convert batch unit inputs as well
+            document.querySelectorAll('.batch-unit').forEach(b => {
+                let val = parseFloat(b.value) || 0;
+                b.value = tempPurchaseCurrency ? formatSecondary(convertToSecondary(val)) : convertToPrimary(val).toFixed(2);
+            });
             tempPurchaseCurrency = !tempPurchaseCurrency;
             inputEl.value = tempPurchaseCurrency ? formatSecondary(convertToSecondary(v)) : convertToPrimary(v).toFixed(2);
             updatePriceLabels();
-            updateProductPriceDisplay(); });
+            updateProductPriceDisplay();
+            try { computeBatchesSummary(); } catch (e) {}
+        });
         document.getElementById('switchSaleCurrency').addEventListener('click', () => { let inputEl = document.getElementById(
                 'salePrice');
             let v = parseFloat(inputEl.value) || 0;
