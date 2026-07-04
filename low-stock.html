@@ -6,8 +6,9 @@
     <title>شراء النقص | سلة مشتريات المتجر</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- استخدام مكتبات Firebase المتوافقة (compat) مع Firestore -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
@@ -551,22 +552,24 @@
 </div>
 
 <script>
+    // تهيئة Firebase باستخدام الإعدادات المقدمة
     const firebaseConfig = {
         apiKey: "AIzaSyBeJ0sbdCqz60a-yqzuZSt6QstDhR3TRtM",
         authDomain: "profit-zone-e03c6.firebaseapp.com",
-        databaseURL: "https://profit-zone-e03c6-default-rtdb.firebaseio.com",
+        databaseURL: "https://profit-zone-e03c6-default-rtdb.firebaseio.com", // سيبقى ولكن غير مستخدم
         projectId: "profit-zone-e03c6",
         storageBucket: "profit-zone-e03c6.firebasestorage.app",
         messagingSenderId: "306955059136",
         appId: "1:306955059136:web:a450be9721f4a2db0d1225"
     };
     firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+
+    // استخدام Firestore بدلاً من Realtime Database
+    const db = firebase.firestore();
     const auth = firebase.auth();
 
     let allItems = [];
     let categories = [];
-    let currencySettings = { exchangeRate: 3.75 };
     let purchaseCart = {};
     let currentSort = 'name';
 
@@ -606,30 +609,51 @@
         if (status === 'online-status') setTimeout(() => el.style.display = 'none', 2000);
     }
 
+    // جلب البيانات من Firestore
     async function loadData() {
-        const [itemsSnap, catsSnap] = await Promise.all([
-            database.ref('items').once('value'),
-            database.ref('categories').once('value')
-        ]);
-        allItems = itemsSnap.val() ? Object.keys(itemsSnap.val()).map(k => ({ id: k, ...itemsSnap.val()[k] })) : [];
-        categories = catsSnap.val() ? Object.keys(catsSnap.val()).map(k => ({ id: k, name: catsSnap.val()[k] })) : [];
-        renderProducts();
+        try {
+            const [itemsSnap, catsSnap] = await Promise.all([
+                db.collection('items').get(),
+                db.collection('categories').get()
+            ]);
+            allItems = itemsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            categories = catsSnap.docs.map(doc => ({ id: doc.id, name: doc.data().name }));
+            renderProducts();
+        } catch (e) {
+            console.error('خطأ في تحميل البيانات:', e);
+            showToast('فشل تحميل البيانات');
+        }
     }
 
     function formatMoney(v) { return v.toFixed(2); }
 
+    // مزامنة السلة مع Firestore
     async function syncCart() {
         if (!auth.currentUser) return;
-        await database.ref('shoppingCart/' + auth.currentUser.uid).set(purchaseCart);
+        const userDoc = db.collection('shoppingCart').doc(auth.currentUser.uid);
+        try {
+            await userDoc.set({ cart: purchaseCart }, { merge: true });
+        } catch (e) {
+            console.error('خطأ في مزامنة السلة:', e);
+            showToast('فشل حفظ السلة');
+        }
     }
 
+    // الاستماع لتغييرات السلة من Firestore
     function listenCart() {
         if (!auth.currentUser) return;
-        const cartRef = database.ref('shoppingCart/' + auth.currentUser.uid);
-        cartRef.on('value', snap => {
-            purchaseCart = snap.val() || {};
+        const userDoc = db.collection('shoppingCart').doc(auth.currentUser.uid);
+        userDoc.onSnapshot((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                purchaseCart = data.cart || {};
+            } else {
+                purchaseCart = {};
+            }
             updateCartUI();
             renderProducts();
+        }, (error) => {
+            console.error('خطأ في الاستماع للسلة:', error);
         });
     }
 
@@ -787,14 +811,17 @@
             totalCostUSD: total
         };
         try {
-            await database.ref('purchaseOrders').push(order);
+            await db.collection('purchaseOrders').add(order);
             purchaseCart = {};
             await syncCart();
             updateCartUI();
             renderProducts();
             setActivePage('products');
             showToast('تم تسجيل أمر الشراء');
-        } catch(e) { alert('فشل الحفظ'); }
+        } catch(e) {
+            console.error('فشل حفظ الطلب:', e);
+            alert('فشل الحفظ');
+        }
     }
 
     function setActivePage(page) {
@@ -833,10 +860,13 @@
     cartNav.addEventListener('click', () => setActivePage('cart'));
     cartSort.addEventListener('change', e => { currentSort = e.target.value; updateCartUI(); });
 
+    // الاستماع المباشر لتغييرات المنتجات من Firestore
     function listenItemsRealtime() {
-        database.ref('items').on('value', snap => {
-            allItems = snap.val() ? Object.keys(snap.val()).map(k => ({ id: k, ...snap.val()[k] })) : [];
+        db.collection('items').onSnapshot((snap) => {
+            allItems = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderProducts();
+        }, (error) => {
+            console.error('خطأ في مراقبة المنتجات:', error);
         });
     }
 
